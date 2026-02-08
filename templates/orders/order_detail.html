@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="mb-3">
+            <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to My Orders
+            </a>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-receipt"></i> Order #{{ order.order_number }}
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-clock"></i> {{ order.get_status_display }}
+                                </span>
+                            {% elif order.status == 'confirmed' %}
+                                <span class="badge bg-info fs-6">
+                                    <i class="bi bi-check-circle"></i> {{ order.get_status_display }}
+                                </span>
+                            {% elif order.status == 'processing' %}
+                                <span class="badge bg-primary fs-6">
+                                    <i class="bi bi-hourglass-split"></i> {{ order.get_status_display }}
+                                </span>
+                            {% elif order.status == 'completed' %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="bi bi-check-circle-fill"></i> {{ order.get_status_display }}
+                                </span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger fs-6">
+                                    <i class="bi bi-x-circle"></i> {{ order.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-calendar"></i> Order Date:</strong><br>
+                                    {{ order.created_at|date:"F d, Y - g:i A" }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-person"></i> Buyer:</strong><br>
+                                    {{ order.buyer.username }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-shop"></i> Farmer:</strong><br>
+                                    {{ order.farmer.username }}
+                                    {% if order.farmer.farmer_profile %}
+                                        <small class="text-muted d-block">{{ order.farmer.farmer_profile.farm_name }}</small>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-telephone"></i> Farmer Contact:</strong><br>
+                                    {{ order.farmer.phone|default:"Not provided" }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3"><i class="bi bi-box-seam"></i> Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Unit Price</th>
+                                        <th>Quantity</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'marketplace:product_detail' item.product.pk %}" class="text-decoration-none">
+                                                {{ item.product.name }}
+                                            </a>
+                                        </td>
+                                        <td>UGX {{ item.unit_price|floatformat:0 }}</td>
+                                        <td>{{ item.quantity }} {{ item.product.unit }}</td>
+                                        <td class="fw-bold">UGX {{ item.subtotal|floatformat:0 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="3" class="text-end">Total Amount:</th>
+                                        <th class="text-success">UGX {{ order.total_amount|floatformat:0 }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3"><i class="bi bi-truck"></i> Delivery Information</h5>
+                        <p class="mb-2">
+                            <strong>Address:</strong><br>
+                            {{ order.delivery_address }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Phone:</strong> {{ order.delivery_phone }}
+                        </p>
+                        {% if order.notes %}
+                        <p class="mb-0">
+                            <strong>Notes:</strong><br>
+                            <em class="text-muted">{{ order.notes }}</em>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                {% if user == order.buyer %}
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-gear"></i> Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if order.status == 'pending' %}
+                            <form method="post" action="{% url 'orders:cancel_order' order.id %}" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-x-circle"></i> Cancel Order
+                                </button>
+                            </form>
+                        {% elif order.status == 'cancelled' %}
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-x-circle"></i> This order has been cancelled
+                            </div>
+                        {% elif order.status == 'completed' %}
+                            <div class="alert alert-success mb-3">
+                                <i class="bi bi-check-circle"></i> Order completed successfully!
+                            </div>
+                            
+                            {% if order.review %}
+                                <div class="alert alert-info mb-3">
+                                    <i class="bi bi-star-fill text-warning"></i> You rated this order {{ order.review.rating }} stars
+                                </div>
+                                <a href="{% url 'reviews:farmer_reviews' order.farmer.id %}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-eye"></i> View Your Review
+                                </a>
+                            {% else %}
+                                <a href="{% url 'reviews:create_review' order.id %}" class="btn btn-warning w-100">
+                                    <i class="bi bi-star"></i> Write a Review
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle"></i> Your order is being processed
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user == order.farmer %}
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-gear"></i> Update Status</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if order.status != 'cancelled' and order.status != 'completed' %}
+                        <form method="post" action="{% url 'orders:update_order_status' order.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <select name="status" class="form-select" required>
+                                    <option value="">Select Status...</option>
+                                    <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                                    <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-arrow-repeat"></i> Update Status
+                            </button>
+                        </form>
+                        {% elif order.status == 'completed' %}
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle"></i> Order completed!
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-x-circle"></i> Order cancelled
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

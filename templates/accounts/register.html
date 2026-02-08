@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="bi bi-person-plus"></i> Create Account
+                        </h2>
+                        
+                        <form method="post" id="registerForm">
+                            {% csrf_token %}
+                            
+                            <!-- User Type Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">I am a:</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="user_type" id="farmer" value="farmer" checked>
+                                    <label class="btn btn-outline-success" for="farmer">
+                                        <i class="bi bi-person-workspace"></i> Farmer
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="user_type" id="consumer" value="consumer">
+                                    <label class="btn btn-outline-success" for="consumer">
+                                        <i class="bi bi-person"></i> Consumer
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="user_type" id="business" value="business">
+                                    <label class="btn btn-outline-success" for="business">
+                                        <i class="bi bi-building"></i> Business
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Basic Information -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Username *</label>
+                                    <input type="text" class="form-control" name="username" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Password *</label>
+                                    <input type="password" class="form-control" name="password" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Confirm Password *</label>
+                                    <input type="password" class="form-control" name="password2" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="text" class="form-control" name="phone" placeholder="+256...">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Location *</label>
+                                    <input type="text" class="form-control" name="location" placeholder="e.g., Kampala" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Farmer-specific fields -->
+                            <div id="farmerFields">
+                                <hr>
+                                <h5 class="mb-3">Farm Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Farm Name *</label>
+                                        <input type="text" class="form-control" name="farm_name">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Farm Size (acres)</label>
+                                        <input type="number" step="0.1" class="form-control" name="farm_size">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Specialization *</label>
+                                    <input type="text" class="form-control" name="specialization" placeholder="e.g., Vegetables, Coffee, Livestock">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle"></i> Register
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <p class="text-muted">
+                                Already have an account? 
+                                <a href="{% url 'accounts:login' %}">Login here</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show/hide farmer fields based on user type
+    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+    const farmerFields = document.getElementById('farmerFields');
+    
+    userTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'farmer') {
+                farmerFields.style.display = 'block';
+                // Make farmer fields required
+                document.querySelector('input[name="farm_name"]').required = true;
+                document.querySelector('input[name="specialization"]').required = true;
+            } else {
+                farmerFields.style.display = 'none';
+                // Make farmer fields not required
+                document.querySelector('input[name="farm_name"]').required = false;
+                document.querySelector('input[name="specialization"]').required = false;
+            }
+        });
+    });
+    
+    // Initialize on page load
+    if (document.getElementById('farmer').checked) {
+        farmerFields.style.display = 'block';
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Respond to Review{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-reply"></i> Respond to Review
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Original Review -->
+                        <div class="alert alert-light mb-4">
+                            <h5 class="mb-2">Original Review</h5>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="mb-2"><strong>{{ review.reviewer.username }}</strong></p>
+                            <p class="mb-0">{{ review.comment }}</p>
+                        </div>
+                        
+                        <!-- Response Form -->
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Your Response *</label>
+                                <textarea 
+                                    class="form-control" 
+                                    name="response_text" 
+                                    rows="5"
+                                    placeholder="Thank you for your feedback..."
+                                    required
+                                ></textarea>
+                                <small class="text-muted">
+                                    Tip: Thank the customer and address any concerns they mentioned.
+                                </small>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-send"></i> Submit Response
+                                </button>
+                                <a href="{% url 'reviews:farmer_reviews' review.farmer.id %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

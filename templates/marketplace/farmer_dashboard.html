@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Farmer Dashboard - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-speedometer2"></i> Farmer Dashboard</h2>
+                <p class="text-muted mb-0">Welcome back, {{ user.username }}!</p>
+            </div>
+            <a href="{% url 'add_product' %}" class="btn btn-success btn-lg">
+                <i class="bi bi-plus-circle"></i> Add New Product
+            </a>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-box-seam text-success" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ total_products }}</h3>
+                        <p class="text-muted mb-0">Total Products</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ available_products }}</h3>
+                        <p class="text-muted mb-0">Available Products</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ pending_orders }}</h3>
+                        <p class="text-muted mb-0">Pending Orders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Products List -->
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-grid"></i> My Products</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if products %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if product.image %}
+                                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ product.name }}</strong><br>
+                                                    <small class="text-muted">{{ product.category.name }}</small>
+                                                    {% if product.is_urgent %}
+                                                        <span class="badge bg-warning text-dark">URGENT</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>UGX {{ product.price|floatformat:0 }}</td>
+                                        <td>{{ product.quantity }} {{ product.unit }}</td>
+                                        <td>
+                                            {% if product.status == 'available' %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% elif product.status == 'out_of_stock' %}
+                                                <span class="badge bg-danger">Out of Stock</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Discontinued</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'edit_product' product.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'delete_product' product.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="text-muted mt-3">You haven't added any products yet.</p>
+                            <a href="{% url 'add_product' %}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Add Your First Product
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Orders -->
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-cart-check"></i> Recent Orders</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if orders_received %}
+                        <div class="list-group list-group-flush">
+                            {% for order in orders_received %}
+                            <a href="{% url 'orders:order_detail' order.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>#{{ order.order_number }}</strong><br>
+                                        <small class="text-muted">{{ order.buyer.username }}</small>
+                                    </div>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{% url 'orders:my_orders' %}" class="btn btn-sm btn-outline-primary">
+                                View All Orders
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                            <p class="text-muted mb-0 mt-2">No orders yet</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-link"></i> Quick Links</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'add_product' %}" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle"></i> Add Product
+                            </a>
+                            <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-cart"></i> My Orders
+                            </a>
+                            <a href="{% url 'market_prices' %}" class="btn btn-outline-info">
+                                <i class="bi bi-graph-up"></i> Market Prices
+                            </a>
+                            <a href="{% url 'reviews:farmer_reviews' user.id %}" class="btn btn-outline-warning">
+                                <i class="bi bi-star"></i> My Reviews
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

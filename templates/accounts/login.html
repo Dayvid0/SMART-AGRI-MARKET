@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </h2>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" name="username" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" name="password" required>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <p class="text-muted">
+                                Don't have an account? 
+                                <a href="{% url 'accounts:register' %}">Register here</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+```
+
+---
+
+### **Verify Your Folder Structure:**
+
+Make sure your templates folder looks like this:
+```
+templates/
+├── base.html
+├── accounts/
+│   ├── login.html          ← CREATE THIS
+│   ├── register.html
+│   └── dashboard.html
+└── marketplace/
+    ├── home.html
+    ├── product_list.html
+    └── product_detail.html

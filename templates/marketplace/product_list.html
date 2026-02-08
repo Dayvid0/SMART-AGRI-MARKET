@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="bg-light py-4">
+    <div class="container">
+        <h2 class="mb-0">
+            <i class="bi bi-grid"></i> All Products
+        </h2>
+        <p class="text-muted mb-0">Browse fresh agricultural products from local farmers</p>
+    </div>
+</section>
+
+<!-- Filters Section -->
+<section class="py-4 border-bottom">
+    <div class="container">
+        <form method="get" action="{% url 'product_list' %}">
+            <div class="row g-3">
+                <!-- Search Box -->
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            name="search" 
+                            class="form-control" 
+                            placeholder="Search products..." 
+                            value="{{ search_query }}"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Location Filter -->
+                <div class="col-md-3">
+                    <select name="location" class="form-select">
+                        <option value="">All Locations</option>
+                        {% for location in locations %}
+                            <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>
+                                {{ location }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Filter Button -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Active Filters Display -->
+        {% if search_query or selected_category or selected_location %}
+        <div class="mt-3">
+            <span class="text-muted">Active filters:</span>
+            {% if search_query %}
+                <span class="badge bg-secondary">Search: {{ search_query }}</span>
+            {% endif %}
+            {% if selected_category %}
+                <span class="badge bg-secondary">Category filter active</span>
+            {% endif %}
+            {% if selected_location %}
+                <span class="badge bg-secondary">Location: {{ selected_location }}</span>
+            {% endif %}
+            <a href="{% url 'product_list' %}" class="btn btn-sm btn-outline-secondary ms-2">
+                <i class="bi bi-x"></i> Clear All
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Products Grid -->
+<section class="py-5">
+    <div class="container">
+        <!-- Results Count -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0">
+                {% if products %}
+                    Showing {{ products|length }} product{{ products|length|pluralize }}
+                {% else %}
+                    No products found
+                {% endif %}
+            </h5>
+            
+            <!-- Sort Options (we'll implement later) -->
+            <div>
+                <small class="text-muted">Sort by:</small>
+                <select class="form-select form-select-sm d-inline-block w-auto">
+                    <option>Newest First</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <!-- Product Image -->
+                    <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="card-img-top product-image bg-secondary d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- Product Info -->
+                    <div class="card-body d-flex flex-column">
+                        <!-- Category Badge -->
+                        <span class="badge bg-success mb-2 align-self-start">
+                            {{ product.category.name }}
+                        </span>
+                        
+                        <!-- Product Name -->
+                        <h5 class="card-title">
+                            <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        
+                        <!-- Location -->
+                        <p class="card-text text-muted small mb-2">
+                            <i class="bi bi-geo-alt"></i> {{ product.location }}
+                        </p>
+                        
+                        <!-- Description Preview -->
+                        <p class="card-text text-muted small mb-3">
+                            {{ product.description|truncatewords:15 }}
+                        </p>
+                        
+                        <!-- Price and Action -->
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="h5 text-success mb-0">
+                                    UGX {{ product.price|floatformat:0 }}
+                                </span>
+                                <small class="text-muted">per {{ product.unit }}</small>
+                            </div>
+                            
+                            <!-- Quantity Available -->
+                            <small class="text-muted d-block mb-2">
+                                <i class="bi bi-box-seam"></i> {{ product.quantity }} {{ product.unit }} available
+                            </small>
+                            
+                            <!-- Farmer Info -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> {{ product.farmer.username }}
+                                </small>
+                                {% if product.farmer.farmer_profile %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-star-fill"></i> 
+                                        {{ product.farmer.farmer_profile.rating_average|floatformat:1 }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- View Details Button -->
+                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary w-100">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- No Products Found -->
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                    <h4 class="mt-3">No Products Found</h4>
+                    <p class="text-muted">Try adjusting your filters or search terms</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> View All Products
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

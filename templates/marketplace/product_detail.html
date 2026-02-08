@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="bg-light py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'product_list' %}">Products</a></li>
+                <li class="breadcrumb-item active">{{ product.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4"> <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top rounded" alt="{{ product.name }}" id="mainImage" style="height: 450px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 450px;">
+                            <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if product.image2 or product.image3 %}
+                <div class="row mt-3 g-2">
+                    <div class="col-4">
+                        <img src="{{ product.image.url }}" class="img-thumbnail" style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;" onclick="changeImage('{{ product.image.url }}')">
+                    </div>
+                    {% if product.image2 %}
+                    <div class="col-4">
+                        <img src="{{ product.image2.url }}" class="img-thumbnail" style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;" onclick="changeImage('{{ product.image2.url }}')">
+                    </div>
+                    {% endif %}
+                    {% if product.image3 %}
+                    <div class="col-4">
+                        <img src="{{ product.image3.url }}" class="img-thumbnail" style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;" onclick="changeImage('{{ product.image3.url }}')">
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <div class="ps-md-3">
+                    <span class="badge bg-success mb-2">{{ product.category.name }}</span>
+                    <h1 class="fw-bold mb-3">{{ product.name }}</h1>
+                    
+                    <div class="mb-4">
+                        <h2 class="text-success fw-bold">
+                            UGX {{ product.price|floatformat:0 }}
+                            <small class="text-muted fs-6 fw-normal">/ {{ product.unit }}</small>
+                        </h2>
+                        <p class="text-muted small"><i class="bi bi-geo-alt"></i> {{ product.location }}</p>
+                    </div>
+
+                    <div class="card border-0 bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="fw-bold"><i class="bi bi-info-circle"></i> Availability</h6>
+                            <p class="mb-0">{{ product.quantity }} {{ product.unit }} currently in stock</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Description</h6>
+                        <p class="text-muted">{{ product.description }}</p>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <h6 class="text-muted small text-uppercase fw-bold mb-3">Farmer Details</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-person-circle fs-1 text-success"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 class="mb-0">{{ product.farmer.username }}</h5>
+                                    {% if product.farmer.farmer_profile %}
+                                        <small class="text-muted">{{ product.farmer.farmer_profile.farm_name }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <a href="{% url 'reviews:farmer_reviews' product.farmer.id %}" class="btn btn-sm btn-outline-success w-100 mb-2">
+                                <i class="bi bi-star"></i> View Reviews 
+                                {% if product.farmer.farmer_profile %}
+                                    ({{ product.farmer.farmer_profile.rating_average|floatformat:1 }} ⭐)
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#contactModal">
+                            <i class="bi bi-telephone"></i> Contact Farmer
+                        </button>
+                    </div>
+                </div>
+            </div> </div> </div> </section>
+
+{% if related_products %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h4 class="mb-4">Other products you might like</h4>
+        <div class="row">
+            {% for related in related_products %}
+            <div class="col-6 col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="{{ related.image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                    <div class="card-body p-2 text-center">
+                        <h6 class="small mb-1">{{ related.name }}</h6>
+                        <a href="{% url 'product_detail' related.pk %}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Contact Seller</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pb-4">
+                <i class="bi bi-person-check text-success fs-1"></i>
+                <h4 class="mt-2">{{ product.farmer.username }}</h4>
+                <hr>
+                <div class="d-grid gap-3">
+                    {% if product.farmer.phone %}
+                        <a href="tel:{{ product.farmer.phone }}" class="btn btn-primary">
+                            <i class="bi bi-telephone-fill me-2"></i> Call: {{ product.farmer.phone }}
+                        </a>
+                    {% endif %}
+                    <a href="mailto:{{ product.farmer.email }}" class="btn btn-outline-dark">
+                        <i class="bi bi-envelope-fill me-2"></i> Send Email
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeImage(imageUrl) {
+        document.getElementById('mainImage').src = imageUrl;
+    }
+</script>
+{% endblock %}
