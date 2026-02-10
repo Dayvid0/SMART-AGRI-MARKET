@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Group Buy - {{ pool.input_item.name }}{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow mb-4">
+                    {% if pool.input_item.image %}
+                        <img src="{{ pool.input_item.image.url }}" class="card-img-top" alt="{{ pool.input_item.name }}" style="height: 300px; object-fit: cover;">
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h2>{{ pool.input_item.name }}</h2>
+                        <p class="text-muted">{{ pool.input_item.brand }}</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="my-4">
+                            <h4>Pool Progress</h4>
+                            <div class="progress" style="height: 40px;">
+                                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                                     style="width: {{ progress_percentage }}%">
+                                    {{ pool.current_quantity }}/{{ pool.target_quantity }} {{ pool.input_item.unit }} ({{ progress_percentage|floatformat:0 }}%)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Comparison -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">Regular Price</h6>
+                                        <h3 class="text-decoration-line-through">
+                                            UGX {{ pool.input_item.price|floatformat:0 }}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h6>Group Buy Price</h6>
+                                        <h3 class="fw-bold">
+                                            UGX {% widthratio pool.input_item.price 1 1 as base %}
+                                            {{ pool.input_item.price|floatformat:0 }}
+                                        </h3>
+                                        <small>Save {{ pool.input_item.group_discount_percentage }}%!</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <h5>Product Details</h5>
+                        <p>{{ pool.input_item.description }}</p>
+                        
+                        {% if pool.input_item.usage_instructions %}
+                        <h6>Usage Instructions</h6>
+                        <p>{{ pool.input_item.usage_instructions }}</p>
+                        {% endif %}
+                        
+                        {% if pool.input_item.safety_warnings %}
+                        <div class="alert alert-warning">
+                            <strong><i class="bi bi-exclamation-triangle"></i> Safety Warnings:</strong>
+                            <p class="mb-0">{{ pool.input_item.safety_warnings }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Participants -->
+                <div class="card shadow">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people"></i> Participants ({{ participants.count }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for participant in participants %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-person-circle"></i> {{ participant.farmer.username }}
+                                    {% if participant.farmer == pool.organizer %}
+                                        <span class="badge bg-warning">Organizer</span>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-success rounded-pill">
+                                    {{ participant.quantity }} {{ pool.input_item.unit }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Pool Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Status:</strong>
+                            {% if pool.status == 'open' %}
+                                <span class="badge bg-success">Open</span>
+                            {% elif pool.status == 'closed' %}
+                                <span class="badge bg-info">Target Reached</span>
+                            {% elif pool.status == 'completed' %}
+                                <span class="badge bg-primary">Completed</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Deadline:</strong><br>
+                            {{ pool.deadline|date:"F d, Y - g:i A" }}
+                        </p>
+                        <p>
+                            <strong>Organizer:</strong><br>
+                            {{ pool.organizer.username }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Supplier:</strong><br>
+                            {{ pool.input_item.supplier.username }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Join Action -->
+                {% if user.is_authenticated %}
+                    {% if user_participation %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i> You're in this pool!<br>
+                            <strong>Your quantity:</strong> {{ user_participation.quantity }} {{ pool.input_item.unit }}
+                        </div>
+                    {% elif pool.status == 'open' %}
+                        <div class="card shadow">
+                            <div class="card-body">
+                                <h5>Join This Pool</h5>
+                                <p class="text-muted">Join now and save {{ pool.input_item.group_discount_percentage }}%</p>
+                                <a href="{% url 'inputs:join_group_buy' pool.id %}" class="btn btn-warning w-100 btn-lg">
+                                    <i class="bi bi-plus-circle"></i> Join Group Buy
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> This pool is closed for new participants.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <a href="{% url 'accounts:login' %}">Login</a> to join this group buy
+                    </div>
+                {% endif %}
+                
+                <!-- Share -->
+                <div class="card shadow mt-3">
+                    <div class="card-body">
+                        <h6>Share with Other Farmers</h6>
+                        <div class="d-grid gap-2">
+                            <a href="https://wa.me/?text=Join our group buy for {{ pool.input_item.name }}! {{ request.build_absolute_uri }}" 
+                               class="btn btn-success btn-sm" target="_blank">
+                                <i class="bi bi-whatsapp"></i> Share on WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

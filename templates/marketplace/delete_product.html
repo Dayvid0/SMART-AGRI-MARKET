@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Product - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-exclamation-triangle"></i> Delete Product
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle"></i> 
+                            <strong>Warning!</strong> This action cannot be undone.
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="img-thumbnail mb-3" style="max-width: 200px;">
+                            {% endif %}
+                            <h5>{{ product.name }}</h5>
+                            <p class="text-muted">{{ product.category.name }}</p>
+                        </div>
+                        
+                        <p class="text-center mb-4">
+                            Are you sure you want to delete this product?
+                        </p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="bi bi-trash"></i> Yes, Delete Product
+                                </button>
+                                <a href="{% url 'farmer_dashboard' %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -23,6 +23,9 @@ INSTALLED_APPS = [
     'marketplace',
     'orders',
     'reviews',
+    'inputs',
+    'news',
+    'weather',
 ]
 
 MIDDLEWARE = [

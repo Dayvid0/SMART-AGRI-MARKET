@@ -211,3 +211,42 @@ class MarketPrice(models.Model):
         verbose_name = "Market Price"
         verbose_name_plural = "Market Prices"
         ordering = ['-date_recorded']
+class CrowdsourcedPrice(models.Model):
+    """
+    Farmers report prices they're getting from buyers
+    Helps prevent middleman exploitation
+    """
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reported_prices'
+    )
+    product_name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=50)
+    
+    buyer_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('middleman', 'Middleman'),
+            ('direct_consumer', 'Direct Consumer'),
+            ('business', 'Business/Restaurant'),
+            ('market', 'Market Vendor'),
+        ]
+    )
+    
+    location = models.CharField(max_length=100)
+    market_name = models.CharField(max_length=200, blank=True)
+    
+    date_reported = models.DateField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    
+    notes = models.TextField(blank=True, help_text="Additional context")
+    
+    def __str__(self):
+        return f"{self.product_name} - UGX {self.price}/{self.unit} at {self.location}"
+    
+    class Meta:
+        verbose_name = "Crowdsourced Price"
+        verbose_name_plural = "Crowdsourced Prices"
+        ordering = ['-date_reported']        

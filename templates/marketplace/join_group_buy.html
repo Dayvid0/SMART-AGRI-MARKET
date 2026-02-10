@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Join Group Buy{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-people"></i> Join Group Buy
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <h5 class="mb-3">{{ pool.input_item.name }}</h5>
+                        
+                        <div class="alert alert-info">
+                            <p class="mb-2">
+                                <strong>Target:</strong> {{ pool.target_quantity }} {{ pool.input_item.unit }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Current:</strong> {{ pool.current_quantity }} {{ pool.input_item.unit }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Still Needed:</strong> 
+                                {{ pool.target_quantity|add:pool.current_quantity|add:"-" }} {{ pool.input_item.unit }}
+                            </p>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Quantity ({{ pool.input_item.unit }}) *</label>
+                                <input type="number" class="form-control" name="quantity" required min="1">
+                                <small class="text-muted">How much do you want to order?</small>
+                            </div>
+                            
+                            <div class="alert alert-success">
+                                <strong>You'll save {{ pool.input_item.group_discount_percentage }}%</strong>
+                                <p class="mb-0 small">
+                                    Group Price: UGX {{ pool.input_item.price|floatformat:0 }}/{{ pool.input_item.unit }}
+                                </p>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="bi bi-check-circle"></i> Join Pool
+                                </button>
+                                <a href="{% url 'inputs:group_buy_detail' pool.id %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

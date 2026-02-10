@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ pest_alert.pest_name }} - Pest Alert{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    {% if pest_alert.image %}
+                        <img src="{{ pest_alert.image.url }}" class="card-img-top" style="height: 300px; object-fit: cover;">
+                    {% endif %}
+                    
+                    <div class="card-body p-4">
+                        <span class="badge bg-{% if pest_alert.severity == 'high' %}danger{% elif pest_alert.severity == 'medium' %}warning{% else %}info{% endif %} mb-3">
+                            {{ pest_alert.get_severity_display }} Risk
+                        </span>
+                        
+                        <h1 class="text-danger mb-4">{{ pest_alert.pest_name }}</h1>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-egg"></i> Affected Crops:</strong><br>
+                                    {{ pest_alert.affected_crops }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-geo-alt"></i> Affected Regions:</strong><br>
+                                    {{ pest_alert.affected_regions }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5>Description</h5>
+                        <p>{{ pest_alert.description }}</p>
+                        
+                        <h5 class="mt-4">Symptoms & Identification</h5>
+                        <div class="alert alert-warning">
+                            {{ pest_alert.symptoms|linebreaks }}
+                        </div>
+                        
+                        <h5 class="mt-4">Control Measures</h5>
+                        <div class="alert alert-success">
+                            {{ pest_alert.control_measures|linebreaks }}
+                        </div>
+                        
+                        {% if pest_alert.recommended_products %}
+                        <h5 class="mt-4">Recommended Products</h5>
+                        <div class="alert alert-info">
+                            {{ pest_alert.recommended_products|linebreaks }}
+                        </div>
+                        <a href="{% url 'inputs:input_store' %}?search=pesticide" class="btn btn-primary">
+                            <i class="bi bi-shop"></i> Browse Pesticides in Input Store
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="bi bi-calendar"></i> Reported: {{ pest_alert.reported_date|date:"F d, Y" }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Back to Climate Suite
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

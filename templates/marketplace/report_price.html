@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Price - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-graph-up"></i> Report a Price
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            Help other farmers by sharing the price you received for your produce. 
+                            Your report is anonymous but helps everyone fight exploitation.
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Product Name *</label>
+                                    <input type="text" class="form-control" name="product_name" required placeholder="e.g., Matooke, Tomatoes">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Price (UGX) *</label>
+                                    <input type="number" class="form-control" name="price" required placeholder="5000">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Unit *</label>
+                                    <select name="unit" class="form-select" required>
+                                        <option value="">Select unit...</option>
+                                        <option value="kg">Kilogram (kg)</option>
+                                        <option value="bunch">Bunch</option>
+                                        <option value="bag">Bag</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="liter">Liter</option>
+                                        <option value="ton">Ton</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Buyer Type *</label>
+                                    <select name="buyer_type" class="form-select" required>
+                                        <option value="">Select buyer type...</option>
+                                        <option value="middleman">Middleman</option>
+                                        <option value="direct_consumer">Direct Consumer</option>
+                                        <option value="business">Business/Restaurant</option>
+                                        <option value="market">Market Vendor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Location *</label>
+                                    <input type="text" class="form-control" name="location" value="{{ user.location }}" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Market Name (Optional)</label>
+                                    <input type="text" class="form-control" name="market_name" placeholder="e.g., Owino Market">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Additional Notes (Optional)</label>
+                                <textarea class="form-control" name="notes" rows="3" placeholder="Any additional context about the sale..."></textarea>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <small>
+                                    <i class="bi bi-shield-check"></i> 
+                                    Your identity remains private. Only your username will be shown.
+                                </small>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle"></i> Submit Price Report
+                                </button>
+                                <a href="{% url 'price_tracker' %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

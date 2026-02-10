@@ -6,7 +6,6 @@
     <title>{% block title %}Smart Agricultural Marketplace{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
@@ -44,7 +43,6 @@
             transform: translateY(-2px);
         }
 
-        /* Fixed Login Button Styles */
         .nav-btn {
             background-color: white !important;
             color: var(--primary-green) !important;
@@ -102,85 +100,130 @@
     
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
-    
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="bi bi-basket"></i> AgriMarket
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto d-flex align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="bi bi-house"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'product_list' %}">
-                            <i class="bi bi-grid"></i> Products
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-sm nav-btn px-3 ms-lg-2" href="#">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </a>
-                    </li>
-                </ul>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <i class="bi bi-basket"></i> AgriMarket
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product_list' %}">
+                        <i class="bi bi-grid"></i> Produce Market
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'inputs:input_store' %}">
+                        <i class="bi bi-shop"></i> Input Store
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'news:news_list' %}">
+                        <i class="bi bi-newspaper"></i> Agri-Pulse
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-cloud-sun"></i> Climate Suite
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'weather:climate_suite' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'market_prices' %}">
+                                <i class="bi bi-graph-up"></i> Price Tracker
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'inputs:group_buy_list' %}">
+                                <i class="bi bi-people"></i> Group Buys
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {% if user.is_authenticated %}
+                    <!-- User menu -->
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% if messages %}
+<div class="container mt-2">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2 mb-2">
+            <small>{{ message }}</small>
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="mt-4">
+    <div class="container">
+        <div class="row text-center text-md-start">
+            <div class="col-md-4 mb-3">
+                <h6 class="fw-bold"><i class="bi bi-basket"></i> AgriMarket</h6>
+                <p class="small text-secondary">
+                    Connecting Ugandan farmers directly with consumers.
+                </p>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <h6 class="fw-bold">Quick Links</h6>
+                <div class="small">
+                    <a href="{% url 'home' %}" class="text-white-50 text-decoration-none me-2">Home</a>
+                    <a href="{% url 'product_list' %}" class="text-white-50 text-decoration-none me-2">Products</a>
+                    <a href="#" class="text-white-50 text-decoration-none">Contact</a>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <h6 class="fw-bold">Support</h6>
+                <p class="small text-secondary mb-0">
+                    <i class="bi bi-envelope"></i> info@agrimarket.ug
+                </p>
             </div>
         </div>
-    </nav>
-    
-    {% if messages %}
-        <div class="container mt-2">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2 mb-2" role="alert">
-                    <small>{{ message }}</small>
-                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
+
+        <hr class="my-3 bg-secondary">
+
+        <div class="text-center small text-secondary">
+            <p class="mb-0">&copy; 2026 Smart Agricultural Marketplace.</p>
         </div>
-    {% endif %}
-    
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
-    
-    <footer class="mt-4">
-        <div class="container">
-            <div class="row text-center text-md-start">
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold"><i class="bi bi-basket"></i> AgriMarket</h6>
-                    <p class="small text-secondary">Connecting Ugandan farmers directly with consumers.</p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold">Quick Links</h6>
-                    <div class="small">
-                        <a href="{% url 'home' %}" class="text-white-50 text-decoration-none me-2">Home</a>
-                        <a href="{% url 'product_list' %}" class="text-white-50 text-decoration-none me-2">Products</a>
-                        <a href="#" class="text-white-50 text-decoration-none">Contact</a>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold">Support</h6>
-                    <p class="small text-secondary mb-0"><i class="bi bi-envelope"></i> info@agrimarket.ug</p>
-                </div>
-            </div>
-            <hr class="my-3 bg-secondary">
-            <div class="text-center small text-secondary">
-                <p class="mb-0">&copy; 2026 Smart Agricultural Marketplace.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block extra_js %}{% endblock %}
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

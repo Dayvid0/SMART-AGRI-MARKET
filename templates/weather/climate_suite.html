@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Climate Suite - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <h1 class="display-4 mb-2">
+            <i class="bi bi-cloud-sun"></i> Climate Suite
+        </h1>
+        <p class="lead mb-0">
+            Weather forecasts, planting seasons, and pest alerts for smart farming
+        </p>
+    </div>
+</section>
+
+<!-- Current Weather -->
+{% if weather_data %}
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center">
+                        <img src="http://openweathermap.org/img/wn/{{ weather_data.icon }}@4x.png" alt="Weather" style="width: 120px;">
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Current Weather - {{ user.location }}</h3>
+                        <h1 class="display-3">{{ weather_data.temperature|floatformat:0 }}°C</h1>
+                        <p class="lead text-capitalize mb-0">{{ weather_data.description }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-2">
+                            <i class="bi bi-thermometer-half"></i> Feels like: {{ weather_data.feels_like|floatformat:0 }}°C
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-droplet"></i> Humidity: {{ weather_data.humidity }}%
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-wind"></i> Wind: {{ weather_data.wind_speed }} m/s
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Weather Alerts -->
+{% if active_alerts %}
+<section class="py-4">
+    <div class="container">
+        <h3 class="mb-3">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i> Active Weather Alerts
+        </h3>
+        <div class="row">
+            {% for alert in active_alerts %}
+            <div class="col-md-6 mb-3">
+                <div class="card border-{% if alert.severity == 'critical' %}danger{% elif alert.severity == 'high' %}warning{% else %}info{% endif %}">
+                    <div class="card-header bg-{% if alert.severity == 'critical' %}danger{% elif alert.severity == 'high' %}warning{% else %}info{% endif %} text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-circle"></i> {{ alert.title }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong>Type:</strong> {{ alert.get_alert_type_display }}</p>
+                        <p class="mb-2"><strong>Severity:</strong> <span class="badge bg-{{ alert.severity }}">{{ alert.get_severity_display }}</span></p>
+                        <p class="mb-2"><strong>Affected Regions:</strong> {{ alert.affected_regions }}</p>
+                        <p class="mb-2">{{ alert.description }}</p>
+                        <div class="alert alert-light mb-0">
+                            <strong>Recommendations:</strong>
+                            <p class="mb-0">{{ alert.recommendations }}</p>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted small">
+                        Valid: {{ alert.start_date|date:"M d" }} - {{ alert.end_date|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Planting Seasons -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h3 class="mb-4">
+            <i class="bi bi-calendar-check"></i> Planting Season Calendar
+        </h3>
+        {% if planting_seasons %}
+        <div class="row">
+            {% for season in planting_seasons %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">{{ season.crop_name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <strong><i class="bi bi-geo-alt"></i> Region:</strong> {{ season.region }}
+                        </p>
+                        <hr>
+                        <p class="mb-2">
+                            <strong><i class="bi bi-calendar-plus"></i> Best Planting:</strong><br>
+                            {{ season.best_planting_start|date:"M d" }} - {{ season.best_planting_end|date:"M d, Y" }}
+                        </p>
+                        <p class="mb-2">
+                            <strong><i class="bi bi-calendar-check"></i> Expected Harvest:</strong><br>
+                            {{ season.expected_harvest_start|date:"M d" }} - {{ season.expected_harvest_end|date:"M d, Y" }}
+                        </p>
+                        <hr>
+                        <p class="mb-2">
+                            <strong><i class="bi bi-droplet"></i> Rainfall:</strong> {{ season.rainfall_required }}
+                        </p>
+                        <p class="mb-3">
+                            <strong><i class="bi bi-thermometer"></i> Temperature:</strong> {{ season.temperature_range }}
+                        </p>
+                        <div class="alert alert-info mb-0">
+                            <small><strong>Tips:</strong> {{ season.planting_tips|truncatewords:20 }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No planting season data available yet.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Pest Alerts -->
+<section class="py-5">
+    <div class="container">
+        <h3 class="mb-4">
+            <i class="bi bi-bug"></i> Active Pest & Disease Alerts
+        </h3>
+        {% if pest_alerts %}
+        <div class="row">
+            {% for pest in pest_alerts %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="row g-0">
+                        {% if pest.image %}
+                        <div class="col-md-4">
+                            <img src="{{ pest.image.url }}" class="img-fluid rounded-start h-100" alt="{{ pest.pest_name }}" style="object-fit: cover;">
+                        </div>
+                        {% endif %}
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">{{ pest.pest_name }}</h5>
+                                <p class="mb-2">
+                                    <strong>Affected Crops:</strong> {{ pest.affected_crops }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Regions:</strong> {{ pest.affected_regions }}
+                                </p>
+                                <span class="badge bg-{% if pest.severity == 'high' %}danger{% elif pest.severity == 'medium' %}warning{% else %}info{% endif %}">
+                                    {{ pest.get_severity_display }} Risk
+                                </span>
+                                <div class="mt-3">
+                                    <a href="{% url 'weather:pest_alert_detail' pest.pk %}" class="btn btn-sm btn-outline-danger">
+                                        View Details & Control Measures
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> No active pest alerts in your region!
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

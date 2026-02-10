@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<!-- Hero Section -->
 <section class="hero-section text-center">
     <div class="container">
         <h1 class="display-4 fw-bold mb-4">
@@ -24,7 +23,6 @@
     </div>
 </section>
 
-<!-- Statistics Section -->
 <section class="py-5 bg-light">
     <div class="container">
         <div class="row text-center">
@@ -59,7 +57,6 @@
     </div>
 </section>
 
-<!-- Categories Section -->
 <section class="py-5">
     <div class="container">
         <h2 class="text-center mb-5">Browse by Category</h2>
@@ -88,7 +85,6 @@
     </div>
 </section>
 
-<!-- Featured Products Section -->
 <section class="py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5">Featured Products</h2>
@@ -141,7 +137,6 @@
     </div>
 </section>
 
-<!-- How It Works Section -->
 <section class="py-5">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
@@ -166,6 +161,103 @@
                 </div>
                 <h4>3. Get Delivery</h4>
                 <p class="text-muted">Receive fresh products directly from the farm</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Platform Features</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-shop text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Input Store</h5>
+                        <p class="text-muted">
+                            Quality seeds, fertilizers, and tools from verified suppliers with group buying options
+                        </p>
+                        <a href="{% url 'inputs:input_store' %}" class="btn btn-outline-success btn-sm">Explore</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-newspaper text-info" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Agri-Pulse News</h5>
+                        <p class="text-muted">
+                            Stay updated with government policies, market trends, and agricultural news
+                        </p>
+                        <a href="{% url 'news:news_list' %}" class="btn btn-outline-info btn-sm">Read News</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-cloud-sun text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Climate Suite</h5>
+                        <p class="text-muted">
+                            Weather forecasts, planting seasons, and pest alerts for smart farming
+                        </p>
+                        <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-primary btn-sm">View Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-warning bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-people text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Group Buying</h5>
+                        <p class="text-muted">
+                            Join with other farmers to buy inputs in bulk and save money together
+                        </p>
+                        <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning btn-sm">View Pools</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-danger bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-graph-up-arrow text-danger" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Price Tracker</h5>
+                        <p class="text-muted">
+                            Crowdsourced prices from farmers to fight middleman exploitation
+                        </p>
+                        <a href="{% url 'price_tracker' %}" class="btn btn-outline-danger btn-sm">View Prices</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                            <i class="bi bi-exclamation-triangle text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5>Distress Sale Alerts</h5>
+                        <p class="text-muted">
+                            Help farmers with perishables find urgent buyers to reduce losses
+                        </p>
+                        <a href="{% url 'product_list' %}?urgent=1" class="btn btn-outline-success btn-sm">View Urgent</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

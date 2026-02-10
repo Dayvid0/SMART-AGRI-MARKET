@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Group Buy - {{ input_item.name }}{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-people"></i> Start a Group Buy Pool
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i> 
+                            Start a group buy pool and invite other farmers to join. 
+                            Once you reach the target quantity, everyone gets the discount!
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        {% if input_item.image %}
+                                            <img src="{{ input_item.image.url }}" class="img-fluid rounded">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-9">
+                                        <h5>{{ input_item.name }}</h5>
+                                        <p class="mb-2">
+                                            <strong>Regular Price:</strong> 
+                                            <span class="text-decoration-line-through">UGX {{ input_item.price|floatformat:0 }}</span>
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>Group Price:</strong> 
+                                            <span class="text-success fw-bold">UGX {{ input_item.price|floatformat:0 }}</span>
+                                            (Save {{ input_item.group_discount_percentage }}%)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Target Quantity ({{ input_item.unit }}) *</label>
+                                <input type="number" class="form-control" name="target_quantity" 
+                                       min="{{ input_item.min_group_order }}" required 
+                                       placeholder="Minimum: {{ input_item.min_group_order }}">
+                                <small class="text-muted">
+                                    Minimum {{ input_item.min_group_order }} {{ input_item.unit }} required for group discount
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Your Quantity ({{ input_item.unit }}) *</label>
+                                <input type="number" class="form-control" name="my_quantity" required min="1">
+                                <small class="text-muted">How much do you want to order?</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Deadline *</label>
+                                <input type="datetime-local" class="form-control" name="deadline" required>
+                                <small class="text-muted">When should the pool close?</small>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <small>
+                                    <i class="bi bi-info-circle"></i> 
+                                    As the organizer, you'll coordinate with the supplier once the target is reached.
+                                </small>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="bi bi-check-circle"></i> Create Group Buy Pool
+                                </button>
+                                <a href="{% url 'inputs:input_detail' input_item.pk %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

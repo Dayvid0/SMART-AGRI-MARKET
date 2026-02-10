@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Price Tracker - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="bg-success text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-2">
+                    <i class="bi bi-graph-up-arrow"></i> Crowdsourced Price Tracker
+                </h1>
+                <p class="lead mb-0">
+                    Real prices reported by farmers - Fight middleman exploitation!
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'report_price' %}" class="btn btn-light btn-lg">
+                    <i class="bi bi-plus-circle"></i> Report a Price
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Info Banner -->
+<section class="py-3 bg-warning bg-opacity-10">
+    <div class="container">
+        <div class="alert alert-warning mb-0">
+            <i class="bi bi-lightbulb"></i> 
+            <strong>How it works:</strong> Farmers report prices they receive from buyers. 
+            This helps everyone negotiate fairly and avoid exploitation. All prices are verified by the community.
+        </div>
+    </div>
+</section>
+
+<!-- Filters -->
+<section class="py-4 border-bottom">
+    <div class="container">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <select name="product" class="form-select">
+                    <option value="">All Products</option>
+                    {% for product in products %}
+                        <option value="{{ product }}" {% if product_filter == product %}selected{% endif %}>
+                            {{ product }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <select name="location" class="form-select">
+                    <option value="">All Locations</option>
+                    {% for location in locations %}
+                        <option value="{{ location }}" {% if location_filter == location %}selected{% endif %}>
+                            {{ location }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Price Summary -->
+<section class="py-5">
+    <div class="container">
+        <h3 class="mb-4">Average Prices (Last 30 Days)</h3>
+        {% if price_summary %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-success">
+                    <tr>
+                        <th><i class="bi bi-box-seam"></i> Product</th>
+                        <th><i class="bi bi-arrow-down"></i> Min Price</th>
+                        <th><i class="bi bi-graph-up"></i> Average Price</th>
+                        <th><i class="bi bi-arrow-up"></i> Max Price</th>
+                        <th><i class="bi bi-rulers"></i> Unit</th>
+                        <th><i class="bi bi-people"></i> Reports</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in price_summary %}
+                    <tr>
+                        <td class="fw-bold">{{ item.product_name }}</td>
+                        <td class="text-danger">UGX {{ item.min_price|floatformat:0 }}</td>
+                        <td class="text-success fw-bold">UGX {{ item.avg_price|floatformat:0 }}</td>
+                        <td class="text-primary">UGX {{ item.max_price|floatformat:0 }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ item.report_count }} reports</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No price data available for your filters.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Recent Price Reports -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h3 class="mb-4">Recent Price Reports</h3>
+        {% if recent_prices %}
+        <div class="row">
+            {% for price in recent_prices %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ price.product_name }}</h5>
+                        <h3 class="text-primary mb-3">
+                            UGX {{ price.price|floatformat:0 }}<small class="text-muted">/{{ price.unit }}</small>
+                        </h3>
+                        
+                        <div class="mb-2">
+                            <strong>Buyer Type:</strong>
+                            <span class="badge bg-{% if price.buyer_type == 'middleman' %}warning{% elif price.buyer_type == 'direct_consumer' %}success{% else %}info{% endif %}">
+                                {{ price.get_buyer_type_display }}
+                            </span>
+                        </div>
+                        
+                        <p class="mb-2">
+                            <i class="bi bi-geo-alt"></i> <strong>Location:</strong> {{ price.location }}
+                        </p>
+                        
+                        {% if price.market_name %}
+                        <p class="mb-2">
+                            <i class="bi bi-shop"></i> <strong>Market:</strong> {{ price.market_name }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if price.notes %}
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-chat-quote"></i> {{ price.notes }}
+                        </p>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> Reported by {{ price.reporter.username }}
+                            <br>
+                            <i class="bi bi-calendar"></i> {{ price.date_reported|date:"M d, Y" }}
+                            {% if price.is_verified %}
+                                <span class="badge bg-success">Verified</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No recent price reports available.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-success text-white text-center">
+    <div class="container">
+        <h2 class="mb-3">Help Your Fellow Farmers!</h2>
+        <p class="lead mb-4">
+            Report prices you're getting to help others negotiate fairly
+        </p>
+        <a href="{% url 'report_price' %}" class="btn btn-light btn-lg">
+            <i class="bi bi-plus-circle"></i> Report a Price Now
+        </a>
+    </div>
+</section>
+
+{% endblock %}
