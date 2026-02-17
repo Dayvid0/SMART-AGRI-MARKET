@@ -7,94 +7,1007 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary-green: #28a745;
-            --dark-green: #1e7e34;
+            /* Agricultural Earth Tones - Inspired by Ugandan soil & vegetation */
+            --earth-rich: #6B4423;
+            --earth-warm: #8B5A2B;
+            --harvest-gold: #D4A574;
+            --fertile-green: #2D5016;
+            --leaf-vibrant: #4A7C2A;
+            --crop-fresh: #7CB342;
+            --sky-bright: #87CEEB;
+            --sun-glow: #FDB927;
+            
+            /* Refined Neutrals */
+            --clay-dark: #1A1612;
+            --soil-medium: #2C2520;
+            --dust-light: #E8DED0;
+            --cream-soft: #FAF7F2;
+            
+            /* Glassmorphism */
+            --glass-heavy: rgba(27, 22, 18, 0.85);
+            --glass-medium: rgba(42, 37, 32, 0.75);
+            --glass-light: rgba(250, 247, 242, 0.12);
+            --glass-border: rgba(212, 165, 116, 0.2);
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35);
+            --shadow-glow: 0 0 20px rgba(124, 179, 66, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+            background: var(--clay-dark);
+            color: var(--cream-soft);
         }
-        
+
+        /* Animated Background Layers */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(45, 80, 22, 0.4) 0%, rgba(107, 68, 35, 0.3) 50%, rgba(26, 22, 18, 0.5) 100%),
+                url('/media/products/BG-PICTURE.webp') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            z-index: -3;
+            animation: bgPulse 20s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        /* Organic Texture Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(212, 165, 116, 0.02) 2px,
+                    rgba(212, 165, 116, 0.02) 4px
+                );
+            z-index: -2;
+            pointer-events: none;
+            animation: textureSlide 30s linear infinite;
+        }
+
+        @keyframes textureSlide {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        /* Enhanced Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Archivo', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; }
+        h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+        h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
+
+        /* Refined Text Shadows */
+        h1, h2, h3, h4, h5, h6 {
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.6),
+                0 0 20px rgba(124, 179, 66, 0.15);
+        }
+
+        p, a, span, i, label, input, textarea, select, button {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Premium Navbar */
         .navbar {
-            background-color: var(--primary-green) !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 0.3rem 0;
+            background: var(--glass-heavy) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 2px solid var(--glass-border);
+            padding: 0.75rem 0;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: var(--shadow-lg);
         }
         
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.3rem;
+        .navbar-brand { 
+            font-family: 'Archivo', sans-serif;
+            font-weight: 900; 
+            font-size: 1.5rem;
+            color: var(--cream-soft) !important;
+            letter-spacing: -0.03em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i { 
+            color: var(--crop-fresh);
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 8px rgba(124, 179, 66, 0.5));
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .navbar-brand:hover {
+            transform: translateY(-2px);
+            color: var(--crop-fresh) !important;
         }
         
         .nav-link {
-            color: white !important;
-            margin: 0 8px;
-            transition: all 0.3s;
+            color: var(--dust-light) !important;
+            margin: 0 0.25rem;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--crop-fresh);
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
         }
         
         .nav-link:hover {
-            color: #f8f9fa !important;
+            color: var(--crop-fresh) !important;
+            background: var(--glass-light);
             transform: translateY(-2px);
         }
 
-        .nav-btn {
-            background-color: white !important;
-            color: var(--primary-green) !important;
-            font-weight: 600;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .nav-link:hover::after {
+            width: 70%;
         }
 
-        .nav-btn:hover {
-            background-color: #f8f9fa !important;
-            color: var(--dark-green) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        .nav-link i {
+            margin-right: 0.35rem;
+            font-size: 1.1rem;
         }
-        
-        main {
-            flex: 1;
+
+        /* Sophisticated Dropdown */
+        .dropdown-menu {
+            background: var(--glass-heavy);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-top: 0.5rem !important;
+            animation: dropdownSlide 0.3s ease;
         }
-        
-        footer {
-            background-color: #343a40;
-            color: white;
-            margin-top: auto;
-            padding-top: 2rem !important;
-            padding-bottom: 1rem !important;
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
-            color: white;
-            padding: 40px 0;
+
+        .dropdown-item { 
+            color: var(--dust-light) !important;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
         }
-        
+
+        .dropdown-item:hover { 
+            background: var(--leaf-vibrant) !important;
+            color: var(--cream-soft) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 0.5rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-color: var(--glass-border) !important;
+            opacity: 0.5;
+        }
+
+        /* ========================================
+           NOTIFICATION DROPDOWN - BLACK BG / WHITE TEXT
+           ======================================== */
+
+        /* Notification Bell Badge */
+        .notification-bell .badge {
+            font-size: 0.65rem;
+            padding: 0.25em 0.5em;
+        }
+
+        /* Notification Dropdown - Pure Black Background */
+        .notification-bell .dropdown-menu {
+            background: #000000 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: none !important;
+        }
+
+        /* Notification Header */
+        .notification-bell .dropdown-header {
+            color: #FFFFFF !important;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: #000000 !important;
+        }
+
+        /* Notification Items */
+        .notification-bell .dropdown-item {
+            color: #FFFFFF !important;
+            background: #000000 !important;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            white-space: normal;
+        }
+
+        .notification-bell .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #FFFFFF !important;
+            transform: none;
+        }
+
+        /* Unread notification - green left border highlight */
+        .notification-bell .dropdown-item.bg-light {
+            background: rgba(124, 179, 66, 0.15) !important;
+            border-left: 3px solid var(--crop-fresh) !important;
+        }
+
+        .notification-bell .dropdown-item.bg-light:hover {
+            background: rgba(124, 179, 66, 0.25) !important;
+        }
+
+        /* Notification Title (strong tag) */
+        .notification-bell .dropdown-item strong {
+            color: #FFFFFF !important;
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+            text-shadow: none !important;
+        }
+
+        /* Notification Message (p tag) */
+        .notification-bell .dropdown-item p {
+            color: rgba(255, 255, 255, 0.75) !important;
+            font-size: 0.82rem;
+            margin-bottom: 0.2rem;
+            text-shadow: none !important;
+        }
+
+        /* Notification Timestamp (small tag) */
+        .notification-bell .dropdown-item small {
+            color: rgba(255, 255, 255, 0.5) !important;
+            font-size: 0.75rem;
+            text-shadow: none !important;
+        }
+
+        /* No notifications / Loading text */
+        .notification-bell #notification-list .dropdown-item {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        /* Dividers inside notification dropdown */
+        .notification-bell .dropdown-divider {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            opacity: 1 !important;
+            margin: 0 !important;
+        }
+
+        /* Global dropdown header fallback */
+        .dropdown-header {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--cream-soft) !important;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Premium Cards */
         .card {
-            transition: transform 0.3s, box-shadow 0.3s;
-            height: 100%;
+            background: var(--glass-medium) !important;
+            backdrop-filter: blur(15px) saturate(150%);
+            border: 1px solid var(--glass-border) !important;
+            color: var(--cream-soft) !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Organic Corner Accent */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at top right, var(--crop-fresh), transparent);
+            opacity: 0.2;
+            transition: opacity 0.4s ease;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                var(--shadow-lg),
+                var(--shadow-glow);
+            border-color: var(--crop-fresh) !important;
         }
-        
-        .product-image {
-            height: 160px;
+
+        .card:hover::before {
+            opacity: 0.4;
+        }
+
+        .card-title {
+            color: var(--cream-soft);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-text {
+            color: var(--dust-light);
+            line-height: 1.6;
+        }
+
+        /* Premium Buttons */
+        .btn {
+            border-radius: 10px;
+            padding: 0.65rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary,
+        .btn-success,
+        .btn-outline-success {
+            background: linear-gradient(135deg, var(--leaf-vibrant), var(--crop-fresh));
+            color: white;
+            box-shadow: 0 4px 15px rgba(124, 179, 66, 0.3);
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover {
+            background: linear-gradient(135deg, var(--fertile-green), var(--leaf-vibrant));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(124, 179, 66, 0.5);
+        }
+
+        .btn-outline-success {
+            background: transparent;
+            border: 2px solid var(--crop-fresh);
+            color: var(--crop-fresh);
+        }
+
+        .btn-outline-success:hover {
+            background: var(--crop-fresh);
+            color: white;
+            border-color: var(--crop-fresh);
+        }
+
+        /* Alert Messages with Organic Feel */
+        .alert {
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            animation: slideInDown 0.4s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: rgba(74, 124, 42, 0.25) !important;
+            border-color: var(--crop-fresh) !important;
+            color: var(--cream-soft) !important;
+        }
+
+        .alert-info {
+            background: rgba(135, 206, 235, 0.25) !important;
+            border-color: var(--sky-bright) !important;
+            color: var(--cream-soft) !important;
+        }
+
+        .alert-warning {
+            background: rgba(253, 185, 39, 0.25) !important;
+            border-color: var(--sun-glow) !important;
+            color: var(--cream-soft) !important;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.25) !important;
+            border-color: #dc3545 !important;
+            color: var(--cream-soft) !important;
+        }
+
+        /* Form Elements */
+        .form-control,
+        .form-select {
+            background: var(--glass-light) !important;
+            border: 1px solid var(--glass-border);
+            color: var(--cream-soft) !important;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: var(--glass-medium) !important;
+            border-color: var(--crop-fresh);
+            box-shadow: 0 0 0 0.2rem rgba(124, 179, 66, 0.25);
+            color: var(--cream-soft) !important;
+        }
+
+        .form-control::placeholder {
+            color: rgba(232, 222, 208, 0.5);
+        }
+
+        .form-label {
+            color: var(--dust-light);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ========================================
+           NEWS CARDS - HIGH CONTRAST FIX
+           ======================================== */
+
+        /* News Section Container */
+        .news-section {
+            padding: 4rem 0;
+        }
+
+        .news-section-header {
+            margin-bottom: 3rem;
+        }
+
+        .news-section h2 {
+            font-family: 'Archivo', sans-serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--cream-soft);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .news-section-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* News Card Grid */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Individual News Card - DARKER BACKGROUND FOR BETTER CONTRAST */
+        .news-card {
+            background: rgba(27, 22, 18, 0.92) !important; /* Much darker & more opaque */
+            backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(212, 165, 116, 0.3) !important;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--leaf-vibrant), var(--crop-fresh));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .news-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(124, 179, 66, 0.3);
+            border-color: var(--crop-fresh) !important;
+        }
+
+        .news-card:hover::before {
+            opacity: 1;
+        }
+
+        /* News Card Image */
+        .news-card-image {
+            width: 100%;
+            height: 200px;
             object-fit: cover;
         }
+
+        .news-card-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--fertile-green), var(--leaf-vibrant));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Category Badge - VIBRANT & READABLE */
+        .news-category-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            text-shadow: none !important; /* No shadow on badges */
+        }
+
+        .badge-market-update {
+            background: linear-gradient(135deg, #00BCD4, #0097A7);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+        }
+
+        .badge-event-training {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+            box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+        }
+
+        .badge-agricultural-technology {
+            background: linear-gradient(135deg, #00BCD4, #006064);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+        }
+
+        .badge-government-policy {
+            background: linear-gradient(135deg, #2196F3, #1565C0);
+            color: white;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .badge-farming-tips {
+            background: linear-gradient(135deg, var(--crop-fresh), var(--leaf-vibrant));
+            color: white;
+            box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
+        }
+
+        .badge-success-stories {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
+
+        /* Card Body */
+        .news-card-body {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* News Title - PURE WHITE FOR MAXIMUM CONTRAST */
+        .news-card-title {
+            font-family: 'Archivo', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #FFFFFF !important; /* Pure white */
+            margin-bottom: 0.75rem;
+            text-shadow: 
+                1px 1px 3px rgba(0, 0, 0, 0.9),
+                0 0 10px rgba(0, 0, 0, 0.5) !important; /* Strong shadow */
+            transition: color 0.3s ease;
+        }
+
+        .news-card:hover .news-card-title {
+            color: var(--crop-fresh) !important;
+            text-shadow: 
+                1px 1px 3px rgba(0, 0, 0, 0.9),
+                0 0 15px rgba(124, 179, 66, 0.6) !important; /* Green glow */
+        }
+
+        /* News Description - MUCH BRIGHTER */
+        .news-card-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85) !important; /* 85% white instead of dim gray */
+            margin-bottom: 1rem;
+            flex: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important; /* Strong shadow */
+        }
+
+        /* Meta Information */
+        .news-card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7) !important;
+            margin-bottom: 1.25rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .news-card-meta i {
+            margin-right: 0.35rem;
+            color: var(--crop-fresh);
+            filter: drop-shadow(0 0 4px rgba(124, 179, 66, 0.4));
+        }
+
+        .news-card-author {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .news-card-date {
+            color: rgba(255, 255, 255, 0.65) !important;
+        }
+
+        /* Read More Button - Enhanced */
+        .btn-read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 2px solid var(--crop-fresh);
+            color: var(--crop-fresh) !important;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+            align-self: flex-start;
+        }
+
+        .btn-read-more:hover {
+            background: var(--crop-fresh);
+            color: white !important;
+            transform: translateX(5px);
+            box-shadow: 
+                0 4px 15px rgba(124, 179, 66, 0.4),
+                0 0 20px rgba(124, 179, 66, 0.3);
+            text-shadow: none !important;
+        }
+
+        .btn-read-more i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-read-more:hover i {
+            transform: translateX(4px);
+        }
+
+        /* Stats/Engagement Section */
+        .news-card-stats {
+            display: flex;
+            gap: 1.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto;
+        }
+
+        .news-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7) !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .news-stat i {
+            color: var(--crop-fresh);
+            filter: drop-shadow(0 0 4px rgba(124, 179, 66, 0.4));
+        }
+
+        /* Featured News Card */
+        .news-card.featured {
+            grid-column: span 2;
+        }
+
+        .news-card.featured .news-card-image,
+        .news-card.featured .news-card-image-placeholder {
+            height: 300px;
+        }
+
+        .news-card.featured .news-card-title {
+            font-size: 1.75rem;
+        }
+
+        /* Premium Footer */
+        footer {
+            background: var(--clay-dark);
+            color: var(--dust-light);
+            margin-top: auto;
+            padding: 3rem 0 1.5rem !important;
+            border-top: 2px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--fertile-green) 0%, 
+                var(--crop-fresh) 50%, 
+                var(--fertile-green) 100%);
+            animation: gradientFlow 3s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        footer h6 {
+            color: var(--cream-soft);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+
+        footer a {
+            color: var(--dust-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        footer a:hover {
+            color: var(--crop-fresh);
+            transform: translateX(5px);
+        }
+
+        footer i.text-neon,
+        footer i.bi-basket {
+            color: var(--crop-fresh) !important;
+            filter: drop-shadow(0 0 5px rgba(124, 179, 66, 0.4));
+        }
         
-        .category-icon {
-            font-size: 2.5rem;
-            color: var(--primary-green);
+        /* Utility Classes */
+        .text-secondary { color: var(--dust-light) !important; }
+        .text-neon { 
+            color: var(--crop-fresh) !important;
+            filter: drop-shadow(0 0 8px rgba(124, 179, 66, 0.4));
+        }
+        .text-gold { color: var(--harvest-gold) !important; }
+
+        /* Transparent Background Override */
+        main, section, .bg-light, .bg-white, .container-fluid {
+            background: transparent !important;
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--glass-light);
+            border-top-color: var(--crop-fresh);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--leaf-vibrant), var(--crop-fresh));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            z-index: 999;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Responsive Typography & Layout */
+        @media (max-width: 768px) {
+            body {
+                font-size: 0.9rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .news-card-title {
+                font-size: 1.2rem;
+            }
+
+            .news-section h2 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .news-card.featured {
+                grid-column: span 1;
+            }
+
+            .news-card.featured .news-card-image,
+            .news-card.featured .news-card-image-placeholder {
+                height: 200px;
+            }
+
+            footer {
+                text-align: center;
+            }
+        }
+
+        /* Selection Highlight */
+        ::selection {
+            background: var(--crop-fresh);
+            color: var(--clay-dark);
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--clay-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--leaf-vibrant), var(--crop-fresh));
+            border-radius: 6px;
+            border: 2px solid var(--clay-dark);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--fertile-green), var(--leaf-vibrant));
         }
     </style>
     
@@ -105,32 +1018,32 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">
-            <i class="bi bi-basket"></i> AgriMarket
+        <a class="navbar-brand" href="{% url 'marketplace:home' %}">
+            <i class="bi bi-basket"></i>
+            <span>AgriMarket</span>
         </a>
         
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-
+            <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">
-                        <i class="bi bi-house"></i> Home
+                    <a class="nav-link" href="{% url 'marketplace:home' %}">
+                        <i class="bi bi-house-door"></i> Home
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'product_list' %}">
-                        <i class="bi bi-grid"></i> Produce Market
+                    <a class="nav-link" href="{% url 'marketplace:product_list' %}">
+                        <i class="bi bi-grid-3x3-gap"></i> Produce Market
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'inputs:input_store' %}">
-                        <i class="bi bi-shop"></i> Input Store
+                        <i class="bi bi-shop-window"></i> Input Store
                     </a>
                 </li>
 
@@ -151,79 +1064,287 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'market_prices' %}">
-                                <i class="bi bi-graph-up"></i> Price Tracker
+                            <a class="dropdown-item" href="{% url 'marketplace:market_prices' %}">
+                                <i class="bi bi-graph-up-arrow"></i> Price Tracker
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{% url 'inputs:group_buy_list' %}">
-                                <i class="bi bi-people"></i> Group Buys
+                                <i class="bi bi-people-fill"></i> Group Buys
                             </a>
                         </li>
                     </ul>
                 </li>
 
                 {% if user.is_authenticated %}
-                    <!-- User menu -->
-                {% endif %}
+                <!-- Notification Bell -->
+                <li class="nav-item dropdown notification-bell">
+                    <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-label="Notifications">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              id="notification-badge" style="display: none;">
+                            0
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="width: 350px; max-height: 500px; overflow-y: auto;">
+                        <li class="dropdown-header">Notifications</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <div id="notification-list">
+                            <li class="dropdown-item text-center" style="color: rgba(255,255,255,0.5) !important;">
+                                <small>Loading...</small>
+                            </li>
+                        </div>
+                    </ul>
+                </li>
 
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-neon fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> {{ user.username|title }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> My Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'orders:my_orders' %}">
+                                <i class="bi bi-bag-check-fill"></i> My Orders
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'accounts:logout' %}" method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger" style="cursor: pointer; border: none; background: none; width: 100%; text-align: left; padding: 0.6rem 1rem;">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'accounts:login' %}">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-success btn-sm ms-lg-2" href="{% url 'accounts:register' %}">
+                        <i class="bi bi-person-plus"></i> Join Us
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </div>
 </nav>
 
 {% if messages %}
-<div class="container mt-2">
+<div class="container mt-3">
     {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2 mb-2">
-            <small>{{ message }}</small>
-            <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 </div>
 {% endif %}
 
-<main>
-    {% block content %}{% endblock %}
+<main class="py-4">
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
 </main>
 
-<footer class="mt-4">
+<footer>
     <div class="container">
-        <div class="row text-center text-md-start">
+        <div class="row g-4">
             <div class="col-md-4 mb-3">
-                <h6 class="fw-bold"><i class="bi bi-basket"></i> AgriMarket</h6>
-                <p class="small text-secondary">
-                    Connecting Ugandan farmers directly with consumers.
+                <h6 class="fw-bold">
+                    <i class="bi bi-basket text-neon"></i> AgriMarket Uganda
+                </h6>
+                <p class="small text-secondary mb-3">
+                    Empowering Ugandan farmers through direct market access, 
+                    fair pricing, and sustainable agricultural practices.
                 </p>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <h6 class="fw-bold">Quick Links</h6>
-                <div class="small">
-                    <a href="{% url 'home' %}" class="text-white-50 text-decoration-none me-2">Home</a>
-                    <a href="{% url 'product_list' %}" class="text-white-50 text-decoration-none me-2">Products</a>
-                    <a href="#" class="text-white-50 text-decoration-none">Contact</a>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-secondary" aria-label="Facebook">
+                        <i class="bi bi-facebook fs-5"></i>
+                    </a>
+                    <a href="#" class="text-secondary" aria-label="Twitter">
+                        <i class="bi bi-twitter fs-5"></i>
+                    </a>
+                    <a href="#" class="text-secondary" aria-label="Instagram">
+                        <i class="bi bi-instagram fs-5"></i>
+                    </a>
+                    <a href="#" class="text-secondary" aria-label="WhatsApp">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                    </a>
                 </div>
             </div>
 
             <div class="col-md-4 mb-3">
-                <h6 class="fw-bold">Support</h6>
+                <h6 class="fw-bold">Quick Navigation</h6>
+                <div class="d-flex flex-column small">
+                    <a href="{% url 'marketplace:home' %}" class="mb-2">
+                        <i class="bi bi-chevron-right text-neon"></i> Home
+                    </a>
+                    <a href="{% url 'marketplace:product_list' %}" class="mb-2">
+                        <i class="bi bi-chevron-right text-neon"></i> Browse Products
+                    </a>
+                    <a href="{% url 'inputs:input_store' %}" class="mb-2">
+                        <i class="bi bi-chevron-right text-neon"></i> Farm Inputs
+                    </a>
+                    <a href="{% url 'news:news_list' %}" class="mb-2">
+                        <i class="bi bi-chevron-right text-neon"></i> Agricultural News
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <h6 class="fw-bold">Get In Touch</h6>
+                <p class="small text-secondary mb-2">
+                    <i class="bi bi-geo-alt-fill text-neon"></i> Kampala, Uganda
+                </p>
+                <p class="small text-secondary mb-2">
+                    <i class="bi bi-telephone-fill text-neon"></i> +256 700 000 000
+                </p>
                 <p class="small text-secondary mb-0">
-                    <i class="bi bi-envelope"></i> info@agrimarket.ug
+                    <i class="bi bi-envelope-fill text-neon"></i> info@agrimarket.ug
                 </p>
             </div>
         </div>
 
-        <hr class="my-3 bg-secondary">
+        <hr class="my-4 opacity-25">
 
-        <div class="text-center small text-secondary">
-            <p class="mb-0">&copy; 2026 Smart Agricultural Marketplace.</p>
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="small text-secondary mb-2 mb-md-0">
+                    &copy; 2026 AgriMarket Uganda. All rights reserved.
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <p class="small text-secondary mb-0">
+                    Cultivating prosperity, one harvest at a time 🌾
+                </p>
+            </div>
         </div>
     </div>
 </footer>
 
+<!-- Scroll to Top Button -->
+<button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+    <i class="bi bi-arrow-up fs-5"></i>
+</button>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+    // Navbar scroll effect
+    const navbar = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Scroll to top functionality
+    const scrollTopBtn = document.getElementById('scrollTop');
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollTopBtn.classList.add('visible');
+        } else {
+            scrollTopBtn.classList.remove('visible');
+        }
+    });
+
+    scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Auto-dismiss alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+</script>
+
 {% block extra_js %}{% endblock %}
+
+{% if user.is_authenticated %}
+<script>
+// Notification system
+let notificationInterval;
+
+function fetchNotifications() {
+    fetch('/notifications/api/')
+        .then(response => response.json())
+        .then(data => {
+            updateNotificationBadge(data.unread_count);
+            updateNotificationList(data.notifications);
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notification-badge');
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function updateNotificationList(notifications) {
+    const listDiv = document.getElementById('notification-list');
+    
+    if (notifications.length === 0) {
+        listDiv.innerHTML = '<li class="dropdown-item text-center" style="color: rgba(255,255,255,0.5) !important;"><small>No notifications</small></li>';
+        return;
+    }
+    
+    listDiv.innerHTML = notifications.map(n => `
+        <li>
+            <a class="dropdown-item ${n.read ? '' : 'bg-light'}" 
+               href="${n.link || '#'}" 
+               onclick="markAsRead(${n.id}); return false;">
+                <strong>${n.title}</strong>
+                <p class="mb-0 small">${n.message}</p>
+                <small>${new Date(n.created_at).toLocaleString()}</small>
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+    `).join('');
+}
+
+function markAsRead(notificationId) {
+    fetch(`/notifications/api/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(() => fetchNotifications())
+    .catch(error => console.error('Error marking as read:', error));
+}
+
+// Fetch notifications immediately and every 30 seconds
+fetchNotifications();
+notificationInterval = setInterval(fetchNotifications, 30000);
+</script>
+{% endif %}
+
 </body>
 </html>

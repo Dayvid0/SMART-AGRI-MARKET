@@ -13,21 +13,75 @@ from accounts.models import FarmerProfile
 
 def home(request):
     """
-    Homepage view - displays featured products and categories
+    Homepage view - displays featured products, categories, news, weather, and user data
     """
-    featured_products = Product.objects.filter(status='available').order_by('-created_at')[:6]
-    categories = Category.objects.all()[:6]
+    # Products & stats — uses your actual 'status' field
+    featured_products = (
+        Product.objects
+        .filter(status='available')
+        .select_related('category', 'farmer')
+        .order_by('-created_at')[:4]
+    )
+    categories = Category.objects.all()[:12]
     total_products = Product.objects.filter(status='available').count()
     total_farmers = Product.objects.values('farmer').distinct().count()
-    
+
+    # Top rated farmers (keep existing logic)
     top_farmers = FarmerProfile.objects.filter(rating_average__gt=0).order_by('-rating_average')[:3]
-    
+
+    # Latest 3 approved news articles
+    try:
+        from news.models import News
+        latest_news = (
+            News.objects
+            .filter(status='approved')
+            .select_related('author')
+            .order_by('-created_at')[:3]
+        )
+    except Exception:
+        latest_news = []
+
+    # Recommended products from same district as logged-in user
+    recommended_products = []
+    if request.user.is_authenticated and hasattr(request.user, 'district') and request.user.district:
+        recommended_products = (
+            Product.objects
+            .filter(status='available', farmer__district=request.user.district)
+            .exclude(farmer=request.user)
+            .select_related('category', 'farmer')
+            .order_by('-created_at')[:4]
+        )
+
+    # Recent orders for logged-in user
+    recent_orders = []
+    if request.user.is_authenticated:
+        try:
+            # Try buyer field first (orders placed by this user as a customer)
+            recent_orders = (
+                Order.objects
+                .filter(buyer=request.user)
+                .order_by('-created_at')[:3]
+            )
+        except Exception:
+            try:
+                # Fallback: orders received by this user as a farmer
+                recent_orders = (
+                    Order.objects
+                    .filter(farmer=request.user)
+                    .order_by('-created_at')[:3]
+                )
+            except Exception:
+                recent_orders = []
+
     context = {
-        'featured_products': featured_products,
-        'categories': categories,
-        'total_products': total_products,
-        'total_farmers': total_farmers,
-        'top_farmers': top_farmers,
+        'featured_products':    featured_products,
+        'categories':           categories,
+        'total_products':       total_products,
+        'total_farmers':        total_farmers,
+        'top_farmers':          top_farmers,
+        'latest_news':          latest_news,
+        'recommended_products': recommended_products,
+        'recent_orders':        recent_orders,
     }
     return render(request, 'marketplace/home.html', context)
 

@@ -2,128 +2,183 @@
 
 {% block title %}{{ news.title }} - Agri-Pulse{% endblock %}
 
-{% block content %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 
-<section class="py-5">
+<style>
+    /* 1. THE SCOPED BACKGROUND WRAPPER */
+    .glow-page-wrapper {
+        background: 
+            linear-gradient(rgba(4, 13, 6, 0.75), rgba(4, 13, 6, 0.9)), 
+            url('/media/products/BG-PICTURE.webp') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+        min-height: 100vh;
+        padding-top: 4rem;
+        padding-bottom: 5rem;
+        color: #f8fafc !important;
+    }
+
+    /* 2. THE GLASS CARDS (News and Sidebar) */
+    .glow-card {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 32px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 3. TYPOGRAPHY FIXES */
+    .article-title { 
+        font-family: 'Playfair Display', serif;
+        font-weight: 900; 
+        color: #ffffff !important;
+        line-height: 1.1; 
+    }
+    
+    .article-body { 
+        font-size: 1.15rem; 
+        line-height: 1.9; 
+        color: #cbd5e0 !important; 
+    }
+
+    /* Dropcap - like your reference image */
+    .article-body p:first-of-type::first-letter {
+        float: left; font-size: 4.5rem; line-height: 0.8; font-weight: 900;
+        color: #39FF14; margin-right: 15px; font-family: 'Playfair Display', serif;
+    }
+
+    /* 4. BUTTONS & NEON ELEMENTS */
+    .text-neon { color: #39FF14 !important; }
+    .btn-share { border-radius: 12px; transition: 0.3s; border: none; }
+    .btn-share:hover { transform: translateY(-3px); filter: brightness(1.2); }
+
+    .tool-btn {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 16px;
+        transition: 0.3s;
+    }
+    .tool-btn:hover { background: rgba(57, 255, 20, 0.1) !important; border-color: #39FF14 !important; }
+
+    /* Breadcrumb styling for dark mode */
+    .breadcrumb-item a { color: rgba(255, 255, 255, 0.5) !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #39FF14 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glow-page-wrapper">
     <div class="container">
-        <div class="row">
+        <nav aria-label="breadcrumb" class="mb-5">
+            <ol class="breadcrumb bg-transparent p-0">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'news:news_list' %}">Agri-Pulse</a></li>
+                <li class="breadcrumb-item active fw-bold">{{ news.title|truncatewords:3 }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-5">
             <div class="col-lg-8">
-                <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'news:news_list' %}">Agri-Pulse</a></li>
-                        <li class="breadcrumb-item active">{{ news.title|truncatewords:5 }}</li>
-                    </ol>
-                </nav>
-                
-                <!-- Article -->
-                <article class="card shadow">
-                    <div class="card-body p-4">
-                        <!-- Meta -->
-                        <div class="mb-3">
-                            <span class="badge bg-primary">{{ news.get_news_type_display }}</span>
-                            {% if news.is_urgent %}
-                                <span class="badge bg-danger">URGENT</span>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Title -->
-                        <h1 class="mb-3">{{ news.title }}</h1>
-                        
-                        <!-- Info -->
-                        <div class="text-muted mb-4">
-                            <i class="bi bi-calendar"></i> {{ news.published_at|date:"F d, Y - g:i A" }}
-                            <span class="ms-3">
-                                <i class="bi bi-building"></i> {{ news.source }}
+                <article class="glow-card p-4 p-md-5">
+                    <div class="mb-4 d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill px-3 py-2" style="background: #39FF14; color: #000; font-weight: 800;">
+                            {{ news.get_news_type_display }}
+                        </span>
+                        {% if news.is_urgent %}
+                            <span class="badge rounded-pill px-3 py-2 bg-danger text-white fw-bold">
+                                <i class="bi bi-exclamation-circle"></i> URGENT
                             </span>
-                            <span class="ms-3">
-                                <i class="bi bi-eye"></i> {{ news.views }} views
-                            </span>
-                        </div>
-                        
-                        <!-- Image -->
-                        {% if news.image %}
-                        <img src="{{ news.image.url }}" class="img-fluid rounded mb-4" alt="{{ news.title }}">
                         {% endif %}
-                        
-                        <!-- Content -->
-                        <div class="article-content">
-                            {{ news.content|linebreaks }}
+                    </div>
+                    
+                    <h1 class="article-title mb-4">{{ news.title }}</h1>
+                    
+                    <div class="d-flex flex-wrap gap-4 small mb-4 pb-4 border-bottom border-white-10 text-white-50 fw-bold">
+                        <span><i class="bi bi-calendar3 text-neon me-1"></i> {{ news.published_at|date:"M d, Y" }}</span>
+                        <span><i class="bi bi-building text-neon me-1"></i> {{ news.source }}</span>
+                        <span><i class="bi bi-eye text-neon me-1"></i> {{ news.views }} Reads</span>
+                    </div>
+                    
+                    {% if news.image %}
+                    <div class="mb-5 position-relative">
+                        <img src="{{ news.image.url }}" class="img-fluid rounded-4 w-100 shadow-lg" alt="{{ news.title }}">
+                        <div class="position-absolute bottom-0 start-0 p-3 bg-dark bg-opacity-50 rounded-end text-white small">
+                            Premium Agri-Data
                         </div>
-                        
-                        <!-- Source Link -->
-                        {% if news.source_url %}
-                        <div class="alert alert-info mt-4">
-                            <i class="bi bi-link-45deg"></i> 
-                            <strong>Source:</strong> 
-                            <a href="{{ news.source_url }}" target="_blank">{{ news.source }}</a>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Share -->
-                        <div class="mt-4 pt-3 border-top">
-                            <h6>Share this article:</h6>
-                            <div class="btn-group">
-                                <a href="https://wa.me/?text={{ news.title }} - {{ request.build_absolute_uri }}" 
-                                   class="btn btn-success btn-sm" target="_blank">
-                                    <i class="bi bi-whatsapp"></i> WhatsApp
-                                </a>
-                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
-                                   class="btn btn-primary btn-sm" target="_blank">
-                                    <i class="bi bi-facebook"></i> Facebook
-                                </a>
-                                <a href="https://twitter.com/intent/tweet?text={{ news.title }}&url={{ request.build_absolute_uri }}" 
-                                   class="btn btn-info btn-sm" target="_blank">
-                                    <i class="bi bi-twitter"></i> Twitter
-                                </a>
-                            </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="article-body">
+                        {{ news.content|linebreaks }}
+                    </div>
+                    
+                    {% if news.source_url %}
+                    <div class="p-4 rounded-4 mt-5 d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="text-white-50 small">Official Intelligence: <strong class="text-white">{{ news.source }}</strong></span>
+                        <a href="{{ news.source_url }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-4 fw-bold">Visit Source</a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-5 pt-4 border-top border-white-10">
+                        <p class="fw-bold mb-3 text-white-50 small">SHARE UPDATE</p>
+                        <div class="d-flex gap-3">
+                            <a href="https://wa.me/?text={{ news.title }} - {{ request.build_absolute_uri }}" 
+                               class="btn btn-success btn-share px-3" target="_blank">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
+                               class="btn btn-primary btn-share px-3" target="_blank">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?text={{ news.title }}&url={{ request.build_absolute_uri }}" 
+                               class="btn btn-dark btn-share px-3 border border-secondary" target="_blank">
+                                <i class="bi bi-twitter-x"></i>
+                            </a>
                         </div>
                     </div>
                 </article>
             </div>
             
-            <!-- Sidebar -->
             <div class="col-lg-4">
-                <!-- Related News -->
                 {% if related_news %}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Related News</h5>
-                    </div>
-                    <div class="list-group list-group-flush">
+                <div class="glow-card p-4 mb-4">
+                    <h5 class="fw-bold mb-4 border-start border-success border-4 ps-3 text-white">Related Trends</h5>
+                    <div class="list-group list-group-flush bg-transparent">
                         {% for related in related_news %}
-                        <a href="{% url 'news:news_detail' related.pk %}" class="list-group-item list-group-item-action">
-                            <h6 class="mb-1">{{ related.title|truncatewords:8 }}</h6>
-                            <small class="text-muted">{{ related.published_at|date:"M d, Y" }}</small>
+                        <a href="{% url 'news:news_detail' related.pk %}" class="list-group-item list-group-item-action border-0 px-0 py-3 bg-transparent text-white opacity-75 hover-neon">
+                            <h6 class="mb-1 fw-bold">{{ related.title|truncatewords:8 }}</h6>
+                            <small class="text-white-50">{{ related.published_at|date:"M d, Y" }}</small>
                         </a>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
                 
-                <!-- Quick Links -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Quick Links</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-cloud-sun"></i> Weather & Climate
-                            </a>
-                            <a href="{% url 'market_prices' %}" class="btn btn-outline-success">
-                                <i class="bi bi-graph-up"></i> Market Prices
-                            </a>
-                            <a href="{% url 'inputs:input_store' %}" class="btn btn-outline-info">
-                                <i class="bi bi-shop"></i> Input Store
-                            </a>
-                        </div>
+                <div class="glow-card p-4">
+                    <h5 class="fw-bold mb-4 text-white">Quick Tools</h5>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'weather:climate_suite' %}" class="btn tool-btn text-start p-3">
+                            <i class="bi bi-cloud-sun me-2 text-info"></i> Weather Forecast
+                        </a>
+                        <a href="{% url 'marketplace:market_prices' %}" class="btn tool-btn text-start p-3">
+                            <i class="bi bi-graph-up me-2 text-neon"></i> Real-time Prices
+                        </a>
+                        <a href="{% url 'home' %}" class="btn tool-btn text-start p-3">
+                            <i class="bi bi-geo-alt me-2 text-warning"></i> Regional Yield Map
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
+<style>
+    .border-white-10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+    .hover-neon:hover h6 { color: #39FF14 !important; transition: 0.3s; }
+</style>
 {% endblock %}

@@ -2,265 +2,1477 @@
 
 {% block title %}Home - Smart Agricultural Marketplace{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* =============================================
+       SIDEBAR LAYOUT
+    ============================================= */
+    .page-wrapper {
+        display: flex;
+        min-height: calc(100vh - 70px);
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+        width: 240px;
+        min-width: 240px;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(124, 179, 66, 0.2);
+        padding: 1.5rem 0;
+        position: sticky;
+        top: 70px;
+        height: calc(100vh - 70px);
+        overflow-y: auto;
+        z-index: 100;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-brand {
+        padding: 0 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-brand p {
+        color: rgba(255,255,255,0.5) !important;
+        font-size: 0.75rem;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-nav .nav-section {
+        padding: 0.5rem 1.25rem 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.3) !important;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 0.75rem;
+    }
+
+    .sidebar-nav .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 1.25rem;
+        color: rgba(255, 255, 255, 0.75) !important;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        text-shadow: none !important;
+    }
+
+    .sidebar-nav .nav-item a:hover,
+    .sidebar-nav .nav-item a.active {
+        background: rgba(124, 179, 66, 0.12);
+        color: #7CB342 !important;
+        border-left-color: #7CB342;
+    }
+
+    .sidebar-nav .nav-item a i {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    .sidebar-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        margin-top: auto;
+    }
+
+    /* Main content area */
+    .main-content {
+        flex: 1;
+        min-width: 0;
+        padding: 2rem;
+        overflow-x: hidden;
+    }
+
+    /* Mobile sidebar toggle */
+    .sidebar-toggle {
+        display: none;
+        position: fixed;
+        bottom: 5rem;
+        left: 1rem;
+        z-index: 200;
+        width: 45px;
+        height: 45px;
+        background: #7CB342;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.1rem;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(124,179,66,0.4);
+    }
+
+    @media (max-width: 991px) {
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            top: 0;
+            height: 100vh;
+            z-index: 500;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-toggle {
+            display: flex;
+        }
+        .main-content {
+            padding: 1rem;
+        }
+    }
+
+    /* =============================================
+       WELCOME BANNER
+    ============================================= */
+    .welcome-banner {
+        background: linear-gradient(135deg, rgba(45,80,22,0.6), rgba(27,22,18,0.8));
+        border: 1px solid rgba(124,179,66,0.3);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(124,179,66,0.15), transparent 70%);
+        pointer-events: none;
+    }
+
+    .welcome-banner h2 {
+        font-size: 1.6rem;
+        margin: 0 0 0.25rem;
+        color: #fff !important;
+    }
+
+    .welcome-banner p {
+        color: rgba(255,255,255,0.7) !important;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .welcome-meta span {
+        background: rgba(124,179,66,0.15);
+        border: 1px solid rgba(124,179,66,0.3);
+        color: #7CB342 !important;
+        padding: 0.2rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-shadow: none !important;
+    }
+
+    .welcome-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .welcome-actions .btn {
+        font-size: 0.82rem;
+        padding: 0.5rem 1rem;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    /* =============================================
+       STATS BAR
+    ============================================= */
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        border-color: rgba(124,179,66,0.4);
+        transform: translateY(-3px);
+    }
+
+    .stat-card .stat-number {
+        font-family: 'Archivo', sans-serif;
+        font-size: 2rem;
+        font-weight: 900;
+        color: #7CB342 !important;
+        line-height: 1;
+        text-shadow: 0 0 20px rgba(124,179,66,0.4) !important;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6) !important;
+        margin-top: 0.25rem;
+        text-shadow: none !important;
+    }
+
+    .stat-card i {
+        font-size: 1.5rem;
+        color: rgba(124,179,66,0.6);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* =============================================
+       MARKET PRICES TICKER
+    ============================================= */
+    .prices-section {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .section-title {
+        font-family: 'Archivo', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff !important;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i { color: #7CB342; }
+
+    .section-title .badge-live {
+        background: rgba(220,53,69,0.2);
+        border: 1px solid rgba(220,53,69,0.4);
+        color: #ff6b7a !important;
+        font-size: 0.65rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        animation: pulse 2s infinite;
+        text-shadow: none !important;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .price-ticker {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+    }
+
+    .price-ticker::-webkit-scrollbar { display: none; }
+
+    .price-item {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 0.75rem 1.25rem;
+        min-width: 140px;
+        text-align: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .price-item:hover {
+        border-color: rgba(124,179,66,0.4);
+        background: rgba(124,179,66,0.08);
+    }
+
+    .price-item .crop-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-shadow: none !important;
+    }
+
+    .price-item .crop-price {
+        font-family: 'Archivo', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #7CB342 !important;
+        margin: 0.25rem 0;
+        text-shadow: none !important;
+    }
+
+    .price-item .crop-unit {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.4) !important;
+        text-shadow: none !important;
+    }
+
+    .price-change.up { color: #4caf50 !important; }
+    .price-change.down { color: #f44336 !important; }
+    .price-change { font-size: 0.75rem; font-weight: 600; text-shadow: none !important; }
+
+    /* =============================================
+       TWO COLUMN LAYOUT (Products + Sidebar content)
+    ============================================= */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1200px) {
+        .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* =============================================
+       FEATURED PRODUCTS
+    ============================================= */
+    .section-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 576px) {
+        .product-grid { grid-template-columns: 1fr; }
+    }
+
+    .product-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card:hover {
+        border-color: rgba(124,179,66,0.4);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    .product-card-img {
+        height: 160px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .product-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .product-card:hover .product-card-img img {
+        transform: scale(1.05);
+    }
+
+    .product-card-img .no-image {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #2D5016, #4A7C2A);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.3);
+        font-size: 2.5rem;
+    }
+
+    .product-card-body {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card-body h6 {
+        color: #fff !important;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .product-card-body .location {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.55) !important;
+        margin-bottom: 0.75rem;
+        text-shadow: none !important;
+    }
+
+    .product-card-body .price {
+        color: #7CB342 !important;
+        font-weight: 800;
+        font-family: 'Archivo', sans-serif;
+        font-size: 1rem;
+        text-shadow: none !important;
+    }
+
+    .product-card-body .farmer {
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.45) !important;
+        margin-top: 0.4rem;
+        text-shadow: none !important;
+    }
+
+    /* =============================================
+       RIGHT SIDEBAR CONTENT
+    ============================================= */
+    .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Weather Widget */
+    .weather-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(135,206,235,0.2);
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+
+    .weather-district {
+        text-align: center;
+        padding: 1rem 0;
+    }
+
+    .weather-district .district-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .weather-district .temp {
+        font-family: 'Archivo', sans-serif;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #FDB927 !important;
+        line-height: 1;
+        text-shadow: 0 0 20px rgba(253,185,39,0.4) !important;
+    }
+
+    .weather-district .condition {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.65) !important;
+        margin-top: 0.25rem;
+        text-shadow: none !important;
+    }
+
+    .weather-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .weather-stat {
+        text-align: center;
+    }
+
+    .weather-stat .label {
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.4) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-shadow: none !important;
+    }
+
+    .weather-stat .value {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #87CEEB !important;
+        text-shadow: none !important;
+    }
+
+    .district-tabs {
+        display: flex;
+        gap: 0.4rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .district-tab {
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.6) !important;
+        background: transparent;
+        transition: all 0.2s ease;
+        text-shadow: none !important;
+    }
+
+    .district-tab.active,
+    .district-tab:hover {
+        background: rgba(135,206,235,0.15);
+        border-color: rgba(135,206,235,0.4);
+        color: #87CEEB !important;
+    }
+
+    /* Recent Orders */
+    .orders-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .order-item:last-child { border-bottom: none; }
+
+    .order-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(124,179,66,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7CB342;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .order-info .order-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fff !important;
+        text-shadow: none !important;
+    }
+
+    .order-info .order-date {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.45) !important;
+        text-shadow: none !important;
+    }
+
+    .order-amount {
+        margin-left: auto;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #7CB342 !important;
+        text-shadow: none !important;
+    }
+
+    /* =============================================
+       NEWS PREVIEW
+    ============================================= */
+    .news-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+        .news-preview-grid { grid-template-columns: 1fr; }
+    }
+
+    .news-preview-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-preview-card:hover {
+        border-color: rgba(124,179,66,0.35);
+        transform: translateY(-4px);
+    }
+
+    .news-preview-card .news-img {
+        height: 140px;
+        overflow: hidden;
+    }
+
+    .news-preview-card .news-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .news-preview-card .news-img-placeholder {
+        height: 140px;
+        background: linear-gradient(135deg, #2D5016, #1A1612);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: rgba(255,255,255,0.2);
+    }
+
+    .news-preview-body {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-preview-body .news-cat {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7CB342 !important;
+        margin-bottom: 0.4rem;
+        text-shadow: none !important;
+    }
+
+    .news-preview-body h6 {
+        color: #fff !important;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .news-preview-body .news-excerpt {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6) !important;
+        line-height: 1.5;
+        flex: 1;
+        text-shadow: none !important;
+    }
+
+    .news-preview-body .news-meta {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.4) !important;
+        margin-top: 0.75rem;
+        text-shadow: none !important;
+    }
+
+    /* =============================================
+       TESTIMONIALS
+    ============================================= */
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+        .testimonials-grid { grid-template-columns: 1fr; }
+    }
+
+    .testimonial-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1.5rem;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        border-color: rgba(212,165,116,0.3);
+        transform: translateY(-3px);
+    }
+
+    .testimonial-card .quote-icon {
+        font-size: 2.5rem;
+        color: rgba(124,179,66,0.25);
+        line-height: 1;
+        font-family: Georgia, serif;
+        margin-bottom: 0.5rem;
+    }
+
+    .testimonial-card .quote-text {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.8) !important;
+        line-height: 1.6;
+        font-style: italic;
+        margin-bottom: 1rem;
+        text-shadow: none !important;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4A7C2A, #7CB342);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .author-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff !important;
+        text-shadow: none !important;
+    }
+
+    .author-role {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.45) !important;
+        text-shadow: none !important;
+    }
+
+    .star-rating { color: #FDB927; font-size: 0.8rem; }
+
+    /* =============================================
+       CATEGORIES
+    ============================================= */
+    .categories-grid {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+
+    .category-chip {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50px;
+        padding: 0.5rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255,255,255,0.75) !important;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-shadow: none !important;
+    }
+
+    .category-chip:hover {
+        background: rgba(124,179,66,0.15);
+        border-color: rgba(124,179,66,0.4);
+        color: #7CB342 !important;
+        transform: translateY(-2px);
+    }
+
+    /* =============================================
+       PLATFORM FEATURES
+    ============================================= */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+        .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 576px) {
+        .features-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(124,179,66,0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .feature-icon-wrap {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.6rem;
+    }
+
+    .feature-card h6 {
+        color: #fff !important;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .feature-card p {
+        color: rgba(255,255,255,0.65) !important;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        text-shadow: none !important;
+    }
+
+    /* =============================================
+       HERO SECTION
+    ============================================= */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(45,80,22,0.4), rgba(27,22,18,0.6));
+        border: 1px solid rgba(124,179,66,0.2);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 300px;
+        background: radial-gradient(ellipse, rgba(124,179,66,0.1), transparent 70%);
+        pointer-events: none;
+    }
+
+    .hero-section h1 {
+        font-size: clamp(1.8rem, 4vw, 3rem) !important;
+        color: #fff !important;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-section .lead {
+        color: rgba(255,255,255,0.8) !important;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-badges {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-badge {
+        background: rgba(253,185,39,0.12);
+        border: 1px solid rgba(253,185,39,0.3);
+        color: #FDB927 !important;
+        padding: 0.3rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-shadow: none !important;
+    }
+
+    /* Recommended section */
+    .recommended-section {
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<section class="hero-section text-center">
-    <div class="container">
-        <h1 class="display-4 fw-bold mb-4">
-            <i class="bi bi-basket"></i> Welcome to AgriMarket
-        </h1>
-        <p class="lead mb-4">
-            Connecting Ugandan farmers directly with consumers and businesses
-        </p>
-        <p class="mb-4">
-            <i class="bi bi-check-circle-fill text-warning"></i> Fresh Products 
-            <i class="bi bi-check-circle-fill text-warning ms-3"></i> Fair Prices 
-            <i class="bi bi-check-circle-fill text-warning ms-3"></i> Direct from Farmers
-        </p>
-        <a href="{% url 'product_list' %}" class="btn btn-light btn-lg px-5">
-            <i class="bi bi-search"></i> Browse Products
-        </a>
-    </div>
-</section>
+<!-- Page Wrapper with Sidebar -->
+<div class="page-wrapper" style="margin: -1.5rem;">
 
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-basket3 category-icon"></i>
-                        <h3 class="mt-3">{{ total_products }}</h3>
-                        <p class="text-muted">Available Products</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-people category-icon"></i>
-                        <h3 class="mt-3">{{ total_farmers }}</h3>
-                        <p class="text-muted">Registered Farmers</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-geo-alt category-icon"></i>
-                        <h3 class="mt-3">20+</h3>
-                        <p class="text-muted">Districts Covered</p>
-                    </div>
-                </div>
-            </div>
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <p>Navigation</p>
         </div>
-    </div>
-</section>
+        <ul class="sidebar-nav">
+            <li class="nav-section">Main</li>
+            <li class="nav-item">
+                <a href="{% url 'marketplace:home' %}" class="active">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'marketplace:product_list' %}">
+                    <i class="bi bi-grid-3x3-gap"></i> Produce Market
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'inputs:input_store' %}">
+                    <i class="bi bi-shop-window"></i> Input Store
+                </a>
+            </li>
 
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">Browse by Category</h2>
-        <div class="row">
-            {% for category in categories %}
-            <div class="col-md-4 col-lg-2 mb-4">
-                <a href="{% url 'product_list' %}?category={{ category.id }}" class="text-decoration-none">
-                    <div class="card text-center border-0 shadow-sm">
-                        <div class="card-body">
-                            {% if category.image %}
-                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid mb-3" style="height: 80px; object-fit: cover;">
-                            {% else %}
-                                <i class="bi bi-grid category-icon"></i>
-                            {% endif %}
-                            <h6 class="card-title">{{ category.name }}</h6>
-                        </div>
-                    </div>
+            <li class="nav-section">Tools</li>
+            <li class="nav-item">
+                <a href="{% url 'news:news_list' %}">
+                    <i class="bi bi-newspaper"></i> Agri-Pulse News
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'weather:climate_suite' %}">
+                    <i class="bi bi-cloud-sun"></i> Climate Suite
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'marketplace:market_prices' %}">
+                    <i class="bi bi-graph-up-arrow"></i> Price Tracker
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'inputs:group_buy_list' %}">
+                    <i class="bi bi-people-fill"></i> Group Buying
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'marketplace:price_tracker' %}">
+                    <i class="bi bi-exclamation-triangle"></i> Distress Alerts
+                </a>
+            </li>
+
+            {% if user.is_authenticated %}
+            <li class="nav-section">My Account</li>
+            <li class="nav-item">
+                <a href="{% url 'accounts:dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> My Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'orders:my_orders' %}">
+                    <i class="bi bi-bag-check-fill"></i> My Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'accounts:edit_profile' %}">
+                    <i class="bi bi-person-gear"></i> Edit Profile
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- PERSONALIZED WELCOME BANNER (logged in only) -->
+        {% if user.is_authenticated %}
+        <div class="welcome-banner">
+            <div>
+                <h2>👋 Welcome back, {{ user.username|title }}!</h2>
+                <p>Here's what's happening on AgriMarket today.</p>
+                <div class="welcome-meta">
+                    {% if user.district %}
+                    <span><i class="bi bi-geo-alt"></i> {{ user.district }}</span>
+                    {% endif %}
+                    {% if user.specialization %}
+                    <span><i class="bi bi-award"></i> {{ user.specialization }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-person-badge"></i> {{ user.user_type|title }}</span>
+                </div>
+            </div>
+            <div class="welcome-actions">
+                <a href="{% url 'marketplace:product_list' %}" class="btn btn-success">
+                    <i class="bi bi-bag"></i> Buy Now
+                </a>
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-success">
+                    <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </div>
-            {% empty %}
-            <div class="col-12 text-center">
-                <p class="text-muted">No categories available yet.</p>
-            </div>
-            {% endfor %}
         </div>
-    </div>
-</section>
-
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">Featured Products</h2>
-        <div class="row">
-            {% for product in featured_products %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
-                    {% else %}
-                        <div class="card-img-top product-image bg-secondary d-flex align-items-center justify-content-center">
-                            <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <span class="badge bg-success mb-2">{{ product.category.name }}</span>
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text text-muted">
-                            <i class="bi bi-geo-alt"></i> {{ product.location }}
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="h5 text-success mb-0">
-                                UGX {{ product.price|floatformat:0 }}/{{ product.unit }}
-                            </span>
-                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary btn-sm">
-                                View Details
-                            </a>
-                        </div>
-                        <small class="text-muted d-block mt-2">
-                            <i class="bi bi-person"></i> {{ product.farmer.username }}
-                        </small>
-                    </div>
-                </div>
+        {% else %}
+        <!-- HERO for guests -->
+        <div class="hero-section">
+            <h1><i class="bi bi-basket"></i> Welcome to AgriMarket</h1>
+            <p class="lead">Connecting Ugandan farmers directly with consumers and businesses</p>
+            <div class="hero-badges">
+                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Fresh Products</span>
+                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Fair Prices</span>
+                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Direct from Farmers</span>
             </div>
-            {% empty %}
-            <div class="col-12 text-center">
-                <p class="text-muted">No products available yet.</p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a href="{% url 'marketplace:product_list' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-search"></i> Browse Products
+                </a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-outline-success btn-lg">
+                    <i class="bi bi-person-plus"></i> Join Free
+                </a>
             </div>
-            {% endfor %}
-        </div>
-        
-        {% if featured_products %}
-        <div class="text-center mt-4">
-            <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-lg">
-                View All Products <i class="bi bi-arrow-right"></i>
-            </a>
         </div>
         {% endif %}
-    </div>
-</section>
 
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">How It Works</h2>
-        <div class="row">
-            <div class="col-md-4 text-center mb-4">
-                <div class="mb-3">
-                    <i class="bi bi-search" style="font-size: 4rem; color: var(--primary-green);"></i>
-                </div>
-                <h4>1. Browse Products</h4>
-                <p class="text-muted">Search through fresh agricultural products from local farmers</p>
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <i class="bi bi-basket3"></i>
+                <div class="stat-number">{{ total_products|default:"0" }}</div>
+                <div class="stat-label">Products Listed</div>
             </div>
-            <div class="col-md-4 text-center mb-4">
-                <div class="mb-3">
-                    <i class="bi bi-cart-check" style="font-size: 4rem; color: var(--primary-green);"></i>
-                </div>
-                <h4>2. Place Order</h4>
-                <p class="text-muted">Contact farmers directly and place your order</p>
+            <div class="stat-card">
+                <i class="bi bi-people"></i>
+                <div class="stat-number">{{ total_farmers|default:"0" }}</div>
+                <div class="stat-label">Active Farmers</div>
             </div>
-            <div class="col-md-4 text-center mb-4">
-                <div class="mb-3">
-                    <i class="bi bi-truck" style="font-size: 4rem; color: var(--primary-green);"></i>
-                </div>
-                <h4>3. Get Delivery</h4>
-                <p class="text-muted">Receive fresh products directly from the farm</p>
+            <div class="stat-card">
+                <i class="bi bi-geo-alt"></i>
+                <div class="stat-number">20+</div>
+                <div class="stat-label">Districts Covered</div>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-bag-check"></i>
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Orders Completed</div>
             </div>
         </div>
-    </div>
-</section>
 
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">Platform Features</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-shop text-success" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Input Store</h5>
-                        <p class="text-muted">
-                            Quality seeds, fertilizers, and tools from verified suppliers with group buying options
-                        </p>
-                        <a href="{% url 'inputs:input_store' %}" class="btn btn-outline-success btn-sm">Explore</a>
-                    </div>
-                </div>
+        <!-- LIVE MARKET PRICES -->
+        <div class="prices-section">
+            <div class="section-title">
+                <i class="bi bi-graph-up-arrow"></i>
+                Live Market Prices
+                <span class="badge-live">● Live</span>
             </div>
-            
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-newspaper text-info" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Agri-Pulse News</h5>
-                        <p class="text-muted">
-                            Stay updated with government policies, market trends, and agricultural news
-                        </p>
-                        <a href="{% url 'news:news_list' %}" class="btn btn-outline-info btn-sm">Read News</a>
-                    </div>
+            <div class="price-ticker">
+                <div class="price-item">
+                    <div class="crop-name">Maize</div>
+                    <div class="crop-price">1,200</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change up">▲ 5%</div>
                 </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-cloud-sun text-primary" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Climate Suite</h5>
-                        <p class="text-muted">
-                            Weather forecasts, planting seasons, and pest alerts for smart farming
-                        </p>
-                        <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-primary btn-sm">View Dashboard</a>
-                    </div>
+                <div class="price-item">
+                    <div class="crop-name">Tomatoes</div>
+                    <div class="crop-price">800</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change down">▼ 2%</div>
                 </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-warning bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-people text-warning" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Group Buying</h5>
-                        <p class="text-muted">
-                            Join with other farmers to buy inputs in bulk and save money together
-                        </p>
-                        <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning btn-sm">View Pools</a>
-                    </div>
+                <div class="price-item">
+                    <div class="crop-name">Beans</div>
+                    <div class="crop-price">3,500</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change up">▲ 8%</div>
                 </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-danger bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-graph-up-arrow text-danger" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Price Tracker</h5>
-                        <p class="text-muted">
-                            Crowdsourced prices from farmers to fight middleman exploitation
-                        </p>
-                        <a href="{% url 'price_tracker' %}" class="btn btn-outline-danger btn-sm">View Prices</a>
-                    </div>
+                <div class="price-item">
+                    <div class="crop-name">Cassava</div>
+                    <div class="crop-price">600</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change up">▲ 1%</div>
                 </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body p-4">
-                        <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                            <i class="bi bi-exclamation-triangle text-success" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5>Distress Sale Alerts</h5>
-                        <p class="text-muted">
-                            Help farmers with perishables find urgent buyers to reduce losses
-                        </p>
-                        <a href="{% url 'product_list' %}?urgent=1" class="btn btn-outline-success btn-sm">View Urgent</a>
-                    </div>
+                <div class="price-item">
+                    <div class="crop-name">Bananas</div>
+                    <div class="crop-price">2,000</div>
+                    <div class="crop-unit">UGX/bunch</div>
+                    <div class="price-change down">▼ 3%</div>
+                </div>
+                <div class="price-item">
+                    <div class="crop-name">Coffee</div>
+                    <div class="crop-price">9,500</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change up">▲ 12%</div>
+                </div>
+                <div class="price-item">
+                    <div class="crop-name">Rice</div>
+                    <div class="crop-price">4,200</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change down">▼ 1%</div>
+                </div>
+                <div class="price-item">
+                    <div class="crop-name">Groundnuts</div>
+                    <div class="crop-price">5,800</div>
+                    <div class="crop-unit">UGX/kg</div>
+                    <div class="price-change up">▲ 4%</div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
 
+        <!-- MAIN CONTENT GRID: Products + Right Panel -->
+        <div class="content-grid">
+
+            <!-- FEATURED PRODUCTS -->
+            <div>
+                <div class="section-card">
+                    <div class="section-title">
+                        <i class="bi bi-star-fill"></i> Featured Products
+                        <a href="{% url 'marketplace:product_list' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none; font-weight: 600;">View all →</a>
+                    </div>
+                    <div class="product-grid">
+                        {% for product in featured_products %}
+                        <div class="product-card">
+                            <div class="product-card-img">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <div class="no-image"><i class="bi bi-image"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="product-card-body">
+                                <span class="badge bg-success mb-1" style="font-size: 0.7rem;">{{ product.category.name }}</span>
+                                <h6>{{ product.name }}</h6>
+                                <p class="location"><i class="bi bi-geo-alt"></i> {{ product.location }}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="price">UGX {{ product.price|floatformat:0 }}/{{ product.unit }}</span>
+                                    <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 0.3rem 0.75rem;">View</a>
+                                </div>
+                                <p class="farmer"><i class="bi bi-person"></i> {{ product.farmer.username }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-2 text-center py-4" style="color: rgba(255,255,255,0.5);">
+                            No products yet.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="right-panel">
+
+                <!-- WEATHER WIDGET -->
+                <div class="weather-card">
+                    <div class="section-title">
+                        <i class="bi bi-cloud-sun"></i> Weather
+                    </div>
+                    <div class="district-tabs">
+                        <button class="district-tab active" onclick="showWeather(this, 'Kampala', '28°C', 'Partly Cloudy', '70%', '12km/h', 'Good')">Kampala</button>
+                        <button class="district-tab" onclick="showWeather(this, 'Gulu', '31°C', 'Sunny', '55%', '8km/h', 'Excellent')">Gulu</button>
+                        <button class="district-tab" onclick="showWeather(this, 'Mbarara', '24°C', 'Light Rain', '85%', '15km/h', 'Fair')">Mbarara</button>
+                        <button class="district-tab" onclick="showWeather(this, 'Mbale', '26°C', 'Cloudy', '75%', '10km/h', 'Good')">Mbale</button>
+                    </div>
+                    <div class="weather-district">
+                        <div class="district-name" id="weather-district">Kampala</div>
+                        <div class="temp" id="weather-temp">28°C</div>
+                        <div class="condition" id="weather-condition"><i class="bi bi-cloud-sun"></i> Partly Cloudy</div>
+                    </div>
+                    <div class="weather-stats">
+                        <div class="weather-stat">
+                            <div class="label">Humidity</div>
+                            <div class="value" id="weather-humidity">70%</div>
+                        </div>
+                        <div class="weather-stat">
+                            <div class="label">Wind</div>
+                            <div class="value" id="weather-wind">12km/h</div>
+                        </div>
+                        <div class="weather-stat">
+                            <div class="label">Farming</div>
+                            <div class="value" id="weather-farming" style="color: #7CB342 !important;">Good</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECENT ORDERS (logged in only) -->
+                {% if user.is_authenticated %}
+                <div class="orders-card">
+                    <div class="section-title">
+                        <i class="bi bi-bag-check"></i> Recent Orders
+                        <a href="{% url 'orders:my_orders' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none;">View all →</a>
+                    </div>
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                        <div class="order-item">
+                            <div class="order-icon"><i class="bi bi-bag"></i></div>
+                            <div class="order-info">
+                                <div class="order-name">Order #{{ order.id }}</div>
+                                <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="order-amount">UGX {{ order.total_amount|floatformat:0 }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align:center; padding: 1rem 0; color: rgba(255,255,255,0.4) !important; font-size: 0.85rem;">
+                            <i class="bi bi-bag" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            No orders yet
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="section-title"><i class="bi bi-grid"></i> Browse by Category</div>
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="{% url 'marketplace:product_list' %}?category={{ category.id }}" class="category-chip">
+                <i class="bi bi-tag"></i> {{ category.name }}
+            </a>
+            {% empty %}
+            <p style="color: rgba(255,255,255,0.5);">No categories yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- AGRI-PULSE NEWS PREVIEW -->
+        <div class="section-title" style="margin-bottom: 1rem;">
+            <i class="bi bi-newspaper"></i> Latest Agri-Pulse News
+            <a href="{% url 'news:news_list' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none;">Read all →</a>
+        </div>
+        <div class="news-preview-grid">
+            {% for article in latest_news %}
+            <div class="news-preview-card">
+                {% if article.image %}
+                <div class="news-img"><img src="{{ article.image.url }}" alt="{{ article.title }}"></div>
+                {% else %}
+                <div class="news-img-placeholder"><i class="bi bi-newspaper"></i></div>
+                {% endif %}
+                <div class="news-preview-body">
+                    <div class="news-cat">{{ article.category }}</div>
+                    <h6>{{ article.title }}</h6>
+                    <p class="news-excerpt">{{ article.content|truncatewords:15 }}</p>
+                    <div class="news-meta d-flex justify-content-between">
+                        <span><i class="bi bi-person"></i> {{ article.author.username }}</span>
+                        <span>{{ article.created_at|date:"M d" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: span 3; text-align:center; padding: 2rem; color: rgba(255,255,255,0.4);">
+                <i class="bi bi-newspaper" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                No news articles yet. <a href="{% url 'news:news_list' %}" style="color: #7CB342;">Check the news page</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- PLATFORM FEATURES -->
+        <div class="section-title" style="margin-bottom: 1rem;"><i class="bi bi-grid-3x3-gap"></i> Platform Features</div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(74,124,42,0.15);">
+                    <i class="bi bi-shop" style="color: #7CB342;"></i>
+                </div>
+                <h6>Input Store</h6>
+                <p>Quality seeds, fertilizers, and tools from verified suppliers</p>
+                <a href="{% url 'inputs:input_store' %}" class="btn btn-outline-success btn-sm">Explore</a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(135,206,235,0.15);">
+                    <i class="bi bi-newspaper" style="color: #87CEEB;"></i>
+                </div>
+                <h6>Agri-Pulse News</h6>
+                <p>Stay updated with policies and agricultural news</p>
+                <a href="{% url 'news:news_list' %}" class="btn btn-outline-info btn-sm">Read News</a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(253,185,39,0.15);">
+                    <i class="bi bi-cloud-sun" style="color: #FDB927;"></i>
+                </div>
+                <h6>Climate Suite</h6>
+                <p>Weather forecasts and planting season guidance</p>
+                <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-warning btn-sm">View Dashboard</a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(255,152,0,0.15);">
+                    <i class="bi bi-people" style="color: #FF9800;"></i>
+                </div>
+                <h6>Group Buying</h6>
+                <p>Join with other farmers to buy inputs in bulk at lower prices</p>
+                <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning btn-sm">View Pools</a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(244,67,54,0.15);">
+                    <i class="bi bi-graph-up-arrow" style="color: #F44336;"></i>
+                </div>
+                <h6>Price Tracker</h6>
+                <p>Crowdsourced prices from farmers to fight exploitation</p>
+                <a href="{% url 'marketplace:price_tracker' %}" class="btn btn-outline-danger btn-sm">View Prices</a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background: rgba(124,179,66,0.15);">
+                    <i class="bi bi-exclamation-triangle" style="color: #7CB342;"></i>
+                </div>
+                <h6>Distress Sale Alerts</h6>
+                <p>Help farmers find urgent buyers for perishable produce</p>
+                <a href="{% url 'marketplace:product_list' %}?urgent=1" class="btn btn-outline-success btn-sm">View Urgent</a>
+            </div>
+        </div>
+
+        <!-- TESTIMONIALS -->
+        <div class="section-title" style="margin-bottom: 1rem;"><i class="bi bi-chat-quote"></i> What Farmers Say</div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">AgriMarket helped me sell my tomatoes directly to buyers in Kampala. I now earn 40% more than selling through middlemen.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">JM</div>
+                    <div>
+                        <div class="author-name">James Mukasa</div>
+                        <div class="author-role">Farmer, Wakiso District</div>
+                        <div class="star-rating">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">The group buying feature saved us 30% on fertilizer costs this season. We organized 15 farmers and got a bulk discount.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">SA</div>
+                    <div>
+                        <div class="author-name">Sarah Amongi</div>
+                        <div class="author-role">Farmer, Gulu District</div>
+                        <div class="star-rating">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">The climate dashboard tells me exactly when to plant. My yields have improved significantly since I started using the platform.</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">PO</div>
+                    <div>
+                        <div class="author-name">Peter Okello</div>
+                        <div class="author-role">Farmer, Mbale District</div>
+                        <div class="star-rating">★★★★☆</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end main-content -->
+</div><!-- end page-wrapper -->
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+    <i class="bi bi-layout-sidebar"></i>
+</button>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Weather widget
+function showWeather(btn, district, temp, condition, humidity, wind, farming) {
+    document.querySelectorAll('.district-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('weather-district').textContent = district;
+    document.getElementById('weather-temp').textContent = temp;
+    document.getElementById('weather-condition').innerHTML = `<i class="bi bi-cloud-sun"></i> ${condition}`;
+    document.getElementById('weather-humidity').textContent = humidity;
+    document.getElementById('weather-wind').textContent = wind;
+    document.getElementById('weather-farming').textContent = farming;
+}
+
+// Mobile sidebar toggle
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+});
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 991) {
+        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
+
+// Auto-rotate weather districts
+let weatherIndex = 0;
+const weatherData = [
+    { district: 'Kampala', temp: '28°C', condition: 'Partly Cloudy', humidity: '70%', wind: '12km/h', farming: 'Good' },
+    { district: 'Gulu', temp: '31°C', condition: 'Sunny', humidity: '55%', wind: '8km/h', farming: 'Excellent' },
+    { district: 'Mbarara', temp: '24°C', condition: 'Light Rain', humidity: '85%', wind: '15km/h', farming: 'Fair' },
+    { district: 'Mbale', temp: '26°C', condition: 'Cloudy', humidity: '75%', wind: '10km/h', farming: 'Good' }
+];
+
+setInterval(() => {
+    weatherIndex = (weatherIndex + 1) % weatherData.length;
+    const d = weatherData[weatherIndex];
+    const tabs = document.querySelectorAll('.district-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    tabs[weatherIndex].classList.add('active');
+    document.getElementById('weather-district').textContent = d.district;
+    document.getElementById('weather-temp').textContent = d.temp;
+    document.getElementById('weather-condition').innerHTML = `<i class="bi bi-cloud-sun"></i> ${d.condition}`;
+    document.getElementById('weather-humidity').textContent = d.humidity;
+    document.getElementById('weather-wind').textContent = d.wind;
+    document.getElementById('weather-farming').textContent = d.farming;
+}, 8000);
+</script>
 {% endblock %}

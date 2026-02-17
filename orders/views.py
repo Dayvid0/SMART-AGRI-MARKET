@@ -73,7 +73,7 @@ def place_order(request, product_id):
         product.save()
         
         messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
-        return redirect('order_detail', order_id=order.id)
+        return redirect('orders:order_detail', order_id=order.id)  # FIXED
     
     context = {
         'product': product
@@ -127,7 +127,7 @@ def update_order_status(request, order_id):
     # Only farmer can update status
     if request.user != order.farmer:
         messages.error(request, 'Only the farmer can update order status!')
-        return redirect('order_detail', order_id=order_id)
+        return redirect('orders:order_detail', order_id=order_id)  # FIXED
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
@@ -139,7 +139,7 @@ def update_order_status(request, order_id):
         else:
             messages.error(request, 'Invalid status!')
     
-    return redirect('order_detail', order_id=order_id)
+    return redirect('orders:order_detail', order_id=order_id)  # FIXED
 
 
 @login_required
@@ -152,11 +152,11 @@ def cancel_order(request, order_id):
     # Only buyer can cancel, and only if pending
     if request.user != order.buyer:
         messages.error(request, 'You can only cancel your own orders!')
-        return redirect('order_detail', order_id=order_id)
+        return redirect('orders:order_detail', order_id=order_id)  # FIXED
     
     if order.status != 'pending':
         messages.error(request, f'Cannot cancel order with status: {order.get_status_display()}')
-        return redirect('order_detail', order_id=order_id)
+        return redirect('orders:order_detail', order_id=order_id)  # FIXED
     
     # Restore product quantity
     for item in order.items.all():
@@ -171,4 +171,6 @@ def cancel_order(request, order_id):
     order.save()
     
     messages.success(request, 'Order cancelled successfully!')
-    return redirect('order_detail', order_id=order_id)
+    return redirect('orders:order_detail', order_id=order_id)  # FIXED
+
+

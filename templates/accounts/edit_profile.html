@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h3 class="mb-4 text-neon"><i class="bi bi-person-gear"></i> Account Settings</h3>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" class="form-control bg-dark text-white border-secondary" value="{{ user.first_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" class="form-control bg-dark text-white border-secondary" value="{{ user.last_name }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control bg-dark text-white border-secondary" value="{{ user.email }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" class="form-control bg-dark text-white border-secondary" value="{{ user.phone }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location (District)</label>
+                        <input type="text" name="location" class="form-control bg-dark text-white border-secondary" value="{{ user.location }}">
+                    </div>
+
+                    {% if user.user_type == 'farmer' %}
+                    <hr class="border-secondary mt-4">
+                    <h5 class="text-neon">Farm Details</h5>
+                    <div class="col-md-6">
+                        <label class="form-label">Farm Name</label>
+                        <input type="text" name="farm_name" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.farm_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.specialization }}">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="submit" class="btn btn-success px-4">Save Changes</button>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary text-white">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

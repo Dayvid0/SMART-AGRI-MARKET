@@ -19,6 +19,11 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # NEW FIELDS FOR FEATURE IMPLEMENTATION
+    district = models.CharField(max_length=100, blank=True, help_text="User's district in Uganda")
+    specialization = models.CharField(max_length=100, blank=True, help_text="User's agricultural specialization")
+    first_login = models.BooleanField(default=True, help_text="Track if this is user's first login for welcome message")
 
     def __str__(self):
         return f"{self.username} ({self.user_type})"
@@ -31,8 +36,8 @@ class User(AbstractUser):
 class FarmerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='farmer_profile')
     farm_name = models.CharField(max_length=200)
-    farm_size = models.DecimalField(max_digits=10, decimal_places=2)
-    specialization = models.CharField(max_length=200)
+    farm_size = models.DecimalField(max_digits=10, decimal_places=2, help_text="Farm size in acres")
+    specialization = models.CharField(max_length=200, help_text="Primary farming specialization")
     rating_average = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     total_sales = models.IntegerField(default=0)
     years_of_experience = models.IntegerField(default=0)
@@ -50,7 +55,7 @@ class InputSupplierProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='supplier_profile')
     company_name = models.CharField(max_length=200)
     business_license = models.CharField(max_length=100, blank=True)
-    specialization = models.CharField(max_length=200)
+    specialization = models.CharField(max_length=200, help_text="Type of agricultural inputs supplied")
     rating_average = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     total_orders = models.IntegerField(default=0)
 
