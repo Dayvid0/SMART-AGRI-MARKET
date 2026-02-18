@@ -9,7 +9,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('orders/', include('orders.urls')),  
     path('', include('marketplace.urls')),
-    path('reviews/', include('reviews.urls')),
+
     path('inputs/', include('inputs.urls')),
     path('news/', include('news.urls')),
     path('weather/', include('weather.urls')),  

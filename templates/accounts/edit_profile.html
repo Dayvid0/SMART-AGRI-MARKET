@@ -3,44 +3,49 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card p-4">
+        <div class="card p-4 bg-dark text-white border-secondary">
             <h3 class="mb-4 text-neon"><i class="bi bi-person-gear"></i> Account Settings</h3>
             
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
+                
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">First Name</label>
-                        <input type="text" name="first_name" class="form-control bg-dark text-white border-secondary" value="{{ user.first_name }}">
+                        {{ form.first_name }}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Last Name</label>
-                        <input type="text" name="last_name" class="form-control bg-dark text-white border-secondary" value="{{ user.last_name }}">
+                        {{ form.last_name }}
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control bg-dark text-white border-secondary" value="{{ user.email }}">
+                        {{ form.email }}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Phone Number</label>
-                        <input type="text" name="phone" class="form-control bg-dark text-white border-secondary" value="{{ user.phone }}">
+                        {{ form.phone }}
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Location (District)</label>
-                        <input type="text" name="location" class="form-control bg-dark text-white border-secondary" value="{{ user.location }}">
+                        {{ form.district }}
+                        {% if form.district.errors %}
+                            <div class="text-danger small">{{ form.district.errors }}</div>
+                        {% endif %}
                     </div>
 
                     {% if user.user_type == 'farmer' %}
-                    <hr class="border-secondary mt-4">
-                    <h5 class="text-neon">Farm Details</h5>
-                    <div class="col-md-6">
-                        <label class="form-label">Farm Name</label>
-                        <input type="text" name="farm_name" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.farm_name }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Specialization</label>
-                        <input type="text" name="specialization" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.specialization }}">
-                    </div>
+                        <hr class="border-secondary mt-4">
+                        <h5 class="text-neon">Farm Details</h5>
+                        <div class="col-md-6">
+                            <label class="form-label">Farm Name</label>
+                            <input type="text" name="farm_name" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.farm_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Primary Specialization</label>
+                            {{ form.specialization }}
+                        </div>
                     {% endif %}
                 </div>
 
@@ -52,4 +57,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %}BAE

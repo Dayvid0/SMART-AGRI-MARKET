@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from django.http import JsonResponse # Added for the API
+from django.http import JsonResponse
 from .models import WeatherAlert, PlantingSeason, PestAlert
+from .services.farming_advisor import FarmingAdvisor
 import requests
-from datetime import datetime
+from datetime import datetime, date
 
 def climate_suite(request):
     """
-    Climate suite dashboard with weather, planting seasons, and pest alerts
+    Enhanced climate suite dashboard with weather, planting seasons, pest alerts,
+    and intelligent farming recommendations
     """
     active_alerts = WeatherAlert.objects.filter(
         is_active=True,
@@ -21,15 +23,40 @@ def climate_suite(request):
     featured_districts = ['Kampala', 'Entebbe', 'Mbarara', 'Gulu', 'Jinja', 'Mbale']
     
     # Get initial weather for user's location or default to Kampala
-    user_location = request.user.location if request.user.is_authenticated and request.user.location else 'Kampala'
+    user_location = request.user.location if request.user.is_authenticated and hasattr(request.user, 'location') and request.user.location else 'Kampala'
     weather_data = get_weather_data(user_location)
+    
+    # Initialize Farming Advisor
+    advisor = FarmingAdvisor()
+    
+    # Generate intelligent recommendations
+    planting_recommendations = []
+    spray_recommendation = {}
+    daily_activities = []
+    
+    if weather_data:
+        planting_recommendations = advisor.get_planting_recommendations(user_location, weather_data)
+        spray_recommendation = advisor.get_spray_recommendations(user_location, weather_data)
+        daily_activities = advisor.get_daily_activities(weather_data)
+    
+    # Sample harvest predictions (in real app, get from user's planted crops)
+    sample_planted_crops = [
+        {'crop': 'maize', 'planted_date': date(2026, 1, 15)},
+        {'crop': 'beans', 'planted_date': date(2026, 2, 1)},
+    ]
+    harvest_predictions = advisor.get_harvest_predictions(sample_planted_crops)
     
     context = {
         'active_alerts': active_alerts,
         'planting_seasons': planting_seasons,
         'pest_alerts': pest_alerts,
         'weather_data': weather_data,
-        'featured_districts': featured_districts, # Added for JS
+        'featured_districts': featured_districts,
+        # New intelligent recommendations
+        'planting_recommendations': planting_recommendations,
+        'spray_recommendation': spray_recommendation,
+        'daily_activities': daily_activities,
+        'harvest_predictions': harvest_predictions,
     }
     
     return render(request, 'weather/climate_suite.html', context)

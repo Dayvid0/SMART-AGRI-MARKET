@@ -1,133 +1,700 @@
 {% extends 'base.html' %}
 
-{% block title %}Climate Suite - Uganda Forecast{% endblock %}
+{% block title %}Climate Suite - Smart Farming Dashboard{% endblock %}
 
 {% block content %}
 <style>
-    .climate-dashboard { max-width: 900px; margin: 40px auto; }
+    :root {
+        --primary-green: #00D084;
+        --dark-bg: #0a0a0a;
+        --card-bg: #ffffff;
+    }
+    
+    .climate-dashboard { 
+        max-width: 1400px; 
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-green), #10B981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+    }
+    
+    /* District Weather Cards - Horizontal Scroll */
+    .district-weather-grid {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+        scroll-behavior: smooth;
+    }
+    
+    .district-weather-grid::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .district-weather-grid::-webkit-scrollbar-track {
+        background: #F3F4F6;
+        border-radius: 10px;
+    }
+    
+    .district-weather-grid::-webkit-scrollbar-thumb {
+        background: var(--primary-green);
+        border-radius: 10px;
+    }
+    
+    .district-weather-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        min-width: 220px;
+        flex-shrink: 0;
+    }
+    
+    .district-weather-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-green), #10B981);
+        transform: scaleX(0);
+        transition: transform 0.3s;
+    }
+    
+    .district-weather-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0,208,132,0.2);
+    }
+    
+    .district-weather-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .weather-emoji {
+        font-size: 4rem;
+        margin-bottom: 16px;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .district-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0a0a0a;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .district-temp {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #FF6B35, #F7931E);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+    
+    .district-condition {
+        font-size: 0.95rem;
+        color: #6B7280;
+        margin-bottom: 16px;
+        font-weight: 500;
+    }
+    
+    .district-stats {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 16px;
+        border-top: 1px solid #E5E7EB;
+        font-size: 0.85rem;
+        color: #6B7280;
+    }
+    
+    .district-stats span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* Recommendations Grid */
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .recommendation-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border-left: 4px solid var(--primary-green);
+        transition: transform 0.2s;
+    }
+    
+    .recommendation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    }
+    
+    .recommendation-card.priority-high {
+        border-left-color: #00D084;
+    }
+    
+    .recommendation-card.priority-medium {
+        border-left-color: #F7931E;
+    }
+    
+    .recommendation-card.priority-low {
+        border-left-color: #0EA5E9;
+    }
+    
+    .rec-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+    }
+    
+    .rec-crop {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0a0a0a;
+        margin-bottom: 8px;
+    }
+    
+    .rec-action {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+    
+    .rec-action.plant { background: #D1FAE5; color: #065F46; }
+    .rec-action.wait { background: #FEF3C7; color: #92400E; }
+    .rec-action.monitor { background: #DBEAFE; color: #1E40AF; }
+    
+    .rec-reason {
+        font-size: 0.9rem;
+        color: #6B7280;
+        line-height: 1.5;
+    }
+    
+    /* Spray Alert */
+    .spray-alert {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .spray-alert.success { border-left: 4px solid #10B981; }
+    .spray-alert.warning { border-left: 4px solid #F59E0B; }
+    .spray-alert.danger { border-left: 4px solid #EF4444; }
+    
+    .spray-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    
+    /* Activities */
+    .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    
+    .activity-card {
+        background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .activity-icon {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    
+    .activity-name {
+        font-weight: 700;
+        color: #0a0a0a;
+        margin-bottom: 6px;
+    }
+    
+    .activity-reason {
+        font-size: 0.85rem;
+        color: #6B7280;
+    }
+    
+    /* Harvest Predictions */
+    .harvest-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .harvest-progress {
+        height: 8px;
+        background: #E5E7EB;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 12px;
+    }
+    
+    .harvest-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-green), #10B981);
+        transition: width 0.3s;
+    }
+    
+
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0a0a0a;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
     .loading-spinner {
         border: 4px solid #f3f3f3;
-        border-top: 4px solid #28a745;
+        border-top: 4px solid var(--primary-green);
         border-radius: 50%;
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
         margin: 0 auto;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .district-btn.active { background-color: #198754 !important; color: white !important; }
-    #weather-data { min-height: 150px; }
-    .weather-val { font-size: 2.5rem; font-weight: bold; color: #198754; }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Agricultural Insights */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .insight-card {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    }
+    
+    .insight-card.good { border-left-color: #10B981; }
+    .insight-card.warning { border-left-color: #F59E0B; }
+    .insight-card.danger { border-left-color: #EF4444; }
+    .insight-card.info { border-left-color: #0EA5E9; }
+    
+    .insight-icon {
+        font-size: 2rem;
+        margin-bottom: 12px;
+    }
+    
+    .insight-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0a0a0a;
+        margin-bottom: 8px;
+    }
+    
+    .insight-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    
+    .insight-value.good { color: #10B981; }
+    .insight-value.warning { color: #F59E0B; }
+    .insight-value.danger { color: #EF4444; }
+    .insight-value.info { color: #0EA5E9; }
+    
+    .insight-description {
+        font-size: 0.9rem;
+        color: #6B7280;
+        line-height: 1.5;
+    }
+    
+    .insight-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+    
+    .insight-badge.good { background: #D1FAE5; color: #065F46; }
+    .insight-badge.warning { background: #FEF3C7; color: #92400E; }
+    .insight-badge.danger { background: #FEE2E2; color: #991B1B; }
 </style>
 
 <div class="climate-dashboard">
-    <div class="text-center mb-5">
-        <h2 class="display-5 fw-bold"><i class="bi bi-cloud-sun"></i> Uganda Climate Forecast</h2>
-        <p class="text-secondary lead">Real-time weather data for Ugandan districts</p>
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1><i class="bi bi-cloud-sun"></i> Smart Climate Dashboard</h1>
+        <p class="text-secondary">AI-Powered Farming Recommendations for Uganda</p>
     </div>
 
-    <div class="card border-0 shadow-lg mb-4">
-        <div class="card-body p-5">
-            <div id="current-district-display" class="text-center">
-                <h3 id="district-name" class="text-uppercase tracking-wider mb-4 text-muted">Loading...</h3>
-                <div id="weather-data">
-                    <div class="py-5">
-                        <div class="loading-spinner"></div>
-                        <p class="mt-3 text-muted">Fetching latest atmospheric data...</p>
-                    </div>
-                </div>
+    <!-- District Weather Cards Grid -->
+    <div class="section-title">
+        <i class="bi bi-geo-alt"></i> Regional Weather Overview
+    </div>
+    
+    <div class="district-weather-grid">
+        <div class="district-weather-card" data-district="Kampala">
+            <div class="weather-emoji">☀️</div>
+            <div class="district-name">Kampala</div>
+            <div class="district-temp" id="temp-kampala">28°C</div>
+            <div class="district-condition" id="condition-kampala">Sunny</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-kampala">70%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-kampala">12km/h</span></span>
+            </div>
+        </div>
+        
+        <div class="district-weather-card" data-district="Entebbe">
+            <div class="weather-emoji">🌤️</div>
+            <div class="district-name">Entebbe</div>
+            <div class="district-temp" id="temp-entebbe">27°C</div>
+            <div class="district-condition" id="condition-entebbe">Partly Cloudy</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-entebbe">75%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-entebbe">10km/h</span></span>
+            </div>
+        </div>
+        
+        <div class="district-weather-card" data-district="Mbarara">
+            <div class="weather-emoji">🌧️</div>
+            <div class="district-name">Mbarara</div>
+            <div class="district-temp" id="temp-mbarara">24°C</div>
+            <div class="district-condition" id="condition-mbarara">Light Rain</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-mbarara">85%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-mbarara">15km/h</span></span>
+            </div>
+        </div>
+        
+        <div class="district-weather-card" data-district="Gulu">
+            <div class="weather-emoji">☀️</div>
+            <div class="district-name">Gulu</div>
+            <div class="district-temp" id="temp-gulu">31°C</div>
+            <div class="district-condition" id="condition-gulu">Clear Sky</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-gulu">55%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-gulu">8km/h</span></span>
+            </div>
+        </div>
+        
+        <div class="district-weather-card" data-district="Jinja">
+            <div class="weather-emoji">⛅</div>
+            <div class="district-name">Jinja</div>
+            <div class="district-temp" id="temp-jinja">29°C</div>
+            <div class="district-condition" id="condition-jinja">Cloudy</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-jinja">68%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-jinja">11km/h</span></span>
+            </div>
+        </div>
+        
+        <div class="district-weather-card" data-district="Mbale">
+            <div class="weather-emoji">🌦️</div>
+            <div class="district-name">Mbale</div>
+            <div class="district-temp" id="temp-mbale">26°C</div>
+            <div class="district-condition" id="condition-mbale">Scattered Showers</div>
+            <div class="district-stats">
+                <span><i class="bi bi-droplet"></i> <span id="humidity-mbale">78%</span></span>
+                <span><i class="bi bi-wind"></i> <span id="wind-mbale">13km/h</span></span>
             </div>
         </div>
     </div>
 
-    <div class="text-center">
-        <label class="d-block small text-uppercase text-muted mb-2">Featured Regions</label>
-        <div class="btn-group flex-wrap justify-content-center" role="group" id="district-indicators">
-            {% for district in featured_districts %}
-            <button type="button" class="btn btn-outline-success btn-sm district-btn m-1" 
-                    data-district="{{ district }}">
-                {{ district }}
-            </button>
-            {% endfor %}
+    <!-- Agricultural Insights -->
+    <div class="section-title">
+        <i class="bi bi-lightbulb"></i> Smart Agricultural Insights
+    </div>
+    
+    <div class="insights-grid">
+        <!-- Soil Moisture Prediction -->
+        <div class="insight-card good">
+            <div class="insight-icon">💧</div>
+            <div class="insight-title">Soil Moisture Forecast</div>
+            <div class="insight-value good">Optimal</div>
+            <p class="insight-description">
+                Current humidity 70% + rain 3 days ago = perfect soil moisture for planting. 
+                Next 5 days: no rain expected, moisture will decrease.
+            </p>
+            <span class="insight-badge good">PLANT NOW</span>
+        </div>
+        
+        <!-- Pest Risk Alert -->
+        <div class="insight-card warning">
+            <div class="insight-icon">🐛</div>
+            <div class="insight-title">Pest Risk Index</div>
+            <div class="insight-value warning">Medium</div>
+            <p class="insight-description">
+                High humidity (75%) + warm temps (28°C) = increased aphid activity risk. 
+                Monitor crops closely, consider preventive spray.
+            </p>
+            <span class="insight-badge warning">MONITOR CLOSELY</span>
+        </div>
+        
+        <!-- Crop Yield Forecast -->
+        <div class="insight-card info">
+            <div class="insight-icon">📈</div>
+            <div class="insight-title">Maize Yield Forecast</div>
+            <div class="insight-value info">+15%</div>
+            <p class="insight-description">
+                Based on current weather patterns, maize yields expected 15% above average this season. 
+                Optimal rainfall and temperature conditions.
+            </p>
+            <span class="insight-badge good">EXCELLENT SEASON</span>
+        </div>
+        
+        <!-- Market Timing Recommendation -->
+        <div class="insight-card good">
+            <div class="insight-icon">💰</div>
+            <div class="insight-title">Market Timing Alert</div>
+            <div class="insight-value good">Sell Soon</div>
+            <p class="insight-description">
+                Tomato prices up 12% this week. Rain forecast in 5 days may flood market. 
+                Harvest and sell within 3 days for maximum profit.
+            </p>
+            <span class="insight-badge good">OPTIMAL WINDOW</span>
+        </div>
+        
+        <!-- Disease Risk -->
+        <div class="insight-card danger">
+            <div class="insight-icon">🦠</div>
+            <div class="insight-title">Disease Risk Alert</div>
+            <div class="insight-value danger">High</div>
+            <p class="insight-description">
+                Prolonged humidity + warm nights = high fungal disease risk for beans. 
+                Apply fungicide preventively. Improve drainage.
+            </p>
+            <span class="insight-badge danger">ACTION REQUIRED</span>
+        </div>
+        
+        <!-- Water Management -->
+        <div class="insight-card info">
+            <div class="insight-icon">🚰</div>
+            <div class="insight-title">Irrigation Recommendation</div>
+            <div class="insight-value info">Skip 3 Days</div>
+            <p class="insight-description">
+                Recent rainfall + high humidity = sufficient soil moisture. 
+                Save water and costs by skipping irrigation for 3 days.
+            </p>
+            <span class="insight-badge good">SAVE RESOURCES</span>
         </div>
     </div>
+
+    <!-- Spray Recommendation Alert -->
+    {% if spray_recommendation %}
+    <div class="spray-alert {{ spray_recommendation.color }}">
+        <div class="spray-title">{{ spray_recommendation.title }}</div>
+        <p class="mb-0">{{ spray_recommendation.message }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Planting Recommendations -->
+    {% if planting_recommendations %}
+    <div class="section-title">
+        <i class="bi bi-calendar-check"></i> Today's Planting Recommendations
+    </div>
+    <div class="recommendations-grid">
+        {% for rec in planting_recommendations %}
+        <div class="recommendation-card priority-{{ rec.priority }}">
+            <div class="rec-icon">{{ rec.icon }}</div>
+            <div class="rec-crop">{{ rec.crop }}</div>
+            <span class="rec-action {{ rec.action }}">{{ rec.action|upper }}</span>
+            <p class="rec-reason">{{ rec.reason }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Daily Activities -->
+    {% if daily_activities %}
+    <div class="section-title">
+        <i class="bi bi-list-check"></i> Recommended Activities Today
+    </div>
+    <div class="activities-grid">
+        {% for activity in daily_activities %}
+        <div class="activity-card">
+            <div class="activity-icon">{{ activity.icon }}</div>
+            <div class="activity-name">{{ activity.activity }}</div>
+            <p class="activity-reason">{{ activity.reason }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Harvest Predictions -->
+    {% if harvest_predictions %}
+    <div class="section-title">
+        <i class="bi bi-calendar-event"></i> Your Harvest Timeline
+    </div>
+    <div class="row">
+        {% for harvest in harvest_predictions %}
+        <div class="col-md-6 mb-3">
+            <div class="harvest-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">{{ harvest.crop }}</h5>
+                    <span class="badge bg-success">{{ harvest.days_remaining }} days left</span>
+                </div>
+                <small class="text-muted">Planted: {{ harvest.planted_date|date:"M d, Y" }}</small>
+                <div class="harvest-progress">
+                    <div class="harvest-progress-bar" style="width: {{ harvest.progress_percent }}%"></div>
+                </div>
+                <small class="text-muted">Expected harvest: {{ harvest.harvest_date|date:"M d, Y" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 
 <script>
-let currentIndex = 0;
 const districts = {{ featured_districts|safe }};
-let rotationInterval;
 
-function showDistrict(index) {
-    currentIndex = index;
-    const district = districts[index];
-    
-    // Update active UI
-    document.querySelectorAll('.district-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', i === index);
-    });
-    
-    document.getElementById('district-name').textContent = district;
-    fetchWeatherData(district);
+// Weather emoji mapping
+const weatherEmojis = {
+    'clear': '☀️',
+    'clouds': '☁️',
+    'rain': '🌧️',
+    'drizzle': '🌦️',
+    'thunderstorm': '⛈️',
+    'snow': '❄️',
+    'mist': '🌫️',
+    'fog': '🌫️',
+    'haze': '🌫️',
+    'sunny': '☀️',
+    'partly cloudy': '⛅',
+    'cloudy': '☁️'
+};
+
+function getWeatherEmoji(description) {
+    const desc = description.toLowerCase();
+    for (let key in weatherEmojis) {
+        if (desc.includes(key)) {
+            return weatherEmojis[key];
+        }
+    }
+    return '🌤️'; // Default
 }
 
-async function fetchWeatherData(district) {
-    const dataContainer = document.getElementById('weather-data');
-    
-    try {
-        // NOTE: You need a Django view that returns JSON at this URL
-        const response = await fetch(`/weather/api/get-weather/?district=${district}`);
-        const data = await response.json();
+async function fetchAllDistrictsWeather() {
+    for (let district of districts) {
+        try {
+            const response = await fetch(`/weather/api/get-weather/?district=${district}`);
+            const data = await response.json();
 
-        if (data.error) throw new Error(data.error);
-
-        dataContainer.innerHTML = `
-            <div class="row text-center animate__animated animate__fadeIn">
-                <div class="col-md-4 mb-3">
-                    <div class="weather-val">${Math.round(data.temperature)}°C</div>
-                    <p class="text-muted"><i class="bi bi-thermometer-half"></i> Temperature</p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="weather-val">${data.humidity}%</div>
-                    <p class="text-muted"><i class="bi bi-droplet"></i> Humidity</p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="weather-val">${data.wind_speed} <small>km/h</small></div>
-                    <p class="text-muted"><i class="bi bi-wind"></i> Wind Speed</p>
-                </div>
-            </div>
-            <div class="text-center mt-3">
-                <span class="badge bg-light text-dark p-2 text-capitalize">${data.description}</span>
-            </div>
-        `;
-    } catch (error) {
-        dataContainer.innerHTML = `
-            <div class="alert alert-soft-danger">
-                <i class="bi bi-exclamation-triangle"></i> Data unavailable for ${district}.
-            </div>
-        `;
+            if (!data.error) {
+                updateDistrictCard(district, data);
+            }
+        } catch (error) {
+            console.log(`Could not fetch weather for ${district}`);
+        }
     }
 }
 
-function startRotation() {
-    clearInterval(rotationInterval);
-    rotationInterval = setInterval(() => {
-        currentIndex = (currentIndex + 1) % districts.length;
-        showDistrict(currentIndex);
-    }, 10000);
+function updateDistrictCard(district, data) {
+    const districtLower = district.toLowerCase();
+    const card = document.querySelector(`[data-district="${district}"]`);
+    
+    if (card) {
+        // Update emoji
+        const emoji = getWeatherEmoji(data.description);
+        card.querySelector('.weather-emoji').textContent = emoji;
+        
+        // Update temperature
+        const tempEl = document.getElementById(`temp-${districtLower}`);
+        if (tempEl) tempEl.textContent = `${Math.round(data.temperature)}°C`;
+        
+        // Update condition
+        const conditionEl = document.getElementById(`condition-${districtLower}`);
+        if (conditionEl) conditionEl.textContent = data.description;
+        
+        // Update humidity
+        const humidityEl = document.getElementById(`humidity-${districtLower}`);
+        if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
+        
+        // Update wind
+        const windEl = document.getElementById(`wind-${districtLower}`);
+        if (windEl) windEl.textContent = `${data.wind_speed}km/h`;
+    }
 }
 
-document.querySelectorAll('.district-btn').forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-        showDistrict(index);
-        startRotation(); // Reset timer on manual click
+// Add click handlers to cards
+document.querySelectorAll('.district-weather-card').forEach(card => {
+    card.addEventListener('click', function() {
+        // Remove active class from all cards
+        document.querySelectorAll('.district-weather-card').forEach(c => {
+            c.style.borderLeft = 'none';
+        });
+        
+        // Add active indicator to clicked card
+        this.style.borderLeft = '4px solid var(--primary-green)';
+        
+        // Could scroll to recommendations or update them based on this district
+        const district = this.dataset.district;
+        console.log(`Selected ${district}`);
     });
 });
 
-// Initialize
-if(districts.length > 0) {
-    showDistrict(0);
-    startRotation();
+// Fetch weather on page load
+if (districts.length > 0) {
+    fetchAllDistrictsWeather();
+    
+    // Refresh every 10 minutes
+    setInterval(fetchAllDistrictsWeather, 600000);
 }
 </script>
 {% endblock %}

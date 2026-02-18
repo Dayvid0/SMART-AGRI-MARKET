@@ -150,15 +150,15 @@
                                 <i class="bi bi-check-circle"></i> Order completed successfully!
                             </div>
                             
-                            {% if order.review %}
+                            {% if order.marketplace_review %}
                                 <div class="alert alert-info mb-3">
-                                    <i class="bi bi-star-fill text-warning"></i> You rated this order {{ order.review.rating }} stars
+                                    <i class="bi bi-star-fill text-warning"></i> You rated this order {{ order.marketplace_review.rating }} stars
                                 </div>
-                                <a href="{% url 'reviews:farmer_reviews' order.farmer.id %}" class="btn btn-outline-primary w-100">
+                                <a href="{% url 'marketplace:farmer_reviews' order.farmer.id %}" class="btn btn-outline-primary w-100">
                                     <i class="bi bi-eye"></i> View Your Review
                                 </a>
                             {% else %}
-                                <a href="{% url 'reviews:create_review' order.id %}" class="btn btn-warning w-100">
+                                <a href="{% url 'marketplace:create_review' order.id %}" class="btn btn-warning w-100">
                                     <i class="bi bi-star"></i> Write a Review
                                 </a>
                             {% endif %}

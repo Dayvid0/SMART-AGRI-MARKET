@@ -22,7 +22,6 @@ INSTALLED_APPS = [
     'accounts',
     'marketplace',
     'orders',
-    'reviews',
     'inputs',
     'news',
     'weather',

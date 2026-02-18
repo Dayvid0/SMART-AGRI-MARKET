@@ -1,70 +1,155 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Dashboard - AgriMarket{% endblock %}
+{% block title %}My Dashboard - AgriMarket{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-body text-center p-5">
-                    <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="bi bi-person text-white fs-1"></i>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">My Dashboard</h2>
+            <p class="text-secondary">Manage your account and activities</p>
+        </div>
+        <div>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                <i class="bi bi-shield-check me-1"></i> {{ user.get_user_type_display }} Account
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-header border-0 py-4 text-center" style="background: linear-gradient(135deg, #064e3b, #00D084);">
+                    <div class="position-relative d-inline-block mb-3">
+                        <div class="rounded-circle bg-white d-flex align-items-center justify-content-center mx-auto shadow-sm" 
+                             style="width: 100px; height: 100px; color: #064e3b;">
+                            <span class="fs-1 fw-bold">{{ user.username|make_list|first|upper }}</span>
+                        </div>
                     </div>
-                    <h3 class="fw-bold">{{ user.username }}</h3>
-                    <p class="badge bg-info text-dark">{{ user.get_user_type_display }}</p>
-                    <hr>
-                    <div class="text-start">
-                        <p><strong><i class="bi bi-envelope"></i> Email:</strong> {{ user.email }}</p>
-                        <p><strong><i class="bi bi-telephone"></i> Phone:</strong> {{ user.phone|default:"Not set" }}</p>
-                        <p><strong><i class="bi bi-geo-alt"></i> Location:</strong> {{ user.location|default:"Not set" }}</p>
+                    <h4 class="text-white fw-bold mb-1">{{ user.username }}</h4>
+                    <p class="text-white-50 mb-0 small">{{ user.email }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="vstack gap-3">
+                        <div class="d-flex align-items-center text-secondary">
+                            <div class="icon-box bg-light text-success rounded-circle p-2 me-3">
+                                <i class="bi bi-telephone-fill"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted">Phone Number</small>
+                                <span class="fw-medium text-dark">{{ user.phone|default:"Not set" }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center text-secondary">
+                            <div class="icon-box bg-light text-success rounded-circle p-2 me-3">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div>
+                                <small class="d-block text-muted">Location</small>
+                                <span class="fw-medium text-dark">{{ user.location|default:"Not set" }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-success w-100 mt-3">
-                        <i class="bi bi-pencil-square"></i> Edit Profile
+                    
+                    <hr class="my-4 opacity-10">
+                    
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-success w-100 rounded-pill">
+                        <i class="bi bi-pencil-square me-2"></i> Edit Profile
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-8">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Farmer Stats -->
             {% if user.user_type == 'farmer' %}
-            <div class="card shadow border-0 mb-4 bg-dark text-white">
-                <div class="card-body p-4">
-                    <h4 class="text-neon mb-3">Farm Information</h4>
-                    {% if farmer_profile %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p class="mb-1 text-secondary">Farm Name</p>
-                                <p class="h5">{{ farmer_profile.farm_name }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-1 text-secondary">Specialization</p>
-                                <p class="h5">{{ farmer_profile.specialization }}</p>
-                            </div>
+            <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-8 p-4">
+                            <h5 class="fw-bold text-success mb-3"><i class="bi bi-tree me-2"></i>Farm Overview</h5>
+                            {% if farmer_profile %}
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <p class="text-muted small mb-1">Farm Name</p>
+                                            <p class="h6 fw-bold mb-0">{{ farmer_profile.farm_name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <p class="text-muted small mb-1">Specialization</p>
+                                            <p class="h6 fw-bold mb-0">{{ farmer_profile.specialization }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <p class="text-muted small mb-1">Farm Size</p>
+                                            <p class="h6 fw-bold mb-0">{{ farmer_profile.farm_size }} acres</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3">
+                                            <p class="text-muted small mb-1">Rating</p>
+                                            <p class="h6 fw-bold mb-0 text-warning">
+                                                <i class="bi bi-star-fill"></i> {{ farmer_profile.rating_average|default:"New" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning mb-0">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Please complete your farmer profile to start selling.
+                                </div>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <p>You haven't completed your farmer profile yet.</p>
-                    {% endif %}
+                        <div class="col-md-4 bg-success bg-opacity-10 d-flex flex-column align-items-center justify-content-center p-4 text-center">
+                            <h6 class="text-success fw-bold mb-3">Quick Actions</h6>
+                            <a href="#" class="btn btn-success btn-sm w-100 mb-2 rounded-pill">Add Product</a>
+                            <a href="{% url 'marketplace:market_prices' %}" class="btn btn-outline-success btn-sm w-100 rounded-pill">Check Prices</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
 
-            <div class="row g-3">
+            <!-- Activity Grid -->
+            <div class="row g-4">
                 <div class="col-md-6">
-                    <div class="card shadow border-0 h-100">
-                        <div class="card-body">
-                            <h5><i class="bi bi-cart"></i> Recent Orders</h5>
-                            <p class="text-muted small">View and track your latest purchases.</p>
-                            <a href="#" class="btn btn-sm btn-success">View All</a>
+                    <div class="card border-0 shadow-sm h-100 hover-lift stats-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                    <i class="bi bi-bag-check text-primary fs-4"></i>
+                                </div>
+                                <h5 class="fw-bold mb-0">My Orders</h5>
+                            </div>
+                            <p class="text-muted small mb-3">Track your purchases and view order history.</p>
+                            <a href="{% url 'orders:my_orders' %}" class="btn btn-link text-primary text-decoration-none p-0 fw-bold">
+                                View Orders <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
+                
                 <div class="col-md-6">
-                    <div class="card shadow border-0 h-100">
-                        <div class="card-body">
-                            <h5><i class="bi bi-bell"></i> Notifications</h5>
-                            <p class="text-muted small">Stay updated on market prices and news.</p>
-                            <a href="{% url 'news:news_list' %}" class="btn btn-sm btn-info">Check Pulse</a>
+                    <div class="card border-0 shadow-sm h-100 hover-lift stats-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3">
+                                    <i class="bi bi-newspaper text-info fs-4"></i>
+                                </div>
+                                <h5 class="fw-bold mb-0">Agri-News</h5>
+                            </div>
+                            <p class="text-muted small mb-3">Stay updated with the latest agricultural trends.</p>
+                            <a href="{% url 'news:news_list' %}" class="btn btn-link text-info text-decoration-none p-0 fw-bold">
+                                Read News <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -72,4 +157,14 @@
         </div>
     </div>
 </div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+</style>
 {% endblock %}

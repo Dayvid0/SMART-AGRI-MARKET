@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Farmers - Smart Agricultural Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-3 success-text-gradient">Meet Our Farmers</h1>
+        <p class="lead text-secondary mx-auto" style="max-width: 600px;">
+            Connect directly with the hardworking farmers who grow your food across Uganda.
+        </p>
+    </div>
+
+    <!-- Regions -->
+    {% for region, farmers in farmers_by_region.items %}
+    <div class="region-section mb-5">
+        <div class="d-flex align-items-center mb-4">
+            <h3 class="fw-bold text-success mb-0 me-3">{{ region }} Region</h3>
+            <div class="flex-grow-1 border-bottom border-success opacity-25"></div>
+        </div>
+
+        <div class="row g-4">
+            {% for farmer in farmers %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift farmer-card">
+                    <div class="card-body p-0">
+                        <!-- Cover / Banner Area -->
+                        <div class="farmer-cover" style="height: 100px; background: linear-gradient(135deg, #064e3b, #00D084); border-radius: 12px 12px 0 0; position: relative;">
+                            
+                        </div>
+                        
+                        <!-- Profile Content -->
+                        <div class="px-4 pb-4 text-center" style="margin-top: -50px;">
+                            <!-- Profile Image -->
+                            <div class="mb-3 position-relative d-inline-block">
+                                {% if farmer.profile_picture %}
+                                    <img src="{{ farmer.profile_picture.url }}" alt="{{ farmer.username }}" 
+                                         class="rounded-circle border border-4 border-white shadow-md profile-img">
+                                {% else %}
+                                    <div class="rounded-circle bg-white d-flex align-items-center justify-content-center mx-auto border border-4 border-white shadow-md profile-img"
+                                         style="color: var(--bright-green);">
+                                        <span class="fs-1 fw-bold">{{ farmer.username|make_list|first|upper }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if farmer.is_verified %}
+                                    <span class="verified-badge" title="Verified Farmer">
+                                        <i class="bi bi-patch-check-fill text-primary bg-white rounded-circle"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Name & Farm -->
+                            <h5 class="fw-bold mb-1 text-dark">{{ farmer.username|title }}</h5>
+                            <p class="text-success small mb-2 fw-bold">
+                                {% if farmer.farmer_profile.farm_name %}
+                                    {{ farmer.farmer_profile.farm_name }}
+                                {% else %}
+                                    Independent Farmer
+                                {% endif %}
+                            </p>
+
+                            <!-- Stats Row -->
+                            <div class="d-flex justify-content-center gap-3 my-3 py-2 border-top border-bottom bg-light bg-opacity-50 rounded">
+                                <div class="text-center px-2">
+                                    <div class="fw-bold text-dark small">{{ farmer.farmer_profile.rating_average|default:"New" }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">RATING</div>
+                                </div>
+                                <div class="vr opacity-25"></div>
+                                <div class="text-center px-2">
+                                    <div class="fw-bold text-dark small">{{ farmer.farmer_profile.total_sales|default:"0" }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">SALES</div>
+                                </div>
+                                <div class="vr opacity-25"></div>
+                                <div class="text-center px-2">
+                                    <div class="fw-bold text-dark small">
+                                        {% if farmer.farmer_profile.farm_size %}
+                                            {{ farmer.farmer_profile.farm_size|floatformat:0 }}ac
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">SIZE</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Badges -->
+                            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                                {% if farmer.district %}
+                                    <span class="badge bg-light text-secondary border">
+                                        <i class="bi bi-geo-alt me-1"></i> {{ farmer.district }}
+                                    </span>
+                                {% endif %}
+                                {% if farmer.specialization %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                        <i class="bi bi-award me-1"></i> {{ farmer.specialization }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Action -->
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'marketplace:product_list' %}?search={{ farmer.username }}" class="btn btn-outline-success rounded-pill btn-sm">
+                                    View Products
+                                </a>
+                                <a href="{% url 'marketplace:farmer_reviews' farmer.id %}" class="btn btn-sm btn-link text-decoration-none text-muted">
+                                    Read Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="mb-3">
+            <i class="bi bi-people text-secondary" style="font-size: 4rem;"></i>
+        </div>
+        <h3>No farmers found yet</h3>
+        <p class="text-secondary">Be the first to join as a farmer!</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-success mt-2">Register Now</a>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    
+    .profile-img {
+        width: 100px; 
+        height: 100px; 
+        object-fit: cover;
+    }
+    
+    .verified-badge {
+        position: absolute; 
+        bottom: 0; 
+        end: 0; 
+        font-size: 1.2rem;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .success-text-gradient {
+        background: linear-gradient(135deg, #064e3b, #00D084);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+{% endblock %}

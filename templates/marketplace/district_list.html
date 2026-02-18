@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Explore Districts - Smart Agricultural Marketplace{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    .map-container {
+        height: 500px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid var(--gray-200);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        z-index: 1; /* Ensure above standard elements but below navbar */
+    }
+    
+    .district-list-card {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .region-header {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .district-item {
+        margin-left: 0.5rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    
+    .district-item:hover {
+        background: #f0fdf4;
+        color: var(--bright-green);
+    }
+    
+    .district-stats {
+        font-size: 0.75rem;
+        color: #666;
+    }
+
+    #location-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        border: 2px solid var(--bright-green);
+        color: var(--bright-green);
+        padding: 8px 12px;
+        border-radius: 50px;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    #location-btn:hover {
+        background: var(--bright-green);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Explore Districts</h2>
+            <p class="text-secondary mb-0">Find farmers and products by region</p>
+        </div>
+        <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline-success">
+            <i class="bi bi-basket me-2"></i> Browse All Products
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Map Column -->
+        <div class="col-lg-8">
+            <div class="map-container">
+                <div id="map" style="height: 100%; width: 100%;"></div>
+                <button id="location-btn" onclick="findMyLocation()">
+                    <i class="bi bi-crosshair me-1"></i> Use My Location
+                </button>
+            </div>
+        </div>
+
+        <!-- Districts List Column -->
+        <div class="col-lg-4">
+            <div class="district-list-card card border-0 shadow-sm p-3 h-100">
+                <h5 class="fw-bold mb-3">Districts by Region</h5>
+                
+                {% for region, districts in region_data.items %}
+                <div class="mb-3">
+                    <div class="region-header" data-bs-toggle="collapse" data-bs-target="#collapse-{{ region|slugify }}">
+                        <span>{{ region }} Region</span>
+                        <span class="badge bg-white text-success rounded-pill">{{ districts|length }}</span>
+                    </div>
+                    <div class="collapse show" id="collapse-{{ region|slugify }}">
+                        <div class="list-group list-group-flush">
+                            {% for district in districts %}
+                                <div class="district-item d-flex justify-content-between align-items-center" 
+                                     onclick="flyToDistrict('{{ district.name }}')">
+                                    <span>{{ district.name }}</span>
+                                    <span class="badge bg-light text-dark border">{{ district.count }} Farmers</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // Initialize Map centered on Uganda
+    var map = L.map('map').setView([1.3733, 32.2903], 7);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // District Coordinates Data
+    const districtCoords = {{ coordinates|safe }};
+    const markers = {};
+
+    // Add Markers
+    for (const [name, coords] of Object.entries(districtCoords)) {
+        if (coords.lat && coords.lng) {
+            const marker = L.marker([coords.lat, coords.lng]).addTo(map);
+            marker.bindPopup(`
+                <div class="text-center">
+                    <h6 class="fw-bold mb-1">${name}</h6>
+                    <a href="{% url 'marketplace:product_list' %}?location=${name}" class="btn btn-sm btn-success mt-2">View Products</a>
+                </div>
+            `);
+            markers[name] = marker;
+        }
+    }
+
+    // Function to fly to district
+    function flyToDistrict(districtName) {
+        const coords = districtCoords[districtName];
+        if (coords) {
+            map.flyTo([coords.lat, coords.lng], 12);
+            if (markers[districtName]) {
+                markers[districtName].openPopup();
+            }
+        } else {
+            // If coordinate missing, try to search or just alert
+            // For now, search OpenStreetMap generic search? No, simpler to just log.
+            console.log("No coordinates for " + districtName);
+            // Fallback: search products directly
+            window.location.href = "{% url 'marketplace:product_list' %}?location=" + districtName;
+        }
+    }
+
+    // Geolocation
+    function findMyLocation() {
+        const btn = document.getElementById('location-btn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Locating...';
+        
+        map.locate({setView: true, maxZoom: 10});
+        
+        map.on('locationfound', function(e) {
+            var radius = e.accuracy / 2;
+            L.marker(e.latlng).addTo(map)
+                .bindPopup("You are within " + radius + " meters from this point").openPopup();
+            L.circle(e.latlng, radius).addTo(map);
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Found You!';
+            
+            // Optional: Reverse geocode to find district name?
+            // Leaflet doesn't do this natively without plugins/API.
+        });
+
+        map.on('locationerror', function(e) {
+            alert(e.message);
+            btn.innerHTML = '<i class="bi bi-crosshair"></i> Retry';
+        });
+    }
+</script>
+{% endblock %}

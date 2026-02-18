@@ -1,5 +1,6 @@
+# apps/accounts/forms.py
 from django import forms
-from .models import User  # This assumes your app is named 'accounts'
+from .models import User
 
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -30,8 +31,20 @@ class RegisterForm(forms.ModelForm):
 class UserEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'email']
+        # Added user_type, phone, district, etc. to match your screenshot
+        fields = [
+            'username', 'email', 'user_type', 'phone', 
+            'whatsapp_number', 'district', 'specialization', 
+            'address', 'profile_picture'
+        ]
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'user_type': forms.Select(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'whatsapp_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'district': forms.Select(attrs={'class': 'form-control'}), # This activates the dropdown
+            'specialization': forms.Select(attrs={'class': 'form-control'}), # This activates the dropdown
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
