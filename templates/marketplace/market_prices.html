@@ -49,19 +49,20 @@
             Always compare your offer with these rates!
         </div>
         
-        <!-- Price Table -->
+        <!-- Price Table with Sparklines -->
         {% if price_data %}
         <div class="card shadow">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 align-middle">
                         <thead class="table-success">
                             <tr>
                                 <th><i class="bi bi-box-seam"></i> Product</th>
-                                <th><i class="bi bi-arrow-down"></i> Min Price</th>
-                                <th><i class="bi bi-graph-up"></i> Average Price</th>
-                                <th><i class="bi bi-arrow-up"></i> Max Price</th>
+                                <th><i class="bi bi-arrow-down"></i> Min</th>
+                                <th><i class="bi bi-graph-up"></i> Average</th>
+                                <th><i class="bi bi-arrow-up"></i> Max</th>
                                 <th><i class="bi bi-rulers"></i> Unit</th>
+                                <th style="min-width:160px;"><i class="bi bi-bar-chart"></i> Price Range</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,6 +73,13 @@
                                 <td class="text-primary fw-bold">UGX {{ item.avg_price|floatformat:0 }}</td>
                                 <td class="text-success">UGX {{ item.avg_max|floatformat:0 }}</td>
                                 <td>{{ item.unit }}</td>
+                                <td>
+                                    <canvas class="price-chart"
+                                        data-min="{{ item.avg_min|floatformat:0 }}"
+                                        data-avg="{{ item.avg_price|floatformat:0 }}"
+                                        data-max="{{ item.avg_max|floatformat:0 }}"
+                                        height="40" width="150"></canvas>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -79,7 +87,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Detailed Price List by Market -->
         <div class="mt-4">
             <h4 class="mb-3">Prices by Market Location</h4>
@@ -124,3 +132,44 @@
 </section>
 
 {% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.querySelectorAll('.price-chart').forEach(canvas => {
+    const min = parseFloat(canvas.dataset.min) || 0;
+    const avg = parseFloat(canvas.dataset.avg) || 0;
+    const max = parseFloat(canvas.dataset.max) || 0;
+
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: ['Min', 'Avg', 'Max'],
+            datasets: [{
+                data: [min, avg, max],
+                backgroundColor: [
+                    'rgba(220,53,69,0.7)',
+                    'rgba(13,110,253,0.7)',
+                    'rgba(25,135,84,0.7)'
+                ],
+                borderRadius: 4,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: {
+                    label: ctx => 'UGX ' + ctx.raw.toLocaleString()
+                }
+            }},
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+

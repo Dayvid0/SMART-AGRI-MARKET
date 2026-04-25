@@ -2,111 +2,280 @@
 
 {% block title %}Products - Smart Agricultural Marketplace{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Product List Header ── */
+.plh {
+    background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+    padding: 2.5rem 2rem 3.75rem;
+    position: relative;
+    overflow: hidden;
+}
+.plh::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 75% 50%, rgba(0,208,132,0.13), transparent 60%);
+    pointer-events: none;
+}
+.plh::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 36px;
+    background: #f9fafb;
+    border-radius: 36px 36px 0 0;
+}
+.plh-inner { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; }
+.plh h1 {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.03em;
+}
+.plh p { color: rgba(255,255,255,0.62); font-size: 0.9rem; margin: 0; }
+
+/* ── Filter Bar ── */
+.filter-bar {
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 1.1rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.09);
+    margin: -2rem 2rem 0;
+    position: relative;
+    z-index: 10;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.fsearch {
+    flex: 1; min-width: 180px;
+    display: flex; align-items: center; gap: 0.5rem;
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.5rem 0.85rem;
+    transition: all 0.2s ease;
+}
+.fsearch:focus-within { border-color: #00D084; background: #fff; box-shadow: 0 0 0 3px rgba(0,208,132,0.1); }
+.fsearch i { color: #9ca3af; font-size: 0.9rem; }
+.fsearch input { border: none; outline: none; background: transparent; font-size: 0.875rem; color: #111827; width: 100%; }
+.fsearch input::placeholder { color: #9ca3af; }
+
+.fselect {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.5rem 2.25rem 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    color: #374151;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #f9fafb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236B7280' d='M5 7L0 2h10z'/%3E%3C/svg%3E") no-repeat right 0.7rem center;
+}
+.fselect:focus { border-color: #00D084; background-color: #fff; }
+
+.fchip {
+    display: inline-flex; align-items: center;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.77rem; font-weight: 600;
+    border: 1.5px solid #e5e7eb;
+    color: #6b7280; background: #f9fafb;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+.fchip:hover { border-color: #00D084; color: #00D084; background: rgba(0,208,132,0.05); }
+.fchip.active { background: #00D084; border-color: #00D084; color: #fff; }
+
+.fsubmit {
+    padding: 0.5rem 1.25rem;
+    background: #00D084; color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 0.875rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.fsubmit:hover { background: #00b872; box-shadow: 0 4px 14px rgba(0,208,132,0.35); }
+
+.fugent-label { cursor: pointer; line-height: 1; font-size: 0; }
+.fugent-label input[type="checkbox"] { display: none; }
+.fugent-pill {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb; color: #6b7280;
+    font-size: 0.77rem; font-weight: 700;
+    transition: all 0.18s ease;
+}
+.fugent-label input:checked + .fugent-pill {
+    background: linear-gradient(135deg, #dc2626, #f97316);
+    border-color: #dc2626; color: #fff;
+}
+
+.af-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f3f4f6;
+    font-size: 0.8rem;
+}
+.af-label { color: #9ca3af; font-weight: 600; }
+.af-tag {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.18rem 0.55rem; border-radius: 20px;
+    font-size: 0.76rem; font-weight: 600;
+    background: #f3f4f6; color: #374151;
+}
+.af-tag a { color: #9ca3af; text-decoration: none; font-weight: 700; }
+.af-tag a:hover { color: #dc2626; }
+.af-urgent { background: rgba(220,38,38,0.08); color: #dc2626; }
+.af-clear { color: #9ca3af; text-decoration: none; font-weight: 600; }
+.af-clear:hover { color: #00D084; }
+
+/* Products grid area */
+.products-section { padding: 2rem 2rem 3rem; background: #f9fafb; min-height: 400px; }
+
+@media (max-width: 768px) {
+    .plh { padding: 2rem 1rem 3.5rem; }
+    .filter-bar { margin: -1.5rem 1rem 0; padding: 0.9rem 1rem; }
+    .products-section { padding: 1.5rem 1rem 2rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
-<section class="bg-light py-4">
-    <div class="container">
-        <h2 class="mb-0">
-            <i class="bi bi-grid"></i> All Products
-        </h2>
-        <p class="text-muted mb-0">Browse fresh agricultural products from local farmers</p>
+<!-- HEADER -->
+<div class="plh">
+    <div class="plh-inner">
+        <h1>All Products</h1>
+        <p>Fresh produce from verified farmers across Uganda</p>
     </div>
-</section>
+</div>
 
-<section class="py-4 border-bottom">
-    <div class="container">
-        <form method="get" action="{% url 'marketplace:product_list' %}">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input 
-                            type="text" 
-                            name="search" 
-                            class="form-control" 
-                            placeholder="Search products..." 
-                            value="{{ search_query }}"
-                        >
-                    </div>
-                </div>
-                
-                <div class="col-md-3">
-                    <select name="category" class="form-select">
-                        <option value="">All Categories</option>
-                        {% for category in categories %}
-                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <select name="location" class="form-select">
-                        <option value="">All Locations</option>
-                        {% for location in locations %}
-                            <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>
-                                {{ location }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel"></i> Filter
-                    </button>
-                </div>
-            </div>
-        </form>
-        
-        {% if search_query or selected_category or selected_location %}
-        <div class="mt-3">
-            <span class="text-muted">Active filters:</span>
-            {% if search_query %}
-                <span class="badge bg-secondary">Search: {{ search_query }}</span>
-            {% endif %}
-            {% if selected_category %}
-                <span class="badge bg-secondary">Category filter active</span>
-            {% endif %}
-            {% if selected_location %}
-                <span class="badge bg-secondary">Location: {{ selected_location }}</span>
-            {% endif %}
-            <a href="{% url 'marketplace:product_list' %}" class="btn btn-sm btn-outline-secondary ms-2">
-                <i class="bi bi-x"></i> Clear All
-            </a>
+<!-- FILTER BAR -->
+<form method="get" action="{% url 'marketplace:product_list' %}" id="filterForm">
+<div class="filter-bar">
+
+    <!-- Row 1: search + selects + submit + urgent -->
+    <div class="filter-row">
+        <div class="fsearch">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" placeholder="Search products…" value="{{ search_query|default:'' }}">
         </div>
-        {% endif %}
-    </div>
-</section>
 
-<section class="py-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <select name="location" class="fselect" onchange="this.form.submit()">
+            <option value="">All Districts</option>
+            {% for location in locations %}
+            <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>{{ location }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="sort" class="fselect" onchange="this.form.submit()">
+            <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest</option>
+            <option value="price_asc"   {% if sort == 'price_asc'   %}selected{% endif %}>Price ↑</option>
+            <option value="price_desc"  {% if sort == 'price_desc'  %}selected{% endif %}>Price ↓</option>
+        </select>
+
+        <button type="submit" class="fsubmit"><i class="bi bi-search me-1"></i>Search</button>
+
+        <label class="fugent-label" title="Show urgent sales only">
+            <input type="checkbox" name="urgent" {% if urgent_only %}checked{% endif %} onchange="this.form.submit()">
+            <span class="fugent-pill"><i class="bi bi-lightning-charge-fill"></i> Urgent</span>
+        </label>
+    </div>
+
+    <!-- Row 2: category chips -->
+    {% if categories %}
+    <div class="filter-row">
+        <a href="{% url 'marketplace:product_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+           class="fchip {% if not selected_category %}active{% endif %}">All</a>
+        {% for category in categories %}
+        <a href="?category={{ category.id }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+           class="fchip {% if selected_category == category.id|stringformat:'s' %}active{% endif %}">
+            {{ category.name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Active filter tags -->
+    {% if search_query or selected_category or selected_location or urgent_only %}
+    <div class="af-row">
+        <span class="af-label">Active:</span>
+        {% if search_query %}
+        <span class="af-tag">"{{ search_query }}" <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if selected_location %}location={{ selected_location }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}">×</a></span>
+        {% endif %}
+        {% if selected_location %}
+        <span class="af-tag">{{ selected_location }} <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}">×</a></span>
+        {% endif %}
+        {% if urgent_only %}
+        <span class="af-tag af-urgent">Urgent <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if selected_location %}location={{ selected_location }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}">×</a></span>
+        {% endif %}
+        <a href="{% url 'marketplace:product_list' %}" class="af-clear">Clear all ×</a>
+    </div>
+    {% endif %}
+
+</div>
+</form>
+
+<div class="products-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="mb-0">
                 {% if products %}
-                    Showing {{ products|length }} product{{ products|length|pluralize }}
+                    Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}
                 {% else %}
                     No products found
                 {% endif %}
             </h5>
-            
-            <div>
-                <small class="text-muted">Sort by:</small>
-                <select class="form-select form-select-sm d-inline-block w-auto">
-                    <option>Newest First</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                </select>
-            </div>
         </div>
-        
-        <div class="row">
+
+        <!-- Skeleton loading cards (shown briefly before content) -->
+        <div class="row" id="skeletonGrid">
+            {% for i in "123456789012" %}
+            <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm skeleton-card">
+                    <div class="skeleton-img skeleton-pulse"></div>
+                    <div class="card-body">
+                        <div class="skeleton-line skeleton-pulse mb-2" style="width:50%;height:14px;"></div>
+                        <div class="skeleton-line skeleton-pulse mb-2" style="width:80%;height:18px;"></div>
+                        <div class="skeleton-line skeleton-pulse mb-3" style="width:60%;height:14px;"></div>
+                        <div class="skeleton-line skeleton-pulse" style="width:100%;height:36px;border-radius:6px;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Actual product grid (hidden until loaded) -->
+        <div class="row" id="productGrid" style="display:none;">
             {% for product in products %}
             <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm product-card position-relative">
+
+                    <!-- Urgent Sale Badge -->
+                    {% if product.is_urgent %}
+                    <div class="urgent-badge">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        {% if product.urgent_discount > 0 %}{{ product.urgent_discount }}% OFF{% else %}URGENT{% endif %}
+                    </div>
+                    {% endif %}
+
                     <a href="{% url 'marketplace:product_detail' product.pk %}" class="text-decoration-none">
                         {% if product.image %}
                             <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
@@ -116,50 +285,63 @@
                             </div>
                         {% endif %}
                     </a>
-                    
+
                     <div class="card-body d-flex flex-column">
-                        <span class="badge bg-success mb-2 align-self-start">
-                            {{ product.category.name }}
-                        </span>
-                        
+                        <span class="badge bg-success mb-2 align-self-start">{{ product.category.name }}</span>
+
                         <h5 class="card-title">
                             <a href="{% url 'marketplace:product_detail' product.pk %}" class="text-decoration-none text-dark">
                                 {{ product.name }}
                             </a>
                         </h5>
-                        
-                        <p class="card-text text-muted small mb-2">
+
+                        <p class="card-text text-muted small mb-1">
                             <i class="bi bi-geo-alt"></i> {{ product.location }}
                         </p>
-                        
-                        <p class="card-text text-muted small mb-3">
-                            {{ product.description|truncatewords:15 }}
+
+                        {% if product.farmer.district %}
+                        <p class="card-text text-muted small mb-2">
+                            <i class="bi bi-map"></i> {{ product.farmer.district }} District
                         </p>
-                        
+                        {% endif %}
+
+                        <p class="card-text text-muted small mb-3">
+                            {{ product.description|truncatewords:12 }}
+                        </p>
+
                         <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="h5 text-success mb-0">
-                                    UGX {{ product.price|floatformat:0 }}
-                                </span>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                {% if product.is_urgent and product.urgent_discount > 0 %}
+                                    <div>
+                                        <span class="h5 text-danger mb-0 fw-bold">
+                                            UGX {{ product.price|floatformat:0 }}
+                                        </span>
+                                        <small class="text-muted text-decoration-line-through ms-1">
+                                            UGX {% widthratio product.price 1 1 %}
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <span class="h5 text-success mb-0">UGX {{ product.price|floatformat:0 }}</span>
+                                {% endif %}
                                 <small class="text-muted">per {{ product.unit }}</small>
                             </div>
-                            
+
                             <small class="text-muted d-block mb-2">
                                 <i class="bi bi-box-seam"></i> {{ product.quantity }} {{ product.unit }} available
                             </small>
-                            
+
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <small class="text-muted">
                                     <i class="bi bi-person"></i> {{ product.farmer.username }}
                                 </small>
                                 {% if product.farmer.farmer_profile %}
                                     <small class="text-warning">
-                                        <i class="bi bi-star-fill"></i> 
+                                        <i class="bi bi-star-fill"></i>
                                         {{ product.farmer.farmer_profile.rating_average|floatformat:1 }}
                                     </small>
                                 {% endif %}
                             </div>
-                            
+
                             <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn btn-primary w-100">
                                 <i class="bi bi-eye"></i> View Details
                             </a>
@@ -180,7 +362,112 @@
             </div>
             {% endfor %}
         </div>
-    </div>
-</section>
 
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Product pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if urgent_only %}&urgent=on{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if urgent_only %}&urgent=on{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if urgent_only %}&urgent=on{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    </div>
+</div>
+
+<style>
+/* ── Urgent Badge ── */
+.urgent-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: linear-gradient(135deg, #dc2626, #f97316);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(220,38,38,0.4);
+    animation: urgentPulse 2s ease-in-out infinite;
+}
+@keyframes urgentPulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(220,38,38,0.4); }
+    50%       { box-shadow: 0 4px 16px rgba(220,38,38,0.7); }
+}
+
+/* ── Product Card ── */
+.product-card {
+    border-radius: 12px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+}
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12) !important;
+}
+.product-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.product-card:hover .product-image { transform: scale(1.04); }
+
+/* ── Skeleton Loader ── */
+.skeleton-img {
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+    background: #e2e8f0;
+}
+.skeleton-line {
+    border-radius: 4px;
+    background: #e2e8f0;
+    display: block;
+}
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton-pulse {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite linear;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Swap skeleton → real grid once page is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('skeletonGrid').style.display = 'none';
+        document.getElementById('productGrid').style.display = '';
+    });
+</script>
 {% endblock %}

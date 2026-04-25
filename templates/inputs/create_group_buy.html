@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Group Buy - {{ input_item.name }}{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <!-- Back Link -->
+                <a href="{% url 'inputs:input_detail' input_item.pk %}" class="btn btn-sm btn-outline-secondary mb-4">
+                    <i class="bi bi-arrow-left"></i> Back to Product
+                </a>
+
+                <div class="card shadow">
+                    <div class="card-header" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
+                        <h4 class="mb-0">
+                            <i class="bi bi-people-fill"></i> Start a Group Buy Pool
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            Start a group buy and invite other farmers. Once the target quantity is reached, everyone gets the group discount!
+                        </div>
+
+                        <!-- Product Summary -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        {% if input_item.image %}
+                                            <img src="{{ input_item.image.url }}" class="img-fluid rounded" style="height:70px;object-fit:cover;">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-10">
+                                        <h5 class="mb-1">{{ input_item.name }}</h5>
+                                        {% if input_item.brand %}<p class="text-muted mb-1 small">{{ input_item.brand }}</p>{% endif %}
+                                        <div class="d-flex gap-3 align-items-baseline">
+                                            <span class="text-decoration-line-through text-muted">UGX {{ input_item.price|floatformat:0 }}/{{ input_item.unit }}</span>
+                                            <span class="fw-bold text-success fs-5">
+                                                UGX {{ input_item.group_price|floatformat:0 }}/{{ input_item.unit }}
+                                                {% if input_item.group_discount_percentage > 0 %}
+                                                    <small class="badge bg-danger ms-1">{{ input_item.group_discount_percentage }}% OFF</small>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Target Quantity ({{ input_item.unit }}) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="target_quantity"
+                                       min="{{ input_item.min_group_order }}" required
+                                       placeholder="e.g. 100">
+                                <div class="form-text">Minimum {{ input_item.min_group_order }} {{ input_item.unit }} required for the group discount.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Your Quantity ({{ input_item.unit }}) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="my_quantity" required min="1"
+                                       placeholder="How much do YOU want to order?">
+                                <div class="form-text">Your personal order amount. Must not exceed the target quantity.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Pool Deadline <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" name="deadline" required id="id_deadline">
+                                <div class="form-text">When should the pool close for new participants?</div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <i class="bi bi-info-circle"></i>
+                                As the organizer, you will coordinate the final order with the supplier once the target is reached.
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-warning btn-lg fw-bold">
+                                    <i class="bi bi-check-circle-fill"></i> Create Group Buy Pool
+                                </button>
+                                <a href="{% url 'inputs:input_detail' input_item.pk %}" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('id_deadline').min = new Date(Date.now() + 60000).toISOString().slice(0, 16);
+</script>
+{% endblock %}

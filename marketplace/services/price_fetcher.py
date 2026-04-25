@@ -13,6 +13,35 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Fallback rate used only if the live API call fails
+_FALLBACK_USD_TO_UGX = 3700
+
+
+def get_usd_to_ugx_rate() -> float:
+    """
+    Fetch the current USD → UGX exchange rate from a free public API.
+    Falls back to a hardcoded approximate rate if the request fails.
+
+    Returns:
+        float: Exchange rate (1 USD in UGX)
+    """
+    try:
+        # Uses the free Open Exchange Rates compatible endpoint (no API key needed)
+        response = requests.get(
+            "https://open.er-api.com/v6/latest/USD",
+            timeout=5
+        )
+        response.raise_for_status()
+        data = response.json()
+        rate = data.get("rates", {}).get("UGX")
+        if rate:
+            logger.info(f"Live USD→UGX rate fetched: {rate}")
+            return float(rate)
+        logger.warning("UGX rate not found in API response, using fallback.")
+    except Exception as e:
+        logger.warning(f"Could not fetch live exchange rate: {e}. Using fallback {_FALLBACK_USD_TO_UGX}.")
+    return _FALLBACK_USD_TO_UGX
+
 
 class WFPPriceFetcher:
     """
@@ -135,8 +164,9 @@ class WFPPriceFetcher:
                 # Convert price to UGX if needed (WFP might return USD)
                 currency = item.get('currency', 'UGX')
                 if currency == 'USD':
-                    # Approximate conversion rate (should be updated regularly)
-                    price = float(price) * 3700  # 1 USD ≈ 3700 UGX
+                    # Fetch live exchange rate (falls back to ~3700 if API unavailable)
+                    usd_to_ugx = get_usd_to_ugx_rate()
+                    price = float(price) * usd_to_ugx
                 
                 normalized.append({
                     'product_name': product_name,

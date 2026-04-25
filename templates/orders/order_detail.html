@@ -21,29 +21,43 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            {% if order.status == 'pending' %}
-                                <span class="badge bg-warning text-dark fs-6">
-                                    <i class="bi bi-clock"></i> {{ order.get_status_display }}
-                                </span>
-                            {% elif order.status == 'confirmed' %}
-                                <span class="badge bg-info fs-6">
-                                    <i class="bi bi-check-circle"></i> {{ order.get_status_display }}
-                                </span>
-                            {% elif order.status == 'processing' %}
-                                <span class="badge bg-primary fs-6">
-                                    <i class="bi bi-hourglass-split"></i> {{ order.get_status_display }}
-                                </span>
-                            {% elif order.status == 'completed' %}
-                                <span class="badge bg-success fs-6">
-                                    <i class="bi bi-check-circle-fill"></i> {{ order.get_status_display }}
-                                </span>
-                            {% elif order.status == 'cancelled' %}
-                                <span class="badge bg-danger fs-6">
-                                    <i class="bi bi-x-circle"></i> {{ order.get_status_display }}
-                                </span>
-                            {% endif %}
+                        <!-- Order Status Timeline -->
+                        {% if order.status == 'cancelled' %}
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                            <i class="bi bi-x-octagon-fill fs-4"></i>
+                            <div><strong>Order Cancelled</strong><br><small>This order has been cancelled.</small></div>
                         </div>
+                        {% else %}
+                        <div class="order-timeline mb-4">
+                            <div class="d-flex justify-content-between position-relative">
+                                <div class="timeline-track"></div>
+
+                                <!-- Step 1: Pending -->
+                                <div class="timeline-step {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'processing' or order.status == 'completed' %}active{% endif %} {% if order.status == 'pending' %}current{% endif %}">
+                                    <div class="step-circle"><i class="bi bi-clock"></i></div>
+                                    <div class="step-label">Pending</div>
+                                </div>
+
+                                <!-- Step 2: Confirmed -->
+                                <div class="timeline-step {% if order.status == 'confirmed' or order.status == 'processing' or order.status == 'completed' %}active{% endif %} {% if order.status == 'confirmed' %}current{% endif %}">
+                                    <div class="step-circle"><i class="bi bi-check-circle"></i></div>
+                                    <div class="step-label">Confirmed</div>
+                                </div>
+
+                                <!-- Step 3: Processing -->
+                                <div class="timeline-step {% if order.status == 'processing' or order.status == 'completed' %}active{% endif %} {% if order.status == 'processing' %}current{% endif %}">
+                                    <div class="step-circle"><i class="bi bi-hourglass-split"></i></div>
+                                    <div class="step-label">Processing</div>
+                                </div>
+
+                                <!-- Step 4: Completed -->
+                                <div class="timeline-step {% if order.status == 'completed' %}active current{% endif %}">
+                                    <div class="step-circle"><i class="bi bi-check-circle-fill"></i></div>
+                                    <div class="step-label">Completed</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <div class="row mb-4">
                             <div class="col-md-6">
@@ -208,5 +222,69 @@
         </div>
     </div>
 </section>
+
+<style>
+/* ── Order Status Timeline ── */
+.order-timeline { padding: 8px 0 16px; }
+
+.timeline-track {
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: #dee2e6;
+    z-index: 0;
+}
+
+.timeline-step {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    flex: 1;
+}
+
+.step-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #dee2e6;
+    color: #adb5bd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 1.1rem;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.timeline-step.active .step-circle {
+    background: #198754;
+    color: #fff;
+    box-shadow: 0 0 0 2px #198754;
+}
+
+.timeline-step.current .step-circle {
+    background: #198754;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(25,135,84,0.25);
+    animation: stepPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes stepPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(25,135,84,0.25); }
+    50%       { box-shadow: 0 0 0 8px rgba(25,135,84,0.1); }
+}
+
+.step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #adb5bd;
+}
+.timeline-step.active .step-label { color: #198754; }
+.timeline-step.current .step-label { color: #198754; font-weight: 700; }
+</style>
 
 {% endblock %}

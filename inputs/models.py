@@ -77,7 +77,13 @@ class AgriculturalInput(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.supplier.username}"
-    
+
+    @property
+    def group_price(self):
+        if self.group_discount_percentage > 0:
+            return self.price * (1 - self.group_discount_percentage / 100)
+        return self.price
+
     class Meta:
         verbose_name = "Agricultural Input"
         verbose_name_plural = "Agricultural Inputs"

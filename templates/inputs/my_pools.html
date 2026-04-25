@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Group Buy Pools{% endblock %}
+
+{% block content %}
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="bi bi-people-fill text-warning"></i> My Group Buy Pools</h2>
+                <p class="text-muted mb-0">Track pools you've organized and joined.</p>
+            </div>
+            <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning">
+                <i class="bi bi-list-ul"></i> Browse All Pools
+            </a>
+        </div>
+
+        <!-- Pools I Organized -->
+        <h4 class="fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-star-fill text-warning"></i> Pools I Organized
+        </h4>
+
+        {% if organized_pools %}
+        <div class="row mb-5">
+            {% for pool in organized_pools %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm border-warning">
+                    {% if pool.input_item.image %}
+                        <img src="{{ pool.input_item.image.url }}" class="card-img-top" style="height:140px;object-fit:cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ pool.input_item.name }}</h5>
+                            {% if pool.status == 'open' %}
+                                <span class="badge bg-success">Open</span>
+                            {% elif pool.status == 'closed' %}
+                                <span class="badge bg-info">Target Reached</span>
+                            {% elif pool.status == 'completed' %}
+                                <span class="badge bg-primary">Completed</span>
+                            {% elif pool.status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Progress</small>
+                                <small class="fw-bold text-success">{{ pool.current_quantity }}/{{ pool.target_quantity }} {{ pool.input_item.unit }}</small>
+                            </div>
+                            <div class="progress" style="height:12px;">
+                                {% widthratio pool.current_quantity pool.target_quantity 100 as pct %}
+                                <div class="progress-bar bg-success" style="width:{{ pct }}%"></div>
+                            </div>
+                        </div>
+
+                        <p class="mb-1 small"><i class="bi bi-people"></i> <strong>{{ pool.participants.count }}</strong> participant(s)</p>
+                        <p class="mb-3 small"><i class="bi bi-clock"></i> Deadline: {{ pool.deadline|date:"M d, Y" }}</p>
+
+                        <div class="mt-auto d-grid gap-1">
+                            <a href="{% url 'inputs:group_buy_detail' pool.id %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-eye"></i> View Pool
+                            </a>
+                            {% if pool.status == 'open' %}
+                            <a href="{% url 'inputs:cancel_group_buy' pool.id %}" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="bi bi-x-circle"></i> Cancel Pool
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 mb-5">
+            <i class="bi bi-people" style="font-size:3rem;color:#ddd;"></i>
+            <p class="text-muted mt-2">You haven't organized any group buys yet.</p>
+            <a href="{% url 'inputs:input_store' %}" class="btn btn-warning btn-sm">Browse Input Store to Start One</a>
+        </div>
+        {% endif %}
+
+        <!-- Pools I've Joined -->
+        <h4 class="fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-person-check-fill text-success"></i> Pools I've Joined
+        </h4>
+
+        {% if joined_pools %}
+        <div class="row">
+            {% for participation in joined_pools %}
+            {% with pool=participation.pool %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if pool.input_item.image %}
+                        <img src="{{ pool.input_item.image.url }}" class="card-img-top" style="height:140px;object-fit:cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ pool.input_item.name }}</h5>
+                            {% if pool.status == 'open' %}
+                                <span class="badge bg-success">Open</span>
+                            {% elif pool.status == 'closed' %}
+                                <span class="badge bg-info">Target Reached</span>
+                            {% elif pool.status == 'completed' %}
+                                <span class="badge bg-primary">Completed</span>
+                            {% elif pool.status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Progress</small>
+                                <small class="fw-bold text-success">{{ pool.current_quantity }}/{{ pool.target_quantity }} {{ pool.input_item.unit }}</small>
+                            </div>
+                            <div class="progress" style="height:12px;">
+                                {% widthratio pool.current_quantity pool.target_quantity 100 as pct %}
+                                <div class="progress-bar bg-success" style="width:{{ pct }}%"></div>
+                            </div>
+                        </div>
+
+                        <p class="mb-1 small text-success fw-bold">
+                            <i class="bi bi-box"></i> Your Quantity: {{ participation.quantity }} {{ pool.input_item.unit }}
+                        </p>
+                        <p class="mb-1 small"><i class="bi bi-people"></i> {{ pool.participants.count }} participant(s)</p>
+                        <p class="mb-3 small"><i class="bi bi-clock"></i> Deadline: {{ pool.deadline|date:"M d, Y" }}</p>
+
+                        <div class="mt-auto d-grid gap-1">
+                            <a href="{% url 'inputs:group_buy_detail' pool.id %}" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-eye"></i> View Pool
+                            </a>
+                            {% if pool.status == 'open' %}
+                            <a href="{% url 'inputs:leave_group_buy' pool.id %}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-box-arrow-left"></i> Leave Pool
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-person-plus" style="font-size:3rem;color:#ddd;"></i>
+            <p class="text-muted mt-2">You haven't joined any group buys yet.</p>
+            <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-success btn-sm">Browse Open Pools</a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}

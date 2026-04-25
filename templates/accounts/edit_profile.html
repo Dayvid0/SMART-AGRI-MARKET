@@ -1,60 +1,771 @@
 {% extends 'base.html' %}
+{% block title %}Profile Settings — Smart Agri Market{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card p-4 bg-dark text-white border-secondary">
-            <h3 class="mb-4 text-neon"><i class="bi bi-person-gear"></i> Account Settings</h3>
-            
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">First Name</label>
-                        {{ form.first_name }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Last Name</label>
-                        {{ form.last_name }}
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Email</label>
-                        {{ form.email }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Phone Number</label>
-                        {{ form.phone }}
-                    </div>
+<style>
+/* ===== DEEP FOREST — Profile Settings ===== */
+.pf-root {
+  --df-dark:    #1A4331;
+  --df-leaf:    #2D6A4F;
+  --df-brown:   #8B5E34;
+  --df-bg:      #F4F6F4;
+  --df-white:   #FFFFFF;
+  --df-border:  #D4E4D8;
+  --df-text:    #1C2B22;
+  --df-muted:   #5A7363;
+  --df-tint:    rgba(26,67,49,.07);
+}
 
-                    <div class="col-md-6">
-                        <label class="form-label">Location (District)</label>
-                        {{ form.district }}
-                        {% if form.district.errors %}
-                            <div class="text-danger small">{{ form.district.errors }}</div>
-                        {% endif %}
-                    </div>
+.pf-root {
+  min-height: 80vh;
+  background: var(--df-bg);
+  padding: 2.5rem 0 4rem;
+}
 
-                    {% if user.user_type == 'farmer' %}
-                        <hr class="border-secondary mt-4">
-                        <h5 class="text-neon">Farm Details</h5>
-                        <div class="col-md-6">
-                            <label class="form-label">Farm Name</label>
-                            <input type="text" name="farm_name" class="form-control bg-dark text-white border-secondary" value="{{ farmer_profile.farm_name }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Primary Specialization</label>
-                            {{ form.specialization }}
-                        </div>
-                    {% endif %}
-                </div>
+/* ─── Header banner ─── */
+.pf-banner {
+  background: linear-gradient(135deg, var(--df-dark) 0%, var(--df-leaf) 100%);
+  border-radius: 18px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.pf-banner::after {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: rgba(255,255,255,.06);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.pf-banner h1 { font-size: 1.6rem; font-weight: 800; margin: 0; color: #fff; }
+.pf-banner p  { margin: .25rem 0 0; font-size: .9rem; color: rgba(255,255,255,.78); }
 
-                <div class="mt-4 d-flex justify-content-between">
-                    <button type="submit" class="btn btn-success px-4">Save Changes</button>
-                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary text-white">Cancel</a>
-                </div>
-            </form>
-        </div>
-    </div>
+.pf-avatar {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: 2.5px solid rgba(255,255,255,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.7rem; color: #fff;
+  flex-shrink: 0; overflow: hidden;
+}
+.pf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ─── Sidebar card ─── */
+.pf-sidebar .card {
+  border: 1px solid var(--df-border) !important;
+  background: var(--df-white) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 14px rgba(26,67,49,.09) !important;
+  transform: none !important;
+}
+.pf-sidebar .card:hover {
+  transform: none !important;
+  border-color: var(--df-border) !important;
+}
+
+.pf-sidebar .nav-link {
+  display: flex; align-items: center; gap: .65rem;
+  padding: .8rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 600; font-size: .9rem;
+  color: var(--df-muted) !important;
+  background: transparent;
+  transition: all .22s ease;
+  margin: .15rem 0;
+}
+.pf-sidebar .nav-link i { font-size: 1rem; width: 20px; text-align: center; }
+.pf-sidebar .nav-link:hover {
+  background: var(--df-tint);
+  color: var(--df-dark) !important;
+  transform: translateX(3px);
+}
+.pf-sidebar .nav-link.pf-active {
+  background: linear-gradient(135deg, var(--df-dark) 0%, var(--df-leaf) 100%);
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(26,67,49,.28);
+}
+
+.pf-role-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--df-tint);
+  border: 1px solid var(--df-border);
+  color: var(--df-dark);
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px;
+  padding: .3rem .8rem;
+  border-radius: 20px;
+}
+
+/* ─── Section cards ─── */
+.pf-card {
+  background: var(--df-white) !important;
+  border: 1px solid var(--df-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 2px 16px rgba(26,67,49,.09) !important;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transform: none !important;
+  transition: box-shadow .25s ease;
+}
+.pf-card:hover { transform: none !important; border-color: var(--df-border) !important; }
+
+.pf-card-head {
+  background: linear-gradient(90deg, var(--df-dark) 0%, var(--df-leaf) 100%);
+  padding: .95rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pf-card-head-left { display: flex; align-items: center; gap: .65rem; }
+.pf-card-head h5 { color: #fff; font-weight: 700; margin: 0; font-size: 1rem; }
+.pf-card-head i  { color: rgba(255,255,255,.85); font-size: 1.1rem; }
+
+/* ─── Read-only view fields ─── */
+.pf-view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+.pf-field { display: flex; flex-direction: column; gap: .2rem; }
+.pf-field-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--df-muted);
+  display: flex; align-items: center; gap: .3rem;
+}
+.pf-field-label i { font-size: .85rem; }
+.pf-field-value {
+  font-size: .95rem; font-weight: 600; color: var(--df-text);
+  background: var(--df-tint);
+  border: 1px solid var(--df-border);
+  border-radius: 9px;
+  padding: .55rem .9rem;
+  min-height: 2.3rem;
+  word-break: break-word;
+}
+.pf-field-value.empty { color: var(--df-muted); font-style: italic; font-weight: 400; }
+
+/* Section title within card body */
+.pf-section-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--df-dark);
+  border-bottom: 2px solid var(--df-border);
+  padding-bottom: .4rem; margin-bottom: 1.1rem;
+}
+
+/* ─── Edit form inputs (hidden by default) ─── */
+.pf-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+.df-label {
+  font-size: .82rem; font-weight: 600; color: var(--df-text);
+  margin-bottom: .35rem;
+  display: flex; align-items: center; gap: .35rem;
+}
+.df-label i { color: var(--df-muted); font-size: .9rem; }
+
+.pf-root .form-control,
+.pf-root .form-select {
+  background: #F8FBF8 !important;
+  border: 1.5px solid var(--df-border) !important;
+  color: var(--df-text) !important;
+  border-radius: 9px !important;
+  padding: .6rem .9rem !important;
+  font-size: .9rem;
+  transition: border-color .22s, box-shadow .22s;
+}
+.pf-root .form-control::placeholder { color: #9EB8A6; }
+.pf-root .form-control:focus,
+.pf-root .form-select:focus {
+  border-color: var(--df-dark) !important;
+  box-shadow: 0 0 0 3px rgba(26,67,49,.14) !important;
+  background: #fff !important;
+  outline: none;
+}
+.pf-root textarea.form-control { resize: vertical; min-height: 76px; }
+.pf-root .form-control[type="file"] { padding: .45rem .7rem !important; cursor: pointer; }
+
+/* Full-width fields */
+.pf-full { grid-column: 1 / -1; }
+
+/* ─── Buttons ─── */
+.btn-df {
+  background: linear-gradient(135deg, var(--df-dark) 0%, var(--df-leaf) 100%);
+  color: #fff; border: none; border-radius: 9px;
+  padding: .6rem 1.65rem; font-weight: 700; font-size: .9rem;
+  transition: all .25s ease;
+  box-shadow: 0 4px 12px rgba(26,67,49,.28);
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.btn-df:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(26,67,49,.36);
+  color: #fff;
+}
+.btn-df-outline {
+  background: transparent;
+  color: var(--df-dark);
+  border: 1.5px solid var(--df-border);
+  border-radius: 9px;
+  padding: .6rem 1.3rem;
+  font-weight: 600; font-size: .9rem;
+  transition: all .22s ease;
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.btn-df-outline:hover {
+  background: var(--df-tint);
+  border-color: var(--df-dark);
+  color: var(--df-dark);
+}
+.btn-df-edit {
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.5);
+  color: #fff; border-radius: 8px;
+  padding: .45rem 1.1rem; font-size: .85rem; font-weight: 600;
+  transition: all .22s ease;
+  display: inline-flex; align-items: center; gap: .4rem;
+  cursor: pointer;
+}
+.btn-df-edit:hover { background-color: rgba(255,255,255,.25); color: #fff; }
+
+/* ─── Password strength ─── */
+.pwd-bar-wrap {
+  height: 5px; border-radius: 3px;
+  background: var(--df-border); margin-top: .35rem; overflow: hidden;
+}
+.pwd-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width .35s ease, background .35s ease;
+  width: 0%; background: var(--df-brown);
+}
+.pwd-label { font-size: .75rem; color: var(--df-muted); margin-top: .2rem; }
+
+/* ─── Status badge ─── */
+.pf-status-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .78rem; font-weight: 700;
+  padding: .35rem .85rem; border-radius: 20px;
+}
+.pf-verified   { background: rgba(45,106,79,.12); color: var(--df-leaf); border: 1px solid var(--df-leaf); }
+.pf-unverified { background: rgba(139,94,52,.11); color: var(--df-brown); border: 1px solid var(--df-brown); }
+
+/* ─── Alerts ─── */
+.alert-df-success {
+  background: rgba(45,106,79,.10) !important;
+  border: 1px solid rgba(45,106,79,.28) !important;
+  color: var(--df-dark) !important; border-radius: 10px;
+}
+.alert-df-error {
+  background: rgba(139,94,52,.10) !important;
+  border: 1px solid rgba(139,94,52,.28) !important;
+  color: var(--df-brown) !important; border-radius: 10px;
+}
+.alert-df-info {
+  background: rgba(26,67,49,.07) !important;
+  border: 1px solid rgba(26,67,49,.2) !important;
+  color: var(--df-dark) !important; border-radius: 10px;
+}
+
+/* ─── Section toggle (show/hide view vs edit) ─── */
+.pf-edit-section { display: none; }
+.pf-root.edit-mode .pf-view-section { display: none; }
+.pf-root.edit-mode .pf-edit-section { display: block; }
+
+/* ─── Responsive ─── */
+@media (max-width: 767px) {
+  .pf-banner { padding: 1.25rem 1rem; }
+  .pf-banner h1 { font-size: 1.3rem; }
+  .pf-view-grid, .pf-form-grid { grid-template-columns: 1fr; }
+  .pf-sidebar { margin-bottom: 1.25rem; }
+}
+</style>
+
+{% if messages %}
+<div class="container mt-3" style="position:relative;z-index:10;">
+  {% for message in messages %}
+  <div class="alert {% if message.tags == 'success' %}alert-df-success{% elif message.tags == 'error' %}alert-df-error{% else %}alert-df-info{% endif %} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-x-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+    <span>{{ message }}</span>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
 </div>
-{% endblock %}BAE
+{% endif %}
+
+<div class="pf-root" id="pfRoot">
+<div class="container">
+
+  <!-- ══ BANNER ══ -->
+  <div class="pf-banner d-flex align-items-center gap-3">
+    <div class="pf-avatar">
+      {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" alt="avatar">
+      {% else %}<i class="bi bi-person-fill"></i>{% endif %}
+    </div>
+    <div class="flex-grow-1">
+      <h1><i class="bi bi-person-gear me-2" style="font-size:1.3rem;opacity:.8;"></i>Profile Settings</h1>
+      <p>{{ user.get_full_name|default:user.username }} &nbsp;·&nbsp; <strong style="color:#fff;">{{ user.get_user_type_display }}</strong></p>
+    </div>
+    <!-- Global Edit toggle button in banner -->
+    <button class="btn-df-edit" onclick="toggleEditMode()" id="bannerEditBtn">
+      <i class="bi bi-pencil-fill"></i> <span id="bannerEditLabel">Edit Profile</span>
+    </button>
+  </div>
+
+  <!-- ══ TWO-COLUMN LAYOUT ══ -->
+  <div class="row g-4">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="col-md-3 pf-sidebar">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="text-center mb-3">
+            <div class="pf-role-badge"><i class="bi bi-person-badge-fill"></i>{{ user.get_user_type_display }}</div>
+            <div class="mt-1" style="font-size:.8rem;color:var(--df-muted);">@{{ user.username }}</div>
+          </div>
+          <hr style="border-color:var(--df-border);margin:.6rem 0;">
+          <nav class="nav flex-column">
+            <a class="nav-link pf-active" href="#sec-personal" onclick="scrollTo('sec-personal')">
+              <i class="bi bi-person-lines-fill"></i> Personal Info
+            </a>
+            <a class="nav-link" href="#sec-business" onclick="scrollTo('sec-business')">
+              <i class="bi bi-briefcase-fill"></i> Business Details
+            </a>
+            <a class="nav-link" href="#sec-security" onclick="scrollTo('sec-security')">
+              <i class="bi bi-shield-lock-fill"></i> Security
+            </a>
+          </nav>
+          <hr style="border-color:var(--df-border);margin:.6rem 0;">
+          <a href="{% url 'accounts:dashboard' %}" class="btn-df-outline w-100 d-flex justify-content-center">
+            <i class="bi bi-arrow-left-circle"></i> Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="col-md-9">
+      <form method="POST" enctype="multipart/form-data" id="profileForm">
+        {% csrf_token %}
+
+        <!-- ════════════════════════════════════════
+             SECTION 1 — PERSONAL INFO
+             ════════════════════════════════════════ -->
+        <div class="pf-card" id="sec-personal">
+          <div class="pf-card-head">
+            <div class="pf-card-head-left">
+              <i class="bi bi-person-lines-fill"></i>
+              <h5>Personal Information</h5>
+            </div>
+            <button type="button" class="btn-df-edit" onclick="toggleEditMode()">
+              <i class="bi bi-pencil-fill"></i> <span class="edit-btn-label">Edit Profile</span>
+            </button>
+          </div>
+          <div class="card-body p-4">
+
+            <!-- VIEW MODE -->
+            <div class="pf-view-section">
+              <p class="pf-section-label">Account Identity</p>
+              <div class="pf-view-grid mb-4">
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-at"></i>Username</div>
+                  <div class="pf-field-value {% if not user.username %}empty{% endif %}">{{ user.username|default:"—" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-envelope-fill"></i>Email Address</div>
+                  <div class="pf-field-value {% if not user.email %}empty{% endif %}">{{ user.email|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-person-fill"></i>First Name</div>
+                  <div class="pf-field-value {% if not user.first_name %}empty{% endif %}">{{ user.first_name|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-person-fill"></i>Last Name</div>
+                  <div class="pf-field-value {% if not user.last_name %}empty{% endif %}">{{ user.last_name|default:"Not set" }}</div>
+                </div>
+              </div>
+
+              <p class="pf-section-label">Contact &amp; Location</p>
+              <div class="pf-view-grid">
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-telephone-fill"></i>Phone Number</div>
+                  <div class="pf-field-value {% if not user.phone %}empty{% endif %}">{{ user.phone|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-whatsapp"></i>WhatsApp Number</div>
+                  <div class="pf-field-value {% if not user.whatsapp_number %}empty{% endif %}">{{ user.whatsapp_number|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-geo-alt-fill"></i>District</div>
+                  <div class="pf-field-value {% if not user.district %}empty{% endif %}">{{ user.district|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-pin-map-fill"></i>Specific Location</div>
+                  <div class="pf-field-value {% if not user.location %}empty{% endif %}">{{ user.location|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field pf-full">
+                  <div class="pf-field-label"><i class="bi bi-mailbox2-flag"></i>Address</div>
+                  <div class="pf-field-value {% if not user.address %}empty{% endif %}">{{ user.address|default:"Not set" }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- EDIT MODE -->
+            <div class="pf-edit-section">
+              <p class="pf-section-label">Account Identity</p>
+              <div class="pf-form-grid mb-4">
+                <div>
+                  <label class="df-label" for="id_username"><i class="bi bi-at"></i>Username</label>
+                  <input type="text" id="id_username" name="username" class="form-control" value="{{ user.username }}" required>
+                </div>
+                <div>
+                  <label class="df-label" for="id_email"><i class="bi bi-envelope-fill"></i>Email Address</label>
+                  <input type="email" id="id_email" name="email" class="form-control" value="{{ user.email }}" required>
+                </div>
+                <div>
+                  <label class="df-label" for="id_first_name"><i class="bi bi-person-fill"></i>First Name</label>
+                  <input type="text" id="id_first_name" name="first_name" class="form-control" value="{{ user.first_name }}">
+                </div>
+                <div>
+                  <label class="df-label" for="id_last_name"><i class="bi bi-person-fill"></i>Last Name</label>
+                  <input type="text" id="id_last_name" name="last_name" class="form-control" value="{{ user.last_name }}">
+                </div>
+              </div>
+
+              <p class="pf-section-label">Contact &amp; Location</p>
+              <div class="pf-form-grid">
+                <div>
+                  <label class="df-label" for="id_phone"><i class="bi bi-telephone-fill"></i>Phone Number</label>
+                  <input type="tel" id="id_phone" name="phone" class="form-control" placeholder="+256 7XX XXX XXX" value="{{ user.phone }}">
+                </div>
+                <div>
+                  <label class="df-label" for="id_whatsapp"><i class="bi bi-whatsapp"></i>WhatsApp Number</label>
+                  <input type="tel" id="id_whatsapp" name="whatsapp_number" class="form-control" placeholder="+256 7XX XXX XXX" value="{{ user.whatsapp_number }}">
+                </div>
+                <div>
+                  <label class="df-label" for="id_district"><i class="bi bi-geo-alt-fill"></i>District</label>
+                  <select id="id_district" name="district" class="form-select">
+                    <option value="">— Select District —</option>
+                    {% for region, districts in district_choices %}
+                    <optgroup label="{{ region }}">
+                      {% for val, lbl in districts %}
+                      <option value="{{ val }}" {% if user.district == val %}selected{% endif %}>{{ lbl }}</option>
+                      {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label class="df-label" for="id_location"><i class="bi bi-pin-map-fill"></i>Specific Location</label>
+                  <input type="text" id="id_location" name="location" class="form-control" placeholder="e.g. Nakasero Market" value="{{ user.location }}">
+                </div>
+                <div class="pf-full">
+                  <label class="df-label" for="id_address"><i class="bi bi-mailbox2-flag"></i>Address</label>
+                  <textarea id="id_address" name="address" class="form-control" rows="3" placeholder="Street / village / PO Box…">{{ user.address }}</textarea>
+                </div>
+                <div class="pf-full">
+                  <label class="df-label" for="id_pic"><i class="bi bi-image-fill"></i>Profile Picture</label>
+                  {% if user.profile_picture %}
+                  <div class="mb-2 d-flex align-items-center gap-2">
+                    <img src="{{ user.profile_picture.url }}" alt="Current" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--df-border);">
+                    <span style="font-size:.8rem;color:var(--df-muted);">Current photo</span>
+                  </div>
+                  {% endif %}
+                  <input type="file" id="id_pic" name="profile_picture" class="form-control" accept="image/*">
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--df-border);">
+                <button type="submit" name="section" value="personal" class="btn-df">
+                  <i class="bi bi-floppy-fill"></i> Save Changes
+                </button>
+                <button type="button" class="btn-df-outline" onclick="toggleEditMode()">
+                  <i class="bi bi-x-lg"></i> Cancel
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════
+             SECTION 2 — BUSINESS DETAILS
+             ════════════════════════════════════════ -->
+        <div class="pf-card" id="sec-business">
+          <div class="pf-card-head">
+            <div class="pf-card-head-left">
+              <i class="bi bi-briefcase-fill"></i>
+              <h5>Business Details</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+
+            {% if user.user_type == 'farmer' %}
+
+            <!-- FARMER VIEW -->
+            <div class="pf-view-section">
+              <p class="pf-section-label">Farm Profile</p>
+              <div class="pf-view-grid">
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-house-fill"></i>Farm Name</div>
+                  <div class="pf-field-value {% if not farmer_profile or not farmer_profile.farm_name %}empty{% endif %}">{{ farmer_profile.farm_name|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-rulers"></i>Farm Size (acres)</div>
+                  <div class="pf-field-value {% if not farmer_profile or not farmer_profile.farm_size %}empty{% endif %}">{{ farmer_profile.farm_size|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field pf-full">
+                  <div class="pf-field-label"><i class="bi bi-flower1"></i>Specialization</div>
+                  <div class="pf-field-value {% if not farmer_profile or not farmer_profile.specialization %}empty{% endif %}">{{ farmer_profile.specialization|default:"Not set" }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FARMER EDIT -->
+            <div class="pf-edit-section">
+              <p class="pf-section-label">Farm Profile</p>
+              <div class="pf-form-grid">
+                <div>
+                  <label class="df-label" for="id_farm_name"><i class="bi bi-house-fill"></i>Farm Name</label>
+                  <input type="text" id="id_farm_name" name="farm_name" class="form-control" placeholder="e.g. Kato Organic Farm" value="{{ farmer_profile.farm_name|default:'' }}">
+                </div>
+                <div>
+                  <label class="df-label" for="id_farm_size"><i class="bi bi-rulers"></i>Farm Size (acres)</label>
+                  <input type="number" id="id_farm_size" name="farm_size" class="form-control" placeholder="e.g. 5.5" step="0.1" min="0" value="{{ farmer_profile.farm_size|default:'' }}">
+                </div>
+                <div class="pf-full">
+                  <label class="df-label" for="id_spec"><i class="bi bi-flower1"></i>Specialization</label>
+                  <select id="id_spec" name="specialization" class="form-select">
+                    <option value="">— Choose crop / livestock —</option>
+                    {% for val, lbl in specialization_choices %}
+                    <option value="{{ val }}" {% if farmer_profile and farmer_profile.specialization == val %}selected{% elif user.specialization == val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--df-border);">
+                <button type="submit" name="section" value="business" class="btn-df"><i class="bi bi-floppy-fill"></i> Save Business Details</button>
+                <button type="button" class="btn-df-outline" onclick="toggleEditMode()"><i class="bi bi-x-lg"></i> Cancel</button>
+              </div>
+            </div>
+
+            {% elif user.user_type == 'input_supplier' %}
+
+            <!-- SUPPLIER VIEW -->
+            <div class="pf-view-section">
+              <p class="pf-section-label">Supplier / Company Profile</p>
+              <div class="pf-view-grid">
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-building-fill"></i>Company Name</div>
+                  <div class="pf-field-value {% if not supplier_profile or not supplier_profile.company_name %}empty{% endif %}">{{ supplier_profile.company_name|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-patch-check-fill"></i>Business License No.</div>
+                  <div class="pf-field-value {% if not supplier_profile or not supplier_profile.business_license %}empty{% endif %}">{{ supplier_profile.business_license|default:"Not set" }}</div>
+                </div>
+                <div class="pf-field pf-full">
+                  <div class="pf-field-label"><i class="bi bi-box-seam-fill"></i>Specialization</div>
+                  <div class="pf-field-value {% if not supplier_profile or not supplier_profile.specialization %}empty{% endif %}">{{ supplier_profile.specialization|default:"Not set" }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUPPLIER EDIT -->
+            <div class="pf-edit-section">
+              <p class="pf-section-label">Supplier / Company Profile</p>
+              <div class="pf-form-grid">
+                <div>
+                  <label class="df-label" for="id_company"><i class="bi bi-building-fill"></i>Company Name</label>
+                  <input type="text" id="id_company" name="company_name" class="form-control" placeholder="e.g. AgroSupply Ltd" value="{{ supplier_profile.company_name|default:'' }}">
+                </div>
+                <div>
+                  <label class="df-label" for="id_license"><i class="bi bi-patch-check-fill"></i>Business License No.</label>
+                  <input type="text" id="id_license" name="business_license" class="form-control" placeholder="e.g. URSB-2024-XXXX" value="{{ supplier_profile.business_license|default:'' }}">
+                </div>
+                <div class="pf-full">
+                  <label class="df-label" for="id_sup_spec"><i class="bi bi-box-seam-fill"></i>Specialization</label>
+                  <select id="id_sup_spec" name="supplier_specialization" class="form-select">
+                    <option value="">— Select input category —</option>
+                    {% for val, lbl in specialization_choices %}
+                    <option value="{{ val }}" {% if supplier_profile and supplier_profile.specialization == val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--df-border);">
+                <button type="submit" name="section" value="business" class="btn-df"><i class="bi bi-floppy-fill"></i> Save Business Details</button>
+                <button type="button" class="btn-df-outline" onclick="toggleEditMode()"><i class="bi bi-x-lg"></i> Cancel</button>
+              </div>
+            </div>
+
+            {% else %}
+            <div class="text-center py-4">
+              <i class="bi bi-info-circle" style="font-size:2.2rem;color:var(--df-muted);"></i>
+              <p class="mt-2" style="color:var(--df-muted);">Business details apply to <strong>Farmers</strong> and <strong>Input Suppliers</strong>.<br>Your role (<strong>{{ user.get_user_type_display }}</strong>) has no additional business fields.</p>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════
+             SECTION 3 — SECURITY
+             ════════════════════════════════════════ -->
+        <div class="pf-card" id="sec-security">
+          <div class="pf-card-head">
+            <div class="pf-card-head-left">
+              <i class="bi bi-shield-lock-fill"></i>
+              <h5>Security Settings</h5>
+            </div>
+          </div>
+          <div class="card-body p-4">
+
+            <!-- VIEW MODE -->
+            <div class="pf-view-section">
+              <p class="pf-section-label">Account Status</p>
+              <div class="pf-view-grid">
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-shield-fill"></i>Verification Status</div>
+                  <div class="pf-field-value" style="background:transparent;border:none;padding:.3rem 0;">
+                    {% if user.is_verified %}
+                    <span class="pf-status-badge pf-verified"><i class="bi bi-patch-check-fill"></i> Verified Account</span>
+                    {% else %}
+                    <span class="pf-status-badge pf-unverified"><i class="bi bi-exclamation-circle-fill"></i> Not Verified</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-calendar-fill"></i>Member Since</div>
+                  <div class="pf-field-value">{{ user.date_joined|date:"N j, Y" }}</div>
+                </div>
+                <div class="pf-field">
+                  <div class="pf-field-label"><i class="bi bi-lock-fill"></i>Password</div>
+                  <div class="pf-field-value">••••••••</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- EDIT MODE (password change) -->
+            <div class="pf-edit-section">
+              <div class="alert-df-info d-flex align-items-center gap-2 p-3 mb-4 rounded-3">
+                <i class="bi bi-info-circle-fill flex-shrink-0" style="color:var(--df-dark);"></i>
+                <span style="font-size:.88rem;">Leave password fields <strong>blank</strong> to keep your current password.</span>
+              </div>
+              <p class="pf-section-label">Change Password</p>
+              <div class="pf-form-grid">
+                <div>
+                  <label class="df-label" for="id_cur_pwd"><i class="bi bi-lock-fill"></i>Current Password</label>
+                  <div class="input-group">
+                    <input type="password" id="id_cur_pwd" name="current_password" class="form-control" placeholder="Current password" autocomplete="current-password">
+                    <button class="btn-df-outline toggle-pwd" type="button" data-target="id_cur_pwd" style="border-radius:0 9px 9px 0;border-left:none;"><i class="bi bi-eye-fill"></i></button>
+                  </div>
+                </div>
+                <div>
+                  <label class="df-label" for="id_new_pwd"><i class="bi bi-lock-fill"></i>New Password</label>
+                  <div class="input-group">
+                    <input type="password" id="id_new_pwd" name="new_password" class="form-control" placeholder="New password" autocomplete="new-password" oninput="checkPwdStrength(this.value)">
+                    <button class="btn-df-outline toggle-pwd" type="button" data-target="id_new_pwd" style="border-radius:0 9px 9px 0;border-left:none;"><i class="bi bi-eye-fill"></i></button>
+                  </div>
+                  <div class="pwd-bar-wrap"><div class="pwd-bar-fill" id="pwdBar"></div></div>
+                  <div class="pwd-label" id="pwdLabel">Strength: —</div>
+                </div>
+                <div>
+                  <label class="df-label" for="id_conf_pwd"><i class="bi bi-lock-fill"></i>Confirm New Password</label>
+                  <div class="input-group">
+                    <input type="password" id="id_conf_pwd" name="confirm_password" class="form-control" placeholder="Repeat new password" autocomplete="new-password">
+                    <button class="btn-df-outline toggle-pwd" type="button" data-target="id_conf_pwd" style="border-radius:0 9px 9px 0;border-left:none;"><i class="bi bi-eye-fill"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--df-border);">
+                <button type="submit" name="section" value="security" class="btn-df"><i class="bi bi-floppy-fill"></i> Update Password</button>
+                <a href="{% url 'accounts:password_reset' %}" class="btn-df-outline"><i class="bi bi-envelope-fill"></i> Forgot Password?</a>
+                <button type="button" class="btn-df-outline ms-auto" onclick="toggleEditMode()"><i class="bi bi-x-lg"></i> Cancel</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>{# /row #}
+</div>{# /container #}
+</div>{# /pf-root #}
+
+<script>
+/* ── View / Edit Mode Toggle ──────────────────────── */
+let isEditing = false;
+
+function toggleEditMode() {
+  const root     = document.getElementById('pfRoot');
+  const editBtns = document.querySelectorAll('.edit-btn-label');
+  const bannerLbl = document.getElementById('bannerEditLabel');
+
+  isEditing = !isEditing;
+  root.classList.toggle('edit-mode', isEditing);
+
+  const label = isEditing ? 'View Profile' : 'Edit Profile';
+  editBtns.forEach(el => el.textContent = label);
+  if (bannerLbl) bannerLbl.textContent = label;
+
+  if (isEditing) {
+    // Scroll to top of personal section smoothly
+    const sec = document.getElementById('sec-personal');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+/* Auto-enter edit mode if URL has ?edit=1 */
+if (new URLSearchParams(window.location.search).get('edit') === '1') {
+  toggleEditMode();
+}
+
+/* ── Sidebar nav highlight ────────────────────────── */
+document.querySelectorAll('.pf-sidebar .nav-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    document.querySelectorAll('.pf-sidebar .nav-link').forEach(l => l.classList.remove('pf-active'));
+    this.classList.add('pf-active');
+    const targetId = this.getAttribute('href').replace('#', '');
+    const el = document.getElementById(targetId);
+    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+
+/* ── Password visibility toggle ──────────────────── */
+document.querySelectorAll('.toggle-pwd').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const inp  = document.getElementById(btn.dataset.target);
+    const icon = btn.querySelector('i');
+    if (inp.type === 'password') { inp.type = 'text';     icon.className = 'bi bi-eye-slash-fill'; }
+    else                         { inp.type = 'password'; icon.className = 'bi bi-eye-fill'; }
+  });
+});
+
+/* ── Password strength ───────────────────────────── */
+function checkPwdStrength(pwd) {
+  const bar   = document.getElementById('pwdBar');
+  const label = document.getElementById('pwdLabel');
+  if (!bar) return;
+  let score = 0;
+  if (pwd.length >= 8)             score++;
+  if (/[A-Z]/.test(pwd))          score++;
+  if (/[0-9]/.test(pwd))          score++;
+  if (/[^A-Za-z0-9]/.test(pwd))   score++;
+  const lvls = [
+    { pct:'20%', bg:'#ef4444', txt:'Very Weak'  },
+    { pct:'40%', bg:'#f97316', txt:'Weak'        },
+    { pct:'65%', bg:'#eab308', txt:'Fair'        },
+    { pct:'85%', bg:'#22c55e', txt:'Strong'      },
+    { pct:'100%',bg:'#16a34a', txt:'Very Strong' },
+  ];
+  const lvl = lvls[Math.max(0, score - 1)] || lvls[0];
+  bar.style.width      = pwd.length ? lvl.pct : '0%';
+  bar.style.background = lvl.bg;
+  label.textContent    = pwd.length ? `Strength: ${lvl.txt}` : 'Strength: —';
+}
+</script>
+{% endblock %}

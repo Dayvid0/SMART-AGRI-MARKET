@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Group Buy Pool{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0"><i class="bi bi-x-circle-fill"></i> Cancel Group Buy Pool</h4>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i>
+                        <h5 class="mt-3">Cancel This Pool?</h5>
+                        <p class="text-muted">
+                            You are about to cancel the group buy pool for
+                            <strong>{{ pool.input_item.name }}</strong>.
+                        </p>
+                        <p class="text-danger fw-semibold">
+                            This pool has <strong>{{ pool.participants.count }}</strong> participant(s).
+                            All participants will lose their spots.
+                        </p>
+                        <div class="d-grid gap-2 mt-4">
+                            <form method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100 mb-2">
+                                    <i class="bi bi-x-circle"></i> Yes, Cancel This Pool
+                                </button>
+                            </form>
+                            <a href="{% url 'inputs:group_buy_detail' pool.id %}" class="btn btn-outline-secondary">
+                                Go Back — Keep Pool Open
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -19,77 +19,130 @@
     }
 
     /* =============================================
-       WELCOME BANNER
+       WELCOME TOAST (floating — doesn't affect layout)
     ============================================= */
-    .welcome-banner {
-        background: linear-gradient(135deg, var(--primary-black), #1a1a1a);
-        border: 2px solid var(--bright-green);
-        border-radius: 20px;
-        padding: 2rem 2.5rem;
-        margin-bottom: 2.5rem;
+    #welcome-toast {
+        position: fixed;
+        bottom: 1.75rem;
+        right: 1.75rem;
+        z-index: 9999;
+        width: 320px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+        border-left: 5px solid #00D084;
+        padding: 1.1rem 1.2rem 0.8rem;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0, 208, 132, 0.2);
+        flex-direction: column;
+        gap: 0.5rem;
+        transform: translateX(0);
+        transition: transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s ease;
+        opacity: 1;
     }
 
-    .welcome-banner::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(0, 208, 132, 0.15), transparent 70%);
+    #welcome-toast.toast-hidden {
+        transform: translateX(130%);
+        opacity: 0;
         pointer-events: none;
     }
 
-    .welcome-banner h2 {
-        font-size: 1.6rem;
-        margin: 0 0 0.25rem;
-        color: #fff !important;
+    #welcome-toast .toast-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: none;
+        border: none;
+        padding: 0;
     }
 
-    .welcome-banner p {
-        color: rgba(255,255,255,0.7) !important;
+    #welcome-toast .toast-title {
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    #welcome-toast .toast-title .ti-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(0,208,132,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: #00D084;
+        flex-shrink: 0;
+    }
+
+    #welcome-toast .toast-sub {
+        font-size: 0.78rem;
+        color: #888;
         margin: 0;
-        font-size: 0.9rem;
     }
 
-    .welcome-meta {
+    #welcome-toast .toast-meta {
         display: flex;
-        gap: 1rem;
-        margin-top: 0.5rem;
         flex-wrap: wrap;
+        gap: 0.4rem;
     }
 
-    .welcome-meta span {
-        background: rgba(0, 208, 132, 0.15);
-        border: 1px solid var(--bright-green);
-        color: var(--bright-green) !important;
-        padding: 0.3rem 0.9rem;
-        border-radius: 25px;
-        font-size: 0.85rem;
+    #welcome-toast .toast-badge {
+        background: rgba(0,208,132,0.1);
+        border: 1px solid rgba(0,208,132,0.25);
+        color: #00aa6c;
+        padding: 0.15rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
         font-weight: 600;
-        text-shadow: none !important;
     }
 
-    .welcome-actions {
+    #welcome-toast .toast-close {
+        background: none;
+        border: none;
+        color: #bbb;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0.1rem 0.3rem;
+        border-radius: 6px;
+        line-height: 1;
+        flex-shrink: 0;
+        align-self: flex-start;
+    }
+
+    #welcome-toast .toast-close:hover { color: #555; }
+
+    #welcome-toast .toast-progress {
+        height: 3px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 0.3rem;
+    }
+
+    #welcome-toast .toast-progress-bar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #00D084, #38BDF8);
+        border-radius: 10px;
+        transition: width linear;
+    }
+
+    #welcome-toast .toast-actions {
         display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
-    .welcome-actions .btn {
-        font-size: 0.82rem;
-        padding: 0.5rem 1rem;
-        text-transform: none;
-        letter-spacing: 0;
+    @media (max-width: 480px) {
+        #welcome-toast {
+            width: calc(100vw - 2rem);
+            right: 1rem;
+            bottom: 1rem;
+        }
     }
+
 
     /* =============================================
        STATS BAR
@@ -269,13 +322,42 @@
         box-shadow: var(--shadow-md);
     }
 
-    .product-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+    /* Category filter chips above featured products */
+    .cat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.28rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid var(--gray-200);
+        color: var(--text-secondary) !important;
+        background: var(--gray-50);
+        transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
-    @media (max-width: 576px) {
+    .cat-chip:hover,
+    .cat-chip.active {
+        background: #00D084;
+        border-color: #00D084;
+        color: #fff !important;
+    }
+
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.85rem;
+    }
+
+    @media (max-width: 900px) {
+        .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
         .product-grid { grid-template-columns: 1fr; }
     }
 
@@ -296,7 +378,7 @@
     }
 
     .product-card-img {
-        height: 200px;
+        height: 130px;
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -333,8 +415,8 @@
     .product-card-body h6 {
         color: var(--text-primary) !important;
         font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
+        margin-bottom: 0.35rem;
+        font-size: 0.88rem;
     }
 
     .product-card-body .location {
@@ -348,7 +430,7 @@
         color: var(--bright-green) !important;
         font-weight: 800;
         font-family: 'Archivo', sans-serif;
-        font-size: 1.15rem;
+        font-size: 0.95rem;
         text-shadow: none !important;
     }
 
@@ -365,18 +447,23 @@
     .right-panel {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 0.8rem;
     }
 
-    /* Weather Widget - Distinct Color */
+    /* Weather Widget — compact */
     .weather-card {
-        background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); /* Light Blue Gradient */
+        background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
         border: 2px solid #7DD3FC;
         border-radius: 16px;
-        padding: 1.5rem;
+        padding: 0.8rem 1rem;
         box-shadow: var(--shadow-md);
         position: relative;
         overflow: hidden;
+    }
+
+    .weather-card .section-title {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
     }
     
     .weather-card::after {
@@ -416,38 +503,39 @@
 
     .weather-district {
         text-align: center;
-        padding: 1rem 0;
+        padding: 0.1rem 0;
     }
 
     .weather-district .district-name {
-        font-size: 1.1rem;
+        font-size: 0.9rem;
         font-weight: 700;
         color: var(--text-primary) !important;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0;
     }
 
     .weather-district .temp {
         font-family: 'Archivo', sans-serif;
-        font-size: 3rem;
+        font-size: 1.8rem;
         font-weight: 900;
         color: var(--bright-orange) !important;
         line-height: 1;
         text-shadow: none !important;
+        margin: 0.1rem 0;
     }
 
     .weather-district .condition {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: var(--text-secondary) !important;
-        margin-top: 0.25rem;
+        margin-top: 0.15rem;
         text-shadow: none !important;
     }
 
     .weather-stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
-        margin-top: 1rem;
-        padding-top: 1rem;
+        gap: 0.35rem;
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
         border-top: 1px solid rgba(255,255,255,0.08);
     }
 
@@ -472,18 +560,18 @@
 
     .district-tabs {
         display: flex;
-        gap: 0.4rem;
-        margin-bottom: 0.75rem;
+        gap: 0.3rem;
+        margin-bottom: 0.4rem;
         overflow-x: auto;
-        padding-bottom: 0.4rem;
+        padding-bottom: 0.2rem;
         scrollbar-width: none; /* Firefox */
     }
     .district-tabs::-webkit-scrollbar { display: none; } /* Safari/Chrome */
 
     .district-tab {
-        padding: 0.3rem 0.75rem;
+        padding: 0.2rem 0.6rem;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         cursor: pointer;
         border: 1px solid var(--gray-300);
@@ -505,8 +593,13 @@
         background: var(--primary-white);
         border: 2px solid var(--gray-200);
         border-radius: 16px;
-        padding: 1.5rem;
+        padding: 1rem;
         box-shadow: var(--shadow-md);
+    }
+
+    .orders-card .section-title {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
     }
 
     .order-item {
@@ -563,85 +656,108 @@
         margin-bottom: 2rem;
     }
 
-    @media (max-width: 900px) {
-        .news-preview-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .news-preview-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .news-preview-grid { grid-template-columns: 1fr; } }
 
     .news-preview-card {
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px;
+        background: #ffffff;
+        border: 1.5px solid #f0f0f0;
+        border-radius: 16px;
         overflow: hidden;
         transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        text-decoration: none;
     }
 
     .news-preview-card:hover {
-        border-color: rgba(124,179,66,0.35);
+        border-color: #00D084;
         transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,208,132,0.12);
     }
 
     .news-preview-card .news-img {
-        height: 140px;
+        height: 150px;
         overflow: hidden;
+        flex-shrink: 0;
     }
 
     .news-preview-card .news-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.4s ease;
     }
 
+    .news-preview-card:hover .news-img img { transform: scale(1.05); }
+
     .news-preview-card .news-img-placeholder {
-        height: 140px;
-        background: linear-gradient(135deg, #2D5016, #1A1612);
+        height: 150px;
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
-        color: rgba(255,255,255,0.2);
+        font-size: 2.5rem;
+        color: #7CB342;
+        flex-shrink: 0;
     }
 
     .news-preview-body {
-        padding: 1rem;
+        padding: 1.1rem;
         flex: 1;
         display: flex;
         flex-direction: column;
+        gap: 0.4rem;
     }
 
     .news-preview-body .news-cat {
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #7CB342 !important;
-        margin-bottom: 0.4rem;
-        text-shadow: none !important;
+        letter-spacing: 0.6px;
+        color: #00D084;
+        background: rgba(0,208,132,0.1);
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        border-radius: 20px;
+        border: 1px solid rgba(0,208,132,0.2);
+        align-self: flex-start;
     }
 
     .news-preview-body h6 {
-        color: #fff !important;
-        font-size: 0.9rem;
+        color: #1a1a1a !important;
+        font-size: 0.88rem;
         font-weight: 700;
-        line-height: 1.4;
-        margin-bottom: 0.5rem;
+        line-height: 1.45;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .news-preview-body .news-excerpt {
-        font-size: 0.8rem;
-        color: rgba(255,255,255,0.6) !important;
-        line-height: 1.5;
+        font-size: 0.78rem;
+        color: #6B7280;
+        line-height: 1.55;
         flex: 1;
-        text-shadow: none !important;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .news-preview-body .news-meta {
-        font-size: 0.75rem;
-        color: rgba(255,255,255,0.4) !important;
-        margin-top: 0.75rem;
-        text-shadow: none !important;
+        font-size: 0.72rem;
+        color: #9ca3af;
+        margin-top: auto;
+        padding-top: 0.6rem;
+        border-top: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     /* =============================================
@@ -659,34 +775,49 @@
     }
 
     .testimonial-card {
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 1.5rem;
+        background: #ffffff;
+        border: 1.5px solid #f0f0f0;
+        border-radius: 18px;
+        padding: 1.75rem;
         position: relative;
-        transition: all 0.3s ease;
+        transition: all 0.35s ease;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .testimonial-card::before {
+        content: '"';
+        position: absolute;
+        top: -10px; right: 20px;
+        font-size: 8rem;
+        font-family: Georgia, serif;
+        color: #00D084;
+        opacity: 0.08;
+        line-height: 1;
+        pointer-events: none;
     }
 
     .testimonial-card:hover {
-        border-color: rgba(212,165,116,0.3);
-        transform: translateY(-3px);
+        border-color: #00D084;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px -4px rgba(0,0,0,0.1), 0 0 0 2px #00D084;
     }
 
     .testimonial-card .quote-icon {
-        font-size: 2.5rem;
-        color: rgba(124,179,66,0.25);
+        font-size: 2rem;
+        color: #00D084;
+        opacity: 0.4;
         line-height: 1;
         font-family: Georgia, serif;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .testimonial-card .quote-text {
-        font-size: 0.875rem;
-        color: rgba(255,255,255,0.8) !important;
-        line-height: 1.6;
+        font-size: 0.9rem;
+        color: #444 !important;
+        line-height: 1.7;
         font-style: italic;
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
         text-shadow: none !important;
     }
 
@@ -694,36 +825,39 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
     }
 
     .author-avatar {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #4A7C2A, #7CB342);
+        background: linear-gradient(135deg, #00D084, #4A7C2A);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: white;
         font-weight: 700;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0,208,132,0.3);
     }
 
     .author-name {
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         font-weight: 700;
-        color: #fff !important;
+        color: #1a1a1a !important;
         text-shadow: none !important;
     }
 
     .author-role {
         font-size: 0.75rem;
-        color: rgba(255,255,255,0.45) !important;
+        color: #888 !important;
         text-shadow: none !important;
     }
 
-    .star-rating { color: #FDB927; font-size: 0.8rem; }
+    .star-rating { color: #FDB927; font-size: 0.85rem; letter-spacing: 1px; }
 
     /* =============================================
        CATEGORIES
@@ -777,106 +911,178 @@
     }
 
     .feature-card {
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 1.5rem;
+        background: #ffffff;
+        border: 1.5px solid #f0f0f0;
+        border-radius: 18px;
+        padding: 1.75rem 1.5rem;
         text-align: center;
-        transition: all 0.3s ease;
+        transition: all 0.35s ease;
         display: flex;
         flex-direction: column;
         align-items: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    /* colored top-accent line per card */
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: var(--fc-accent, #00D084);
+        border-radius: 18px 18px 0 0;
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        bottom: -50px; right: -30px;
+        width: 140px; height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--fc-accent, #00D084), transparent 70%);
+        opacity: 0.04;
+        pointer-events: none;
+        transition: opacity 0.35s ease;
     }
 
     .feature-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(124,179,66,0.3);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        transform: translateY(-6px);
+        border-color: var(--fc-accent, #00D084);
+        box-shadow: 0 8px 30px -4px rgba(0,0,0,0.12),
+                    0 0 0 2px var(--fc-accent, #00D084);
     }
+
+    .feature-card:hover::after { opacity: 0.09; }
 
     .feature-icon-wrap {
         width: 64px;
         height: 64px;
-        border-radius: 50%;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1rem;
         font-size: 1.6rem;
+        position: relative;
+        z-index: 1;
     }
 
     .feature-card h6 {
-        color: #fff !important;
+        color: #1a1a1a !important;
         font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+        font-size: 1rem;
+        position: relative;
+        z-index: 1;
     }
 
     .feature-card p {
-        color: rgba(255,255,255,0.65) !important;
+        color: #666 !important;
         font-size: 0.82rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
+        line-height: 1.55;
+        margin-bottom: 1.1rem;
         text-shadow: none !important;
+        position: relative;
+        z-index: 1;
     }
+
+    .feature-card .btn {
+        position: relative;
+        z-index: 1;
+        font-size: 0.78rem;
+        padding: 0.4rem 1.1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
 
     /* =============================================
        HERO SECTION
     ============================================= */
     .hero-section {
-        background: linear-gradient(135deg, var(--primary-black), #1a1a1a);
-        border: 3px solid var(--bright-green);
+        background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
         border-radius: 24px;
-        padding: 4rem 2.5rem;
+        padding: 4rem 3rem;
         margin-bottom: 2.5rem;
         text-align: center;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 12px 32px rgba(0, 208, 132, 0.2);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.15);
     }
 
     .hero-section::before {
         content: '';
         position: absolute;
-        top: -30%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 700px;
-        height: 400px;
-        background: radial-gradient(ellipse, rgba(0, 208, 132, 0.15), transparent 70%);
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(0,208,132,0.18), transparent 65%);
         pointer-events: none;
     }
 
-    .hero-section h1 {
-        font-size: clamp(1.8rem, 4vw, 3rem) !important;
-        color: #fff !important;
-        margin-bottom: 0.75rem;
+    .hero-eyebrow {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        color: #00D084 !important;
+        margin-bottom: 1rem;
+        text-shadow: none !important;
+        position: relative;
+        z-index: 1;
     }
 
+    .hero-section h1 {
+        font-size: clamp(2rem, 4vw, 3rem) !important;
+        color: #fff !important;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-section h1 .hero-accent { color: #00D084; }
+
     .hero-section .lead {
-        color: rgba(255,255,255,0.8) !important;
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
+        color: rgba(255,255,255,0.72) !important;
+        font-size: 1.05rem;
+        margin-bottom: 1.75rem;
+        max-width: 580px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 1;
+        text-shadow: none !important;
     }
 
     .hero-badges {
         display: flex;
         justify-content: center;
-        gap: 0.75rem;
+        gap: 0.6rem;
         flex-wrap: wrap;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
     }
 
     .hero-badge {
-        background: rgba(253,185,39,0.12);
-        border: 1px solid rgba(253,185,39,0.3);
-        color: #FDB927 !important;
+        background: rgba(0,208,132,0.1);
+        border: 1px solid rgba(0,208,132,0.25);
+        color: #00D084 !important;
         padding: 0.3rem 0.9rem;
         border-radius: 20px;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
         text-shadow: none !important;
+    }
+
+    .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
     }
 
     /* Recommended section */
@@ -888,44 +1094,89 @@
 
 {% block content %}
 
-    <!-- PERSONALIZED WELCOME BANNER (logged in only) -->
-        {% if user.is_authenticated %}
-        <div class="welcome-banner">
-            <div>
-                <h2>👋 Welcome back, {{ user.username|title }}!</h2>
-                <p>Here's what's happening on AgriMarket today.</p>
-                <div class="welcome-meta">
-                    {% if user.district %}
-                    <span><i class="bi bi-geo-alt"></i> {{ user.district }}</span>
-                    {% endif %}
-                    {% if user.specialization %}
-                    <span><i class="bi bi-award"></i> {{ user.specialization }}</span>
-                    {% endif %}
-                    <span><i class="bi bi-person-badge"></i> {{ user.user_type|title }}</span>
-                </div>
+    {% if user.is_authenticated %}
+    <!-- WELCOME TOAST (floating, auto-dismisses after 10s) -->
+    <div id="welcome-toast">
+        <div class="toast-header">
+            <div class="toast-title">
+                <div class="ti-icon"><i class="bi bi-hand-wave"></i></div>
+                <span>Welcome back, {{ user.username|title }}!</span>
             </div>
-            <div class="welcome-actions">
-                <a href="{% url 'marketplace:product_list' %}" class="btn btn-success">
-                    <i class="bi bi-bag"></i> Buy Now
-                </a>
-            </div>
+            <button class="toast-close" id="toastClose" aria-label="Dismiss">&times;</button>
         </div>
-        {% else %}
-        <!-- HERO for guests -->
+        <p class="toast-sub">Here's what's happening on AgriMarket today.</p>
+        {% if user.district or user.user_type %}
+        <div class="toast-meta">
+            {% if user.district %}<span class="toast-badge"><i class="bi bi-geo-alt me-1"></i>{{ user.district }}</span>{% endif %}
+            {% if user.user_type %}<span class="toast-badge"><i class="bi bi-person-badge me-1"></i>{{ user.user_type|title }}</span>{% endif %}
+        </div>
+        {% endif %}
+        <div class="toast-actions">
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-success btn-sm fw-bold" style="border-radius:50px;font-size:0.78rem;" id="toastBuyBtn">
+                <i class="bi bi-bag me-1"></i>Browse Now
+            </a>
+        </div>
+        <div class="toast-progress">
+            <div class="toast-progress-bar" id="toastProgressBar"></div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        var toast = document.getElementById('welcome-toast');
+        var bar   = document.getElementById('toastProgressBar');
+        var closeBtn = document.getElementById('toastClose');
+        var buyBtn   = document.getElementById('toastBuyBtn');
+        var duration = 10000; // ms
+
+        function dismissToast() {
+            toast.classList.add('toast-hidden');
+        }
+
+        // Kick off the progress bar shrink
+        // Use a tiny delay so the transition fires after paint
+        setTimeout(function(){
+            bar.style.transition = 'width ' + (duration / 1000) + 's linear';
+            bar.style.width = '0%';
+        }, 50);
+
+        // Auto-dismiss
+        var autoTimer = setTimeout(dismissToast, duration);
+
+        closeBtn.addEventListener('click', function(){
+            clearTimeout(autoTimer);
+            dismissToast();
+        });
+
+        // Also dismiss when navigating via the button (optional UX)
+        buyBtn.addEventListener('click', function(){
+            clearTimeout(autoTimer);
+            dismissToast();
+        });
+    })();
+    </script>
+    {% endif %}
+
+
+
+        <!-- HERO (guests only — authenticated users get the welcome toast) -->
+        {% if not user.is_authenticated %}
         <div class="hero-section">
-            <h1><i class="bi bi-basket"></i> Welcome to AgriMarket</h1>
-            <p class="lead">Connecting Ugandan farmers directly with consumers and businesses</p>
+            <p class="hero-eyebrow">Uganda's Agricultural Platform</p>
+            <h1>From Farm to Market,<br><span class="hero-accent">Without the Middlemen</span></h1>
+            <p class="lead">Connect directly with verified farmers across Uganda. Buy fresh produce, track live prices, and join group buying pools — all in one place.</p>
             <div class="hero-badges">
-                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Fresh Products</span>
-                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Fair Prices</span>
-                <span class="hero-badge"><i class="bi bi-check-circle-fill"></i> Direct from Farmers</span>
+                <span class="hero-badge"><i class="bi bi-shield-check me-1"></i>Verified Farmers</span>
+                <span class="hero-badge"><i class="bi bi-graph-up-arrow me-1"></i>Live Prices</span>
+                <span class="hero-badge"><i class="bi bi-people me-1"></i>Group Buying</span>
+                <span class="hero-badge"><i class="bi bi-cloud-sun me-1"></i>Climate Suite</span>
             </div>
-            <div class="d-flex gap-2 justify-content-center flex-wrap">
-                <a href="{% url 'marketplace:product_list' %}" class="btn btn-success btn-lg">
-                    <i class="bi bi-search"></i> Browse Products
+            <div class="hero-actions">
+                <a href="{% url 'marketplace:product_list' %}" class="btn btn-success btn-lg px-4 fw-bold">
+                    <i class="bi bi-basket me-2"></i>Browse Products
                 </a>
-                <a href="{% url 'accounts:register' %}" class="btn btn-outline-success btn-lg">
-                    <i class="bi bi-person-plus"></i> Join Free
+                <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-person-plus me-2"></i>Join for Free
                 </a>
             </div>
         </div>
@@ -1016,6 +1267,16 @@
                         <i class="bi bi-star-fill"></i> Featured Products
                         <a href="{% url 'marketplace:product_list' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none; font-weight: 600;">View all →</a>
                     </div>
+                    {% if categories %}
+                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.9rem;">
+                        <a href="{% url 'marketplace:product_list' %}" class="cat-chip active" style="--chip-active:1;">All</a>
+                        {% for cat in categories %}
+                        <a href="{% url 'marketplace:product_list' %}?category={{ cat.id }}" class="cat-chip">
+                            <i class="bi bi-tag"></i> {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     <div class="product-grid">
                         {% for product in featured_products %}
                         <div class="product-card">
@@ -1055,17 +1316,21 @@
                         <i class="bi bi-cloud-sun"></i> Weather
                     </div>
                     <div class="district-tabs">
-                        <button class="district-tab active" onclick="showWeatherSpecific('Kampala')">Kampala</button>
-                        <button class="district-tab" onclick="showWeatherSpecific('Gulu')">Gulu</button>
-                        <button class="district-tab" onclick="showWeatherSpecific('Mbarara')">Mbarara</button>
-                        <button class="district-tab" onclick="showWeatherSpecific('Mbale')">Mbale</button>
+                        {% if user.is_authenticated and user.district %}
+                        <button class="district-tab active" data-district="{{ user.district }}" onclick="showWeatherSpecific('{{ user.district }}')">{{ user.district }}</button>
+                        {% endif %}
+                        <button class="district-tab {% if not user.district %}active{% endif %}" data-district="Kampala" onclick="showWeatherSpecific('Kampala')">Kampala</button>
+                        <button class="district-tab" data-district="Gulu" onclick="showWeatherSpecific('Gulu')">Gulu</button>
+                        <button class="district-tab" data-district="Mbarara" onclick="showWeatherSpecific('Mbarara')">Mbarara</button>
+                        <button class="district-tab" data-district="Mbale" onclick="showWeatherSpecific('Mbale')">Mbale</button>
                     </div>
-                    <div class="weather-district">
+                    <div class="weather-district" style="transition: opacity 0.25s ease;">
                         <div class="district-name" id="weather-district">Kampala</div>
+                        <div id="weather-region" style="font-size:0.72rem;color:#aaa;margin-top:-0.2rem;margin-bottom:0.4rem;">Central Region</div>
                         <div class="temp" id="weather-temp">28°C</div>
                         <div class="condition" id="weather-condition"><i class="bi bi-cloud-sun"></i> Partly Cloudy</div>
                     </div>
-                    <div class="weather-stats">
+                    <div class="weather-stats" style="transition: opacity 0.25s ease;">
                         <div class="weather-stat">
                             <div class="label">Humidity</div>
                             <div class="value" id="weather-humidity">70%</div>
@@ -1113,150 +1378,179 @@
             </div>
         </div>
 
-        <!-- CATEGORIES -->
-        <div class="section-title"><i class="bi bi-grid"></i> Browse by Category</div>
-        <div class="categories-grid">
-            {% for category in categories %}
-            <a href="{% url 'marketplace:product_list' %}?category={{ category.id }}" class="category-chip">
-                <i class="bi bi-tag"></i> {{ category.name }}
-            </a>
-            {% empty %}
-            <p style="color: rgba(255,255,255,0.5);">No categories yet.</p>
-            {% endfor %}
-        </div>
 
         <!-- AGRI-PULSE NEWS PREVIEW -->
-        <div class="section-title" style="margin-bottom: 1rem;">
-            <i class="bi bi-newspaper"></i> Latest Agri-Pulse News
-            <a href="{% url 'news:news_list' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none;">Read all →</a>
-        </div>
-        <div class="news-preview-grid">
-            {% for article in latest_news %}
-            <div class="news-preview-card">
-                {% if article.image %}
-                <div class="news-img"><img src="{{ article.image.url }}" alt="{{ article.title }}"></div>
-                {% else %}
-                <div class="news-img-placeholder"><i class="bi bi-newspaper"></i></div>
-                {% endif %}
-                <div class="news-preview-body">
-                    <div class="news-cat">{{ article.category }}</div>
-                    <h6>{{ article.title }}</h6>
-                    <p class="news-excerpt">{{ article.content|truncatewords:15 }}</p>
-                    <div class="news-meta d-flex justify-content-between">
-                        <span><i class="bi bi-person"></i> {{ article.author.username }}</span>
-                        <span>{{ article.created_at|date:"M d" }}</span>
+        <div class="section-card" style="margin-bottom: 2rem;">
+            <div class="section-title">
+                <i class="bi bi-newspaper"></i> Latest Agri-Pulse News
+                <a href="{% url 'news:news_list' %}" class="ms-auto" style="font-size: 0.8rem; color: #7CB342 !important; text-decoration: none; font-weight: 600;">Read all →</a>
+            </div>
+            <div class="news-preview-grid">
+                {% for article in latest_news %}
+                <a href="{% url 'news:news_detail' article.pk %}" class="news-preview-card" style="text-decoration:none;">
+                    {% if article.image %}
+                    <div class="news-img"><img src="{{ article.image.url }}" alt="{{ article.title }}"></div>
+                    {% else %}
+                    <div class="news-img-placeholder"><i class="bi bi-newspaper"></i></div>
+                    {% endif %}
+                    <div class="news-preview-body">
+                        <span class="news-cat">{{ article.category }}</span>
+                        <h6>{{ article.title }}</h6>
+                        <p class="news-excerpt">{{ article.content|truncatewords:12 }}</p>
+                        <div class="news-meta">
+                            <span><i class="bi bi-person"></i> {{ article.author.username }}</span>
+                            <span>{{ article.created_at|date:"M d, Y" }}</span>
+                        </div>
                     </div>
+                </a>
+                {% empty %}
+                <div style="grid-column: span 3; text-align:center; padding: 2rem; color: #aaa;">
+                    <i class="bi bi-newspaper" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #ccc;"></i>
+                    No news articles yet. <a href="{% url 'news:news_list' %}" style="color: #00D084;">Check the news page</a>
                 </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div style="grid-column: span 3; text-align:center; padding: 2rem; color: rgba(255,255,255,0.4);">
-                <i class="bi bi-newspaper" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
-                No news articles yet. <a href="{% url 'news:news_list' %}" style="color: #7CB342;">Check the news page</a>
-            </div>
-            {% endfor %}
         </div>
 
         <!-- PLATFORM FEATURES -->
         <div class="section-title" style="margin-bottom: 1rem;"><i class="bi bi-grid-3x3-gap"></i> Platform Features</div>
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(74,124,42,0.15);">
-                    <i class="bi bi-shop" style="color: #7CB342;"></i>
+
+            <!-- Input Store — green accent -->
+            <div class="feature-card" style="--fc-accent: #00D084;">
+                <div class="feature-icon-wrap" style="background: rgba(0,208,132,0.12); border-color: rgba(0,208,132,0.2);">
+                    <i class="bi bi-shop" style="color: #00D084;"></i>
                 </div>
                 <h6>Input Store</h6>
                 <p>Quality seeds, fertilizers, and tools from verified suppliers</p>
                 <a href="{% url 'inputs:input_store' %}" class="btn btn-outline-success btn-sm">Explore</a>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(135,206,235,0.15);">
-                    <i class="bi bi-newspaper" style="color: #87CEEB;"></i>
+
+            <!-- Agri-Pulse News — sky blue accent -->
+            <div class="feature-card" style="--fc-accent: #38BDF8;">
+                <div class="feature-icon-wrap" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.2);">
+                    <i class="bi bi-newspaper" style="color: #38BDF8;"></i>
                 </div>
                 <h6>Agri-Pulse News</h6>
                 <p>Stay updated with policies and agricultural news</p>
                 <a href="{% url 'news:news_list' %}" class="btn btn-outline-info btn-sm">Read News</a>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(253,185,39,0.15);">
+
+            <!-- Climate Suite — amber accent -->
+            <div class="feature-card" style="--fc-accent: #FDB927;">
+                <div class="feature-icon-wrap" style="background: rgba(253,185,39,0.12); border-color: rgba(253,185,39,0.2);">
                     <i class="bi bi-cloud-sun" style="color: #FDB927;"></i>
                 </div>
                 <h6>Climate Suite</h6>
                 <p>Weather forecasts and planting season guidance</p>
                 <a href="{% url 'weather:climate_suite' %}" class="btn btn-outline-warning btn-sm">View Dashboard</a>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(255,152,0,0.15);">
-                    <i class="bi bi-people" style="color: #FF9800;"></i>
+
+            <!-- Group Buying — orange accent -->
+            <div class="feature-card" style="--fc-accent: #FB923C;">
+                <div class="feature-icon-wrap" style="background: rgba(251,146,60,0.12); border-color: rgba(251,146,60,0.2);">
+                    <i class="bi bi-people" style="color: #FB923C;"></i>
                 </div>
                 <h6>Group Buying</h6>
                 <p>Join with other farmers to buy inputs in bulk at lower prices</p>
                 <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning btn-sm">View Pools</a>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(244,67,54,0.15);">
-                    <i class="bi bi-graph-up-arrow" style="color: #F44336;"></i>
+
+            <!-- Price Tracker — red accent -->
+            <div class="feature-card" style="--fc-accent: #F87171;">
+                <div class="feature-icon-wrap" style="background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.2);">
+                    <i class="bi bi-graph-up-arrow" style="color: #F87171;"></i>
                 </div>
                 <h6>Price Tracker</h6>
                 <p>Crowdsourced prices from farmers to fight exploitation</p>
                 <a href="{% url 'marketplace:price_tracker' %}" class="btn btn-outline-danger btn-sm">View Prices</a>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background: rgba(124,179,66,0.15);">
-                    <i class="bi bi-exclamation-triangle" style="color: #7CB342;"></i>
+
+            <!-- Distress Sale Alerts — lime green accent -->
+            <div class="feature-card" style="--fc-accent: #A3E635;">
+                <div class="feature-icon-wrap" style="background: rgba(163,230,53,0.12); border-color: rgba(163,230,53,0.2);">
+                    <i class="bi bi-exclamation-triangle" style="color: #A3E635;"></i>
                 </div>
                 <h6>Distress Sale Alerts</h6>
                 <p>Help farmers find urgent buyers for perishable produce</p>
                 <a href="{% url 'marketplace:product_list' %}?urgent=1" class="btn btn-outline-success btn-sm">View Urgent</a>
             </div>
+
         </div>
 
-        <!-- TESTIMONIALS -->
+
+        <!-- TESTIMONIALS: real reviews when available, static fallback otherwise -->
         <div class="section-title" style="margin-bottom: 1rem;"><i class="bi bi-chat-quote"></i> What Farmers Say</div>
         <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <div class="quote-icon">"</div>
-                <p class="quote-text">AgriMarket helped me sell my tomatoes directly to buyers in Kampala. I now earn 40% more than selling through middlemen.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">JM</div>
-                    <div>
-                        <div class="author-name">James Mukasa</div>
-                        <div class="author-role">Farmer, Wakiso District</div>
-                        <div class="star-rating">★★★★★</div>
+
+            {% if top_reviews %}
+                {% for review in top_reviews %}
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text">{{ review.comment }}</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">{{ review.reviewer.username|upper|slice:":2" }}</div>
+                        <div>
+                            <div class="author-name">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</div>
+                            <div class="author-role">
+                                {% if review.reviewer.district %}{{ review.reviewer.district }} &middot; {% endif %}
+                                {{ review.reviewer.user_type|title|default:"Farmer" }}
+                            </div>
+                            <div class="star-rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="quote-icon">"</div>
-                <p class="quote-text">The group buying feature saved us 30% on fertilizer costs this season. We organized 15 farmers and got a bulk discount.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">SA</div>
-                    <div>
-                        <div class="author-name">Sarah Amongi</div>
-                        <div class="author-role">Farmer, Gulu District</div>
-                        <div class="star-rating">★★★★★</div>
+                {% endfor %}
+
+            {% else %}
+                <!-- Static placeholders shown until real reviews exist -->
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text">AgriMarket helped me sell my tomatoes directly to buyers in Kampala. I now earn 40% more than selling through middlemen.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JM</div>
+                        <div>
+                            <div class="author-name">James Mukasa</div>
+                            <div class="author-role">Farmer · Wakiso District</div>
+                            <div class="star-rating">★★★★★</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="quote-icon">"</div>
-                <p class="quote-text">The climate dashboard tells me exactly when to plant. My yields have improved significantly since I started using the platform.</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">PO</div>
-                    <div>
-                        <div class="author-name">Peter Okello</div>
-                        <div class="author-role">Farmer, Mbale District</div>
-                        <div class="star-rating">★★★★☆</div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text">The group buying feature saved us 30% on fertilizer costs this season. We organized 15 farmers and got a bulk discount.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SA</div>
+                        <div>
+                            <div class="author-name">Sarah Amongi</div>
+                            <div class="author-role">Farmer · Gulu District</div>
+                            <div class="star-rating">★★★★★</div>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text">The climate dashboard tells me exactly when to plant. My yields have improved significantly since I started using the platform.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">PO</div>
+                        <div>
+                            <div class="author-name">Peter Okello</div>
+                            <div class="author-role">Farmer · Mbale District</div>
+                            <div class="star-rating">★★★★☆</div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
         </div>
+
 
     </div><!-- end main-content -->
 </div><!-- end page-wrapper -->
-
-<!-- Mobile sidebar toggle button -->
-<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-    <i class="bi bi-layout-sidebar"></i>
-</button>
 
 {% endblock %}
 
@@ -1302,53 +1596,42 @@ function showWeatherSpecific(districtName) {
 }
 
 function updateWeatherUI(d) {
-    // Update active tab if it exists
-    const tabs = document.querySelectorAll('.district-tab');
-    tabs.forEach(t => {
-        t.classList.remove('active');
-        if (t.textContent === d.district) t.classList.add('active');
-    });
-    
-    // Update elements
-    const distEl = document.getElementById('weather-district');
-    const tempEl = document.getElementById('weather-temp');
-    const condEl = document.getElementById('weather-condition');
-    const humEl = document.getElementById('weather-humidity');
-    const windEl = document.getElementById('weather-wind');
-    const farmEl = document.getElementById('weather-farming');
-    
-    if (distEl) distEl.textContent = d.district;
-    if (tempEl) tempEl.textContent = d.temp;
-    if (condEl) condEl.innerHTML = `<i class="bi ${d.icon}"></i> ${d.condition}`;
-    if (humEl) humEl.textContent = d.humidity;
-    if (windEl) windEl.textContent = d.wind;
-    if (farmEl) {
-        farmEl.textContent = d.farming;
-        if (d.farming === 'Excellent') farmEl.style.color = '#43A047';
-        else if (d.farming === 'Good') farmEl.style.color = '#7CB342';
-        else farmEl.style.color = '#FB8C00';
-    }
-}
+    const weatherBlock = document.querySelector('.weather-district');
+    const statsBlock   = document.querySelector('.weather-stats');
 
-// Mobile sidebar toggle
-const sidebarToggle = document.getElementById('sidebarToggle');
-const sidebar = document.getElementById('sidebar');
+    // Fade out
+    [weatherBlock, statsBlock].forEach(el => { if (el) el.style.opacity = '0'; });
 
-sidebarToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-});
+    setTimeout(() => {
+        // Update elements
+        const distEl = document.getElementById('weather-district');
+        const tempEl = document.getElementById('weather-temp');
+        const condEl = document.getElementById('weather-condition');
+        const humEl  = document.getElementById('weather-humidity');
+        const windEl = document.getElementById('weather-wind');
+        const farmEl = document.getElementById('weather-farming');
+        const regEl  = document.getElementById('weather-region');
 
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 991) {
-        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-            sidebar.classList.remove('open');
+        if (distEl) distEl.textContent = d.district;
+        if (regEl)  regEl.textContent  = d.region + ' Region';
+        if (tempEl) tempEl.textContent = d.temp;
+        if (condEl) condEl.innerHTML   = `<i class="bi ${d.icon}"></i> ${d.condition}`;
+        if (humEl)  humEl.textContent  = d.humidity;
+        if (windEl) windEl.textContent = d.wind;
+        if (farmEl) {
+            farmEl.textContent = d.farming;
+            farmEl.style.color = d.farming === 'Excellent' ? '#43A047'
+                               : d.farming === 'Good'      ? '#7CB342' : '#FB8C00';
         }
-    }
-});
+
+        // Fade in
+        [weatherBlock, statsBlock].forEach(el => { if (el) el.style.opacity = '1'; });
+    }, 250); // half the CSS transition time
+}
 
 // Auto-rotate weather districts
 let weatherIndex = 0;
+let weatherInterval;
 
 // Flatten districts from context
 const allDistrictsData = [];
@@ -1368,30 +1651,79 @@ function getSimulatedWeather(districtName) {
     const icons = ['bi-sun', 'bi-cloud-sun', 'bi-cloud', 'bi-cloud-drizzle', 'bi-brightness-high'];
     const farming = ['Excellent', 'Good', 'Fair'];
     
-    // Use hash of name for consistency if needed, or just random
-    const randIdx = Math.floor(Math.random() * conditions.length);
-    const tempIdx = Math.floor(Math.random() * temps.length);
-    const farmIdx = Math.floor(Math.random() * farming.length);
+    // Consistent details for specific districts
+    let tempIdx = Math.floor(Math.random() * temps.length);
+    let condIdx = Math.floor(Math.random() * conditions.length);
+    
+    if (districtName === 'Kampala') { tempIdx = 4; condIdx = 1; } // 28C, Partly Cloudy
     
     return {
         district: districtName,
         temp: temps[tempIdx] + '°C',
-        condition: conditions[randIdx],
-        icon: icons[randIdx],
+        condition: conditions[condIdx],
+        icon: icons[condIdx],
         humidity: (60 + Math.floor(Math.random() * 30)) + '%',
         wind: (5 + Math.floor(Math.random() * 15)) + 'km/h',
-        farming: farming[farmIdx]
+        farming: farming[Math.floor(Math.random() * farming.length)]
     };
 }
 
-// Initial state
-let currentWeather = getSimulatedWeather(allDistrictsData[0].name);
-
-setInterval(() => {
-    weatherIndex = (weatherIndex + 1) % allDistrictsData.length;
-    const d = getSimulatedWeather(allDistrictsData[weatherIndex].name);
+// Override showWeatherSpecific to stop rotation
+const originalShowWeather = window.showWeatherSpecific || function() {};
+window.showWeatherSpecific = function(name) {
+    if (weatherInterval) clearInterval(weatherInterval);
+    
+    // If original function exists (it should), call it
+    // But we need to make sure we use the correct logic
+    // We can just call updateWeatherUI directly with new data
+    const d = getSimulatedWeather(name);
+    // Find region if possible
+    const found = allDistrictsData.find(x => x.name === name);
+    if (found) d.region = found.region;
+    
     updateWeatherUI(d);
-}, 8000);
+};
+
+// Initial state — Start from User District if available
+if (allDistrictsData.length > 0) {
+    const userDistrict = "{{ user.district|default:'' }}";
+    
+    if (userDistrict) {
+        let idx = allDistrictsData.findIndex(d => d.name === userDistrict);
+        
+        // Handle spelling mismatches
+        if (idx === -1) {
+            const mapping = { 'Luwero': 'Luweero', 'Bukwo': 'Bukwa' };
+            if (mapping[userDistrict]) {
+                idx = allDistrictsData.findIndex(d => d.name === mapping[userDistrict]);
+            }
+        }
+
+        if (idx !== -1) {
+            weatherIndex = idx;
+        } else {
+            // Not found? Add dynamic entry so it displays correctly
+            allDistrictsData.unshift({ name: userDistrict, region: 'Local' });
+            weatherIndex = 0;
+        }
+    } else {
+        // Default to Kampala if available
+        const kIdx = allDistrictsData.findIndex(d => d.name === 'Kampala');
+        if (kIdx !== -1) weatherIndex = kIdx;
+    }
+
+    let currentWeather = getSimulatedWeather(allDistrictsData[weatherIndex].name);
+    currentWeather.region = allDistrictsData[weatherIndex].region;
+    updateWeatherUI(currentWeather);
+
+    // Rotate every 5 seconds
+    weatherInterval = setInterval(() => {
+        weatherIndex = (weatherIndex + 1) % allDistrictsData.length;
+        const d = getSimulatedWeather(allDistrictsData[weatherIndex].name);
+        d.region = allDistrictsData[weatherIndex].region;
+        updateWeatherUI(d);
+    }, 5000);
+}
 
 </script>
 

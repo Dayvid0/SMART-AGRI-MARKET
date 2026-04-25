@@ -25,7 +25,7 @@ def place_order(request, product_id):
     # Prevent farmer from ordering their own products
     if request.user == product.farmer:
         messages.error(request, 'You cannot order your own products!')
-        return redirect('product_detail', pk=product_id)
+        return redirect('marketplace:product_detail', pk=product_id)
     
     if request.method == 'POST':
         quantity = int(request.POST.get('quantity', 1))
@@ -36,11 +36,11 @@ def place_order(request, product_id):
         # Validate quantity
         if quantity <= 0:
             messages.error(request, 'Quantity must be greater than 0!')
-            return redirect('product_detail', pk=product_id)
+            return redirect('marketplace:product_detail', pk=product_id)
         
         if quantity > product.quantity:
             messages.error(request, f'Only {product.quantity} {product.unit} available!')
-            return redirect('product_detail', pk=product_id)
+            return redirect('marketplace:product_detail', pk=product_id)
         
         # Calculate total
         unit_price = product.price

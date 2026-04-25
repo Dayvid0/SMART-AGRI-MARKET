@@ -8,6 +8,7 @@ from django.db.models import Count
 from .models import Product, Category, MarketPrice, CrowdsourcedPrice, ExternalMarketPrice
 from orders.models import Order
 from accounts.models import FarmerProfile
+from accounts.constants import UGANDA_REGIONS, DISTRICT_COORDINATES
 from .services.price_fetcher import combine_price_sources
 
 # --- MARKETPLACE VIEWS ---
@@ -57,7 +58,6 @@ def home(request):
     recent_orders = []
     if request.user.is_authenticated:
         try:
-            # Try buyer field first (orders placed by this user as a customer)
             recent_orders = (
                 Order.objects
                 .filter(buyer=request.user)
@@ -65,7 +65,6 @@ def home(request):
             )
         except Exception:
             try:
-                # Fallback: orders received by this user as a farmer
                 recent_orders = (
                     Order.objects
                     .filter(farmer=request.user)
@@ -73,6 +72,18 @@ def home(request):
                 )
             except Exception:
                 recent_orders = []
+
+    # Top real reviews for testimonials section (4+ stars, most recent)
+    try:
+        from .models import Review
+        top_reviews = list(
+            Review.objects
+            .filter(rating__gte=4)
+            .select_related('reviewer', 'farmer')
+            .order_by('-rating', '-created_at')[:3]
+        )
+    except Exception:
+        top_reviews = []
 
     # HYBRID MARKET PRICES - Combine WFP API + Crowdsourced
     # Get recent external prices (last 7 days)
@@ -109,8 +120,9 @@ def home(request):
         'latest_news':          latest_news,
         'recommended_products': recommended_products,
         'recent_orders':        recent_orders,
-        'hybrid_prices':        hybrid_prices,  # NEW: Hybrid price data
-        'all_districts':        UGANDA_REGIONS, # Pass the regions dict or flat list
+        'hybrid_prices':        hybrid_prices,
+        'all_districts':        UGANDA_REGIONS,
+        'top_reviews':          top_reviews,
     }
     return render(request, 'marketplace/home.html', context)
 
@@ -119,12 +131,15 @@ def product_list(request):
     """
     Display all products with search and filter functionality
     """
-    products = Product.objects.filter(status='available')
+    from django.core.paginator import Paginator
+
+    products = Product.objects.filter(status='available').select_related('farmer', 'farmer__farmer_profile', 'category')
     category_id = request.GET.get('category')
     search_query = request.GET.get('search')
     location = request.GET.get('location')
     urgent_only = request.GET.get('urgent')
-    
+    sort = request.GET.get('sort', '-created_at')
+
     if category_id:
         products = products.filter(category_id=category_id)
     if search_query:
@@ -135,13 +150,27 @@ def product_list(request):
         products = products.filter(location__icontains=location)
     if urgent_only:
         products = products.filter(is_urgent=True)
-    
+
+    # Sorting
+    sort_map = {
+        'price_asc': 'price',
+        'price_desc': '-price',
+        '-created_at': '-created_at',
+    }
+    products = products.order_by(sort_map.get(sort, '-created_at'))
+
     urgent_products = Product.objects.filter(status='available', is_urgent=True)[:4]
     categories = Category.objects.all()
     locations = Product.objects.values_list('location', flat=True).distinct()
-    
+
+    # Pagination — 12 per page
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'products': products,
+        'products': page_obj,          # now a page object
+        'page_obj': page_obj,
         'categories': categories,
         'locations': locations,
         'selected_category': category_id,
@@ -149,8 +178,10 @@ def product_list(request):
         'selected_location': location,
         'urgent_products': urgent_products,
         'urgent_only': urgent_only,
+        'sort': sort,
     }
     return render(request, 'marketplace/product_list.html', context)
+
 
 
 def product_detail(request, pk):
@@ -342,8 +373,6 @@ def delete_product(request, pk):
         return redirect('farmer_dashboard')
     return render(request, 'marketplace/delete_product.html', {'product': product})
 
-
-from .constants import UGANDA_REGIONS, DISTRICT_COORDINATES
 
 def district_list(request):
     """

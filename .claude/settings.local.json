@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from accounts.constants import UGANDA_REGIONS, DISTRICT_COORDINATES, ALL_DISTRICTS, DISTRICT_CHOICES, UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES; print\\('accounts OK, districts:', len\\(ALL_DISTRICTS\\)\\)\")",
+      "Bash(python manage.py check --deploy)"
+    ]
+  }
+}
