@@ -9,4 +9,8 @@ urlpatterns = [
     path('my-orders/', views.my_orders, name='my_orders'),
     path('update-status/<int:order_id>/', views.update_order_status, name='update_order_status'),
     path('cancel/<int:order_id>/', views.cancel_order, name='cancel_order'),
-]
+    # Delivery routes
+    path('delivery/request/<int:order_id>/', views.request_delivery, name='request_delivery'),
+    path('delivery/<int:delivery_id>/', views.delivery_detail, name='delivery_detail'),
+    path('delivery/accept/<int:delivery_id>/', views.accept_delivery, name='accept_delivery'),
+]

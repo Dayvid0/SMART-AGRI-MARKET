@@ -10,6 +10,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
+    path('verification/submit/', views.submit_verification, name='submit_verification'),
+    path('verification/status/', views.verification_status, name='verification_status'),
 
     # --- Password Reset Flow ---
     path('password-reset/',

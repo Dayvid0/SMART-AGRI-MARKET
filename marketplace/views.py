@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -31,14 +32,13 @@ def home(request):
     # Top rated farmers (keep existing logic)
     top_farmers = FarmerProfile.objects.filter(rating_average__gt=0).order_by('-rating_average')[:3]
 
-    # Latest 3 approved news articles
+    # Latest 3 published news articles
     try:
-        from news.models import News
+        from news.models import AgriNews
         latest_news = (
-            News.objects
-            .filter(status='approved')
-            .select_related('author')
-            .order_by('-created_at')[:3]
+            AgriNews.objects
+            .filter(status='published')
+            .order_by('-published_at')[:3]
         )
     except Exception:
         latest_news = []
@@ -194,27 +194,93 @@ def product_detail(request, pk):
 
 def market_prices(request):
     """
-    Official market prices
+    Unified price intelligence — combines WFP/HDX external prices,
+    farmer-crowdsourced prices, and admin-entered official prices.
     """
-    week_ago = date.today() - timedelta(days=7)
-    latest_prices = MarketPrice.objects.filter(date_recorded__gte=week_ago)
-    categories = Category.objects.all()
-    
-    category_id = request.GET.get('category')
-    if category_id:
-        latest_prices = latest_prices.filter(category_id=category_id)
-    
-    price_data = latest_prices.values('product_name', 'unit').annotate(
-        avg_min=Avg('min_price'),
-        avg_max=Avg('max_price'),
-        avg_price=Avg('average_price')
-    ).order_by('product_name')
-    
+    month_ago = date.today() - timedelta(days=30)
+    product_filter = request.GET.get('product', '').strip().lower()
+
+    # 1. External prices (WFP / HDX) — aggregated per product
+    ext_qs = ExternalMarketPrice.objects.filter(is_active=True, date_recorded__gte=month_ago)
+    external_summary = (
+        ext_qs.values('product_name', 'unit')
+        .annotate(
+            avg_price=Avg('price'),
+            min_price=Min('price'),
+            max_price=Max('price'),
+            data_points=Count('id'),
+            latest_date=Max('date_recorded'),
+        )
+        .order_by('product_name')
+    )
+
+    # 2. Crowdsourced prices — aggregated per product
+    cs_summary = (
+        CrowdsourcedPrice.objects
+        .filter(date_reported__gte=month_ago)
+        .values('product_name', 'unit')
+        .annotate(
+            avg_price=Avg('price'),
+            min_price=Min('price'),
+            max_price=Max('price'),
+            report_count=Count('id'),
+        )
+        .order_by('product_name')
+    )
+
+    # 3. Official/manual prices — aggregated per product
+    official_summary = (
+        MarketPrice.objects
+        .filter(date_recorded__gte=month_ago)
+        .values('product_name', 'unit')
+        .annotate(
+            avg_price=Avg('average_price'),
+            min_price=Avg('min_price'),
+            max_price=Avg('max_price'),
+        )
+        .order_by('product_name')
+    )
+
+    # Build lookup maps keyed by normalised product name
+    ext_map = {r['product_name'].lower(): r for r in external_summary}
+    cs_map  = {r['product_name'].lower(): r for r in cs_summary}
+    off_map = {r['product_name'].lower(): r for r in official_summary}
+
+    all_keys = sorted(set(ext_map) | set(cs_map) | set(off_map))
+
+    # Apply optional product filter
+    if product_filter:
+        all_keys = [k for k in all_keys if product_filter in k]
+
+    unified_prices = []
+    for key in all_keys:
+        ext = ext_map.get(key)
+        cs  = cs_map.get(key)
+        off = off_map.get(key)
+        first = ext or cs or off
+        unified_prices.append({
+            'product_name': first['product_name'],
+            'unit': first['unit'],
+            'external': ext,
+            'crowdsourced': cs,
+            'official': off,
+        })
+
+    last_fetch = (
+        ExternalMarketPrice.objects
+        .filter(is_active=True)
+        .order_by('-fetched_at')
+        .values_list('fetched_at', flat=True)
+        .first()
+    )
+
     context = {
-        'price_data': price_data,
-        'categories': categories,
-        'selected_category': category_id,
-        'latest_prices': latest_prices,
+        'unified_prices': unified_prices,
+        'product_filter': product_filter,
+        'last_fetch': last_fetch,
+        'ext_count': len(ext_map),
+        'cs_count': len(cs_map),
+        'off_count': len(off_map),
     }
     return render(request, 'marketplace/market_prices.html', context)
 
@@ -222,22 +288,50 @@ def market_prices(request):
 @login_required
 def report_price(request):
     """
-    Farmers report prices they're actually getting in the field
+    Farmers report prices they're actually getting in the field.
     """
     if request.method == 'POST':
-        CrowdsourcedPrice.objects.create(
-            reporter=request.user,
-            product_name=request.POST.get('product_name'),
-            price=request.POST.get('price'),
-            unit=request.POST.get('unit'),
-            buyer_type=request.POST.get('buyer_type'),
-            location=request.POST.get('location'),
-            market_name=request.POST.get('market_name'),
-            notes=request.POST.get('notes')
-        )
-        messages.success(request, 'Thank you! Your price report helps other farmers.')
-        return redirect('price_tracker')
-    
+        product_name = request.POST.get('product_name', '').strip()
+        price_raw    = request.POST.get('price', '').strip()
+        unit         = request.POST.get('unit', '').strip()
+        buyer_type   = request.POST.get('buyer_type', '').strip()
+        location     = request.POST.get('location', '').strip()
+
+        error = None
+        if not product_name:
+            error = 'Product name is required.'
+        elif not price_raw:
+            error = 'Price is required.'
+        elif not unit:
+            error = 'Please select a unit.'
+        elif not buyer_type:
+            error = 'Please select a buyer type.'
+        elif not location:
+            error = 'Location is required.'
+        else:
+            try:
+                price_val = float(price_raw)
+                if price_val <= 0:
+                    raise ValueError
+            except ValueError:
+                error = 'Please enter a valid price greater than zero.'
+
+        if error:
+            messages.error(request, error)
+        else:
+            CrowdsourcedPrice.objects.create(
+                reporter=request.user,
+                product_name=product_name,
+                price=price_val,
+                unit=unit,
+                buyer_type=buyer_type,
+                location=location,
+                market_name=request.POST.get('market_name', '').strip(),
+                notes=request.POST.get('notes', '').strip(),
+            )
+            messages.success(request, 'Thank you! Your price report helps other farmers.')
+            return redirect('marketplace:price_tracker')
+
     return render(request, 'marketplace/report_price.html')
 
 
@@ -396,7 +490,7 @@ def district_list(request):
     context = {
         'region_data': region_data, # Use this structured data
         'coordinates': DISTRICT_COORDINATES,
-        'mapbox_token': 'pk.eyJ1IjoibWF0cml4IiwiYSI6ImNs...placeholder...if_needed' 
+        'mapbox_token': os.environ.get('MAPBOX_TOKEN', '')
     }
     return render(request, 'marketplace/district_list.html', context)
 
@@ -494,7 +588,6 @@ def create_review(request, order_id):
     return render(request, 'marketplace/reviews/create_review.html', context)
 
 
-@login_required
 def farmer_reviews(request, farmer_id):
     """
     View all reviews for a specific farmer

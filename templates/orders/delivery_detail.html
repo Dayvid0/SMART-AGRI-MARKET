@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Delivery #{{ delivery.id }} - Smart Agri Market{% endblock %}
+
+{% block content %}
+<style>
+  .del-container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+  .del-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+  .status-open     { background: #fef9c3; color: #713f12; }
+  .status-assigned { background: #dbeafe; color: #1e40af; }
+  .status-in_transit { background: #ede9fe; color: #5b21b6; }
+  .status-delivered { background: #dcfce7; color: #14532d; }
+  .status-cancelled { background: #fee2e2; color: #7f1d1d; }
+  .status-badge { border-radius: 50px; padding: 0.3rem 1rem; font-weight: 700; font-size: 0.85rem; }
+  .transporter-card {
+    border: 1px solid #e5e7eb; border-radius: 14px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 0.75rem; transition: all 0.2s;
+  }
+  .transporter-card:hover { border-color: #00D084; background: #f0fdf4; }
+  .t-avatar { width: 48px; height: 48px; border-radius: 50%; background: #dcfce7; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: #16a34a; }
+  .accept-btn { background: linear-gradient(135deg, #00D084, #16a34a); color: white; border: none; border-radius: 10px; padding: 0.5rem 1.25rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .accept-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,208,132,0.3); }
+  .info-row { display: flex; justify-content: space-between; padding: 0.65rem 0; border-bottom: 1px solid #f3f4f6; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: #6B7280; font-size: 0.9rem; }
+  .info-value { font-weight: 600; color: #111827; }
+</style>
+
+<div class="del-container">
+
+  <div class="del-card">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <h2 class="fw-800 mb-1">🚚 Delivery Request #{{ delivery.id }}</h2>
+        <span class="status-badge status-{{ delivery.status }}">{{ delivery.get_status_display }}</span>
+      </div>
+      {% if request.user == order.farmer and delivery.status == 'open' %}
+      <small class="text-muted">Waiting for a transporter to accept</small>
+      {% endif %}
+    </div>
+
+    <div class="info-row"><span class="info-label">Order</span><span class="info-value">#{{ order.order_number }}</span></div>
+    <div class="info-row"><span class="info-label">Pickup District</span><span class="info-value">{{ delivery.pickup_district }}</span></div>
+    <div class="info-row"><span class="info-label">Delivery District</span><span class="info-value">{{ delivery.delivery_district }}</span></div>
+    {% if delivery.pickup_address %}
+    <div class="info-row"><span class="info-label">Pickup Address</span><span class="info-value">{{ delivery.pickup_address }}</span></div>
+    {% endif %}
+    <div class="info-row"><span class="info-label">Transport Fee</span><span class="info-value text-success fw-bold">UGX {{ delivery.offered_price|floatformat:0 }}</span></div>
+    {% if delivery.notes %}
+    <div class="info-row"><span class="info-label">Instructions</span><span class="info-value">{{ delivery.notes }}</span></div>
+    {% endif %}
+    {% if delivery.transporter %}
+    <div class="info-row">
+      <span class="info-label">Assigned Transporter</span>
+      <span class="info-value text-primary">{{ delivery.transporter.get_full_name|default:delivery.transporter.username }}</span>
+    </div>
+    {% if delivery.transporter.transporter_profile %}
+    <div class="info-row"><span class="info-label">Vehicle</span><span class="info-value">{{ delivery.transporter.transporter_profile.get_vehicle_type_display }} · {{ delivery.transporter.transporter_profile.vehicle_registration }}</span></div>
+    {% endif %}
+    {% endif %}
+    {% if delivery.assigned_at %}
+    <div class="info-row"><span class="info-label">Assigned At</span><span class="info-value">{{ delivery.assigned_at|date:"M d, Y H:i" }}</span></div>
+    {% endif %}
+  </div>
+
+  {% if delivery.status == 'open' and request.user.user_type == 'transporter' and request.user != delivery.transporter %}
+  <div class="del-card">
+    <h5 class="fw-bold mb-3">✋ Accept This Delivery</h5>
+    <p class="text-muted">By accepting, you commit to picking up goods from <strong>{{ delivery.pickup_district }}</strong> and delivering to <strong>{{ delivery.delivery_district }}</strong> for <strong>UGX {{ delivery.offered_price|floatformat:0 }}</strong>.</p>
+    <form method="post" action="{% url 'orders:accept_delivery' delivery.id %}">
+      {% csrf_token %}
+      <button type="submit" class="accept-btn">✅ Accept Delivery</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if available_transporters and delivery.status == 'open' and request.user == order.farmer %}
+  <div class="del-card">
+    <h5 class="fw-bold mb-3">🚚 Available Transporters in Your Area</h5>
+    {% for tp in available_transporters %}
+    <div class="transporter-card">
+      <div class="t-avatar">{{ tp.user.username|make_list|first|upper }}</div>
+      <div class="flex-grow-1">
+        <div class="fw-700">{{ tp.user.get_full_name|default:tp.user.username }}</div>
+        <div class="text-muted small">{{ tp.get_vehicle_type_display }} · {{ tp.capacity_kg|floatformat:0 }}kg capacity · ⭐ {{ tp.rating_average }}</div>
+        <div class="text-muted small">Covers: {{ tp.coverage_districts|truncatechars:60 }}</div>
+      </div>
+      {% if tp.user.phone %}
+      <a href="https://wa.me/{{ tp.user.whatsapp_number|default:tp.user.phone }}" target="_blank"
+         class="btn btn-sm btn-success rounded-pill px-3">
+        📲 WhatsApp
+      </a>
+      {% endif %}
+    </div>
+    {% empty %}
+    <p class="text-muted text-center py-3">No matching transporters found yet. Post is live and visible to transporters.</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

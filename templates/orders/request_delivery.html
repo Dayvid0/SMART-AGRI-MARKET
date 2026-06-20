@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Request Delivery - Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<style>
+  .del-container { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+  .del-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .del-card h1 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-bottom: 0.5rem; }
+  .order-summary { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+  .form-control, .form-select { border-radius: 10px; border-color: #e5e7eb; }
+  .form-control:focus, .form-select:focus { border-color: #00D084; box-shadow: 0 0 0 3px rgba(0,208,132,0.1); }
+  .btn-submit { background: linear-gradient(135deg, #00D084, #16a34a); color: white; border: none; border-radius: 12px; padding: 0.8rem 2rem; font-weight: 700; width: 100%; margin-top: 1rem; transition: all 0.2s; }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,208,132,0.3); color: white; }
+</style>
+
+<div class="del-container">
+  <div class="del-card">
+    <h1>🚚 Request Delivery</h1>
+    <p class="text-muted mb-3">Post your delivery need and transporters in the area will respond.</p>
+
+    <div class="order-summary">
+      <strong>Order:</strong> #{{ order.order_number }} &nbsp;|&nbsp;
+      <strong>Total:</strong> UGX {{ order.total_amount|floatformat:0 }} &nbsp;|&nbsp;
+      <strong>Deliver to:</strong> {{ order.delivery_address|truncatechars:50 }}
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Pickup District</label>
+          <select name="pickup_district" class="form-select" required>
+            <option value="">-- Select district --</option>
+            {% for val, label in district_choices %}
+            <option value="{{ val }}" {% if val == request.user.district %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Delivery District</label>
+          <select name="delivery_district" class="form-select" required>
+            <option value="">-- Select district --</option>
+            {% for val, label in district_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Pickup Address / Landmark</label>
+          <input type="text" name="pickup_address" class="form-control" placeholder="e.g. Next to Kampala City Market, Gate 3">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Transport Fee Offered (UGX)</label>
+          <input type="number" name="offered_price" class="form-control" placeholder="e.g. 80000" min="0" required>
+          <small class="text-muted">How much you're willing to pay for transport</small>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Special Instructions</label>
+          <textarea name="notes" class="form-control" rows="3" placeholder="Fragile cargo, specific timing, preferred transporter, etc."></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">🚚 Post Delivery Request</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

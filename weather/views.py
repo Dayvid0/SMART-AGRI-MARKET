@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.http import JsonResponse
@@ -77,7 +78,7 @@ def get_weather_data(location):
     """
     Fetch weather data from OpenWeatherMap API
     """
-    API_KEY = 'be5fb80ee9e2e0af2f0292ec2d628012'
+    API_KEY = os.environ.get('OPENWEATHER_API_KEY')
     BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
     
     try:

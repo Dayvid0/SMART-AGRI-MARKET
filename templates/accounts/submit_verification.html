@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Your Account - Smart Agri Market{% endblock %}
+
+{% block content %}
+<style>
+  .verify-container { max-width: 680px; margin: 3rem auto; padding: 0 1rem; }
+  .verify-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f6;
+  }
+  .verify-header { text-align: center; margin-bottom: 2rem; }
+  .verify-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; margin: 0 auto 1rem;
+  }
+  .verify-header h1 { font-size: 1.75rem; font-weight: 800; color: #111827; }
+  .verify-header p { color: #6B7280; font-size: 0.95rem; }
+  .upload-zone {
+    border: 2px dashed #d1fae5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    background: #f0fdf4;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+  .upload-zone:hover { border-color: #00D084; background: #dcfce7; }
+  .upload-zone input[type=file] { display: none; }
+  .step-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: #f0fdf4; color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 50px; padding: 0.3rem 0.75rem;
+    font-size: 0.8rem; font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .btn-verify {
+    width: 100%; padding: 0.9rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #00D084, #16a34a);
+    color: white; border: none;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    margin-top: 1.5rem;
+  }
+  .btn-verify:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,208,132,0.3); }
+  .info-box {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 12px; padding: 1rem 1.25rem;
+    font-size: 0.88rem; color: #92400e;
+    margin-bottom: 1.5rem;
+  }
+  .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+  .form-control, .form-select { border-radius: 10px; border-color: #e5e7eb; }
+  .form-control:focus { border-color: #00D084; box-shadow: 0 0 0 3px rgba(0,208,132,0.1); }
+</style>
+
+<div class="verify-container">
+  <div class="verify-card">
+    <div class="verify-header">
+      <div class="verify-icon">🛡️</div>
+      <h1>Get Verified</h1>
+      <p>Submit your documents to earn the <strong>Verified ✓</strong> badge.<br>
+         Verified users receive higher trust from buyers and farmers.</p>
+    </div>
+
+    {% if vr and vr.status == 'rejected' %}
+    <div class="alert alert-danger rounded-3 mb-3">
+      <strong>Previous request rejected:</strong> {{ vr.rejection_reason }}<br>
+      <small class="text-muted">You can re-submit with corrected documents.</small>
+    </div>
+    {% endif %}
+
+    <div class="info-box">
+      ⏱️ Review typically takes <strong>1-2 business days</strong>.
+      All documents are kept secure and only visible to platform administrators.
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">National ID / Passport <span class="text-danger">*</span></label>
+        <label class="upload-zone d-block" for="id_national_id">
+          <div style="font-size:2rem;">🪪</div>
+          <div class="fw-600 mt-1">Click to upload National ID or Passport</div>
+          <small class="text-muted">JPG, PNG, PDF — max 5MB</small>
+          <input type="file" id="id_national_id" name="national_id_image" accept="image/*,.pdf">
+        </label>
+        {% if vr and vr.national_id_image %}
+        <small class="text-success">✓ Previously uploaded: {{ vr.national_id_image.name|slice:"20:" }}...</small>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Farm / Business / Vehicle Photo</label>
+        <label class="upload-zone d-block" for="id_farm_photo">
+          <div style="font-size:2rem;">📷</div>
+          <div class="fw-600 mt-1">Upload a photo of your farm, business, or vehicle</div>
+          <small class="text-muted">Helps us verify your role on the platform</small>
+          <input type="file" id="id_farm_photo" name="farm_or_business_photo" accept="image/*">
+        </label>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Business / Registration Number <span class="text-muted fw-normal">(if applicable)</span></label>
+        <input type="text" name="business_reg_number" class="form-control"
+               placeholder="e.g. UG-2024-001 or URSB Registration"
+               value="{{ vr.business_reg_number|default:'' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Additional Notes <span class="text-muted fw-normal">(optional)</span></label>
+        <textarea name="notes" class="form-control" rows="3"
+                  placeholder="Any extra information that helps us verify your identity...">{{ vr.notes|default:'' }}</textarea>
+      </div>
+
+      <button type="submit" class="btn-verify">
+        🛡️ Submit Verification Request
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

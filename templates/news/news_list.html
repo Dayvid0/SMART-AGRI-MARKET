@@ -1,64 +1,232 @@
 {% extends 'base.html' %}
 
-{% block title %}Agri-Pulse News - Smart Agricultural Marketplace{% endblock %}
+{% block title %}Agri-Pulse — Agricultural News{% endblock %}
+
+{% block extra_css %}
+<style>
+    .news-hero {
+        background: linear-gradient(160deg, #064e3b 0%, #0f172a 100%);
+        padding: 3.5rem 0 3rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+    .news-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -80px; right: -80px;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(0,208,132,0.15), transparent 65%);
+        pointer-events: none;
+    }
+    .news-hero h1 {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 900;
+        font-size: clamp(2rem,4vw,2.8rem);
+        letter-spacing: -0.03em;
+    }
+    .news-hero .accent { color: #00D084; }
+
+    .filter-bar {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .urgent-banner {
+        background: #991b1b;
+        color: #fff;
+        padding: 0.75rem 0;
+        font-size: 0.9rem;
+    }
+
+    .news-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
+    .news-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+    }
+    .news-card-img {
+        height: 180px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .news-card-img-placeholder {
+        height: 180px;
+        background: linear-gradient(135deg, #064e3b, #0f172a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .news-card-body { padding: 1.25rem; }
+
+    .source-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .source-badge.external {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+    .source-badge.user {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .type-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .featured-section { background: #f9fafb; }
+
+    .featured-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .featured-card:hover { transform: translateY(-3px); }
+    .featured-card img { height: 200px; object-fit: cover; width: 100%; }
+
+    .submit-cta {
+        background: linear-gradient(135deg, #064e3b, #0f172a);
+        border-radius: 16px;
+        padding: 2rem;
+        color: #fff;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 
-<!-- Page Header -->
-<section class="bg-success text-white py-5">
+<!-- Hero -->
+<div class="news-hero">
     <div class="container">
-        <h1 class="display-4 mb-2">
-            <i class="bi bi-newspaper"></i> Agri-Pulse
-        </h1>
-        <p class="lead mb-0">
-            Latest agricultural news, government policies, and market updates for Ugandan farmers
-        </p>
-    </div>
-</section>
-
-<!-- Urgent Alerts Banner -->
-{% if urgent_alerts %}
-<section class="py-3 bg-danger text-white">
-    <div class="container">
-        <h5 class="mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Urgent Alerts</h5>
-        <div class="row">
-            {% for alert in urgent_alerts %}
-            <div class="col-md-6 mb-2">
-                <a href="{% url 'news:news_detail' alert.pk %}" class="text-white text-decoration-none">
-                    <i class="bi bi-arrow-right-circle"></i> {{ alert.title }}
-                </a>
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3" style="position:relative;z-index:1;">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2" style="opacity:0.7;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;">
+                    <i class="bi bi-newspaper"></i> Agricultural News
+                </div>
+                <h1 class="mb-2">Agri<span class="accent">-Pulse</span></h1>
+                <p style="opacity:0.72;max-width:520px;margin:0;font-size:1rem;line-height:1.65;">
+                    Latest agricultural news, government policies, and market updates — sourced from trusted feeds and Ugandan farmers.
+                </p>
             </div>
-            {% endfor %}
+            {% if user.is_authenticated %}
+            <a href="{% url 'news:submit_news' %}" class="btn fw-bold"
+               style="background:#00D084;color:#fff;border-radius:10px;padding:0.7rem 1.5rem;">
+                <i class="bi bi-pencil-square me-1"></i> Submit an Article
+            </a>
+            {% endif %}
         </div>
     </div>
-</section>
+</div>
+
+<!-- Urgent Alerts -->
+{% if urgent_alerts %}
+<div class="urgent-banner">
+    <div class="container d-flex align-items-center gap-3 flex-wrap">
+        <span class="fw-bold text-nowrap"><i class="bi bi-exclamation-triangle-fill me-1"></i> Urgent:</span>
+        {% for alert in urgent_alerts %}
+        <a href="{% url 'news:news_detail' alert.pk %}" class="text-white text-decoration-none small">
+            {{ alert.title }}{% if not forloop.last %} &nbsp;·&nbsp; {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</div>
 {% endif %}
+
+<!-- Sticky Filter Bar -->
+<div class="filter-bar">
+    <div class="container">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+            <input type="text" name="search" class="form-control form-control-sm" style="max-width:240px;"
+                   placeholder="Search..." value="{{ search_query|default:'' }}">
+            <select name="type" class="form-select form-select-sm" style="max-width:200px;">
+                <option value="">All Types</option>
+                {% for value, label in news_items.0.NEWS_TYPES|default:"" %}{% endfor %}
+                <option value="government" {% if selected_type == 'government' %}selected{% endif %}>Government Policy</option>
+                <option value="market"     {% if selected_type == 'market'     %}selected{% endif %}>Market Update</option>
+                <option value="weather"    {% if selected_type == 'weather'    %}selected{% endif %}>Weather Alert</option>
+                <option value="technology" {% if selected_type == 'technology' %}selected{% endif %}>Technology</option>
+                <option value="event"      {% if selected_type == 'event'      %}selected{% endif %}>Events/Training</option>
+            </select>
+            <select name="category" class="form-select form-select-sm" style="max-width:180px;">
+                <option value="">All Topics</option>
+                {% for cat in categories %}
+                <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-success fw-semibold px-3">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            {% if search_query or selected_type or selected_category %}
+            <a href="{% url 'news:news_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+            {% endif %}
+            <span class="text-muted small ms-auto">{{ total_count }} article{{ total_count|pluralize }}</span>
+        </form>
+    </div>
+</div>
 
 <!-- Featured News -->
 {% if featured_news %}
-<section class="py-5 bg-light">
+<section class="featured-section py-5">
     <div class="container">
-        <h3 class="mb-4">Featured News</h3>
-        <div class="row">
-            {% for news in featured_news %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow">
-                    {% if news.image %}
-                        <img src="{{ news.image.url }}" class="card-img-top" alt="{{ news.title }}" style="height: 200px; object-fit: cover;">
+        <h4 class="fw-bold mb-4" style="letter-spacing:-0.02em;">
+            <i class="bi bi-star-fill text-warning me-2"></i>Featured
+        </h4>
+        <div class="row g-4">
+            {% for item in featured_news %}
+            <div class="col-md-4">
+                <div class="featured-card">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.title }}">
+                    {% else %}
+                        <div style="height:200px;background:linear-gradient(135deg,#064e3b,#0f172a);display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-newspaper text-white" style="font-size:2.5rem;opacity:0.5;"></i>
+                        </div>
                     {% endif %}
-                    <div class="card-body">
-                        <span class="badge bg-primary mb-2">{{ news.get_news_type_display }}</span>
-                        <h5 class="card-title">{{ news.title }}</h5>
-                        <p class="text-muted small">{{ news.summary|truncatewords:20 }}</p>
-                        <a href="{% url 'news:news_detail' news.pk %}" class="btn btn-outline-success btn-sm">
-                            Read More <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                    <div class="card-footer bg-light text-muted small">
-                        <i class="bi bi-calendar"></i> {{ news.published_at|date:"M d, Y" }}
-                        <span class="float-end">
-                            <i class="bi bi-eye"></i> {{ news.views }}
-                        </span>
+                    <div class="p-3">
+                        <div class="d-flex gap-2 mb-2 flex-wrap">
+                            <span class="type-badge">{{ item.get_news_type_display }}</span>
+                            {% if item.source_type == 'user_submission' %}
+                                <span class="source-badge user"><i class="bi bi-person-fill me-1"></i>Farmer</span>
+                            {% else %}
+                                <span class="source-badge external"><i class="bi bi-globe2 me-1"></i>External</span>
+                            {% endif %}
+                        </div>
+                        <h6 class="fw-bold mb-2" style="line-height:1.4;">{{ item.title }}</h6>
+                        <p class="text-muted small mb-3">{{ item.summary|truncatewords:18 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ item.published_at|date:"M d, Y" }}</small>
+                            <a href="{% url 'news:news_detail' item.pk %}" class="btn btn-sm btn-outline-success">
+                                Read <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -68,61 +236,44 @@
 </section>
 {% endif %}
 
-<!-- Filters -->
-<section class="py-4 border-bottom">
+<!-- News Grid -->
+<section class="py-5" style="background:#fff;">
     <div class="container">
-        <form method="get" class="row g-3">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control" placeholder="Search news..." value="{{ search_query }}">
-            </div>
-            <div class="col-md-4">
-                <select name="type" class="form-select">
-                    <option value="">All Types</option>
-                    <option value="government" {% if selected_type == 'government' %}selected{% endif %}>Government Policy</option>
-                    <option value="market" {% if selected_type == 'market' %}selected{% endif %}>Market Update</option>
-                    <option value="weather" {% if selected_type == 'weather' %}selected{% endif %}>Weather Alert</option>
-                    <option value="technology" {% if selected_type == 'technology' %}selected{% endif %}>Technology</option>
-                    <option value="event" {% if selected_type == 'event' %}selected{% endif %}>Events/Training</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="bi bi-funnel"></i> Filter
-                </button>
-            </div>
-        </form>
-    </div>
-</section>
-
-<!-- News List -->
-<section class="py-5">
-    <div class="container">
-        <h4 class="mb-4">Latest News</h4>
+        <h4 class="fw-bold mb-4" style="letter-spacing:-0.02em;">Latest News</h4>
         {% if news_items %}
-        <div class="row">
-            {% for news in news_items %}
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm">
-                    <div class="row g-0">
-                        {% if news.image %}
-                        <div class="col-md-4">
-                            <img src="{{ news.image.url }}" class="img-fluid rounded-start h-100" alt="{{ news.title }}" style="object-fit: cover;">
+        <div class="row g-4">
+            {% for item in news_items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="news-card">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" class="news-card-img" alt="{{ item.title }}">
+                    {% else %}
+                        <div class="news-card-img-placeholder">
+                            <i class="bi bi-newspaper text-white" style="font-size:2rem;opacity:0.4;"></i>
                         </div>
-                        {% endif %}
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <span class="badge bg-info text-dark mb-2">{{ news.get_news_type_display }}</span>
-                                <h6 class="card-title">{{ news.title }}</h6>
-                                <p class="card-text text-muted small">{{ news.summary|truncatewords:15 }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar"></i> {{ news.published_at|date:"M d, Y" }}
-                                    </small>
-                                    <a href="{% url 'news:news_detail' news.pk %}" class="btn btn-sm btn-outline-success">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
+                    {% endif %}
+                    <div class="news-card-body">
+                        <div class="d-flex gap-2 mb-2 flex-wrap">
+                            <span class="type-badge">{{ item.get_news_type_display }}</span>
+                            {% if item.source_type == 'user_submission' %}
+                                <span class="source-badge user"><i class="bi bi-person-fill me-1"></i>Farmer</span>
+                            {% else %}
+                                <span class="source-badge external"><i class="bi bi-globe2 me-1"></i>{{ item.source|truncatechars:20 }}</span>
+                            {% endif %}
+                            {% if item.is_urgent %}
+                                <span class="badge bg-danger" style="font-size:0.68rem;">Urgent</span>
+                            {% endif %}
+                        </div>
+                        <h6 class="fw-bold mb-2" style="line-height:1.4;font-size:0.95rem;">{{ item.title|truncatechars:80 }}</h6>
+                        <p class="text-muted small mb-3" style="line-height:1.55;">{{ item.summary|truncatewords:16 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>{{ item.published_at|date:"M d, Y" }}
+                                &nbsp;·&nbsp; <i class="bi bi-eye me-1"></i>{{ item.views }}
+                            </small>
+                            <a href="{% url 'news:news_detail' item.pk %}" class="btn btn-sm btn-outline-success">
+                                Read <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -131,12 +282,37 @@
         </div>
         {% else %}
         <div class="text-center py-5">
-            <i class="bi bi-newspaper" style="font-size: 4rem; color: #ccc;"></i>
-            <h4 class="mt-3">No News Found</h4>
-            <p class="text-muted">Check back later for updates</p>
+            <i class="bi bi-newspaper" style="font-size:4rem;color:#ddd;"></i>
+            <h5 class="mt-3 fw-bold">No Articles Found</h5>
+            <p class="text-muted">Try different filters, or check back soon for new content.</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'news:submit_news' %}" class="btn btn-success mt-2">
+                <i class="bi bi-pencil-square me-1"></i> Submit the First Article
+            </a>
+            {% endif %}
         </div>
         {% endif %}
     </div>
 </section>
+
+<!-- Submit CTA for non-authenticated users -->
+{% if not user.is_authenticated %}
+<section class="py-5" style="background:#f9fafb;">
+    <div class="container">
+        <div class="submit-cta d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h5 class="fw-bold mb-1">Have local agricultural news to share?</h5>
+                <p class="mb-0" style="opacity:0.75;font-size:0.9rem;">
+                    Log in to submit articles — help other farmers stay informed.
+                </p>
+            </div>
+            <a href="{% url 'accounts:login' %}" class="btn fw-bold"
+               style="background:#00D084;color:#fff;border-radius:10px;padding:0.7rem 1.5rem;white-space:nowrap;">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Login to Submit
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 {% endblock %}

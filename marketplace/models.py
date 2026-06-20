@@ -101,6 +101,8 @@ class Product(models.Model):
     # Images
     image = models.ImageField(
         upload_to='products/',
+        blank=True,
+        null=True,
         help_text="Main product image"
     )
     image2 = models.ImageField(

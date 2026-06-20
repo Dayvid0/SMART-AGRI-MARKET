@@ -4,51 +4,49 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
-from .models import User, FarmerProfile, InputSupplierProfile
+from django.utils import timezone
+from .models import User, FarmerProfile, InputSupplierProfile, TransporterProfile, VerificationRequest
 from .constants import UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES
+from .forms import RegisterForm
 
 def register(request):
-    """User registration view handles both regular users and farmers."""
+    """User registration — validated through RegisterForm."""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')
-        user_type = request.POST.get('user_type')
-        phone = request.POST.get('phone')
-        location = request.POST.get('location')
-        
-        if password != password2:
-            messages.error(request, 'Passwords do not match!')
-            return redirect('accounts:register')
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists!')
-            return redirect('accounts:register')
-        
-        user = User.objects.create_user(
-            username=username, email=email, password=password,
-            user_type=user_type, phone=phone, location=location
-        )
-        
-        if user_type == 'farmer':
-            farm_name = request.POST.get('farm_name')
-            farm_size_str = request.POST.get('farm_size', '0')
-            specialization = request.POST.get('specialization')
-            try:
-                farm_size = float(farm_size_str) if farm_size_str else 0
-            except (ValueError, TypeError):
-                farm_size = 0
-            
-            FarmerProfile.objects.create(
-                user=user, farm_name=farm_name,
-                farm_size=farm_size, specialization=specialization
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            user = User.objects.create_user(
+                username=cd['username'],
+                email=cd['email'],
+                password=cd['password'],
+                user_type=cd['user_type'],
+                phone=cd.get('phone', ''),
+                location=cd.get('location', ''),
             )
-        
-        messages.success(request, 'Registration successful! Please login.')
-        return redirect('accounts:login')
-    
-    return render(request, 'accounts/register.html')
+
+            if cd['user_type'] == 'farmer':
+                FarmerProfile.objects.create(
+                    user=user,
+                    farm_name=cd.get('farm_name') or f"{user.username}'s Farm",
+                    farm_size=cd.get('farm_size') or 0,
+                    specialization=cd.get('specialization') or 'Mixed Farming',
+                )
+            elif cd['user_type'] == 'transporter':
+                # Create a basic transporter profile; user can complete it later
+                TransporterProfile.objects.create(
+                    user=user,
+                    vehicle_type='pickup',
+                    capacity_kg=500,
+                    coverage_districts=cd.get('location', 'Kampala'),
+                )
+
+            messages.success(request, 'Registration successful! Please login.')
+            return redirect('accounts:login')
+        # Form is invalid — re-render with errors
+        return render(request, 'accounts/register.html', {'form': form})
+
+    form = RegisterForm()
+    return render(request, 'accounts/register.html', {'form': form})
 
 def user_login(request):
     """User login view."""
@@ -82,9 +80,67 @@ def logout_view(request):
 @login_required
 def dashboard(request):
     """User dashboard view."""
-    farmer_profile = getattr(request.user, 'farmerprofile', None)
-    context = {'user': request.user, 'farmer_profile': farmer_profile}
+    farmer_profile = getattr(request.user, 'farmer_profile', None)
+    transporter_profile = getattr(request.user, 'transporter_profile', None)
+    try:
+        verification = request.user.verification_request
+    except VerificationRequest.DoesNotExist:
+        verification = None
+    context = {
+        'user': request.user,
+        'farmer_profile': farmer_profile,
+        'transporter_profile': transporter_profile,
+        'verification': verification,
+    }
     return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+def submit_verification(request):
+    """Allow users to submit an identity verification request."""
+    # If already approved, no need to re-submit
+    try:
+        vr = request.user.verification_request
+        if vr.status == 'approved':
+            messages.info(request, 'Your account is already verified!')
+            return redirect('accounts:dashboard')
+    except VerificationRequest.DoesNotExist:
+        vr = None
+
+    if request.method == 'POST':
+        notes = request.POST.get('notes', '').strip()
+        business_reg = request.POST.get('business_reg_number', '').strip()
+
+        if vr is None:
+            vr = VerificationRequest(user=request.user)
+
+        vr.notes = notes
+        vr.business_reg_number = business_reg
+        vr.status = 'pending'
+
+        if request.FILES.get('national_id_image'):
+            vr.national_id_image = request.FILES['national_id_image']
+        if request.FILES.get('farm_or_business_photo'):
+            vr.farm_or_business_photo = request.FILES['farm_or_business_photo']
+
+        vr.save()
+        messages.success(
+            request,
+            'Verification request submitted! We will review it within 2 business days.'
+        )
+        return redirect('accounts:verification_status')
+
+    return render(request, 'accounts/submit_verification.html', {'vr': vr})
+
+
+@login_required
+def verification_status(request):
+    """Show the current status of the user's verification request."""
+    try:
+        vr = request.user.verification_request
+    except VerificationRequest.DoesNotExist:
+        vr = None
+    return render(request, 'accounts/verification_status.html', {'vr': vr})
 
 @login_required
 def edit_profile(request):

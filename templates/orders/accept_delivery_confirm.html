@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Accept Delivery - Smart Agri Market{% endblock %}
+{% block content %}
+<div style="max-width:550px;margin:3rem auto;padding:0 1rem;">
+  <div style="background:white;border-radius:20px;padding:2rem;box-shadow:0 4px 20px rgba(0,0,0,0.06);text-align:center;">
+    <div style="font-size:3.5rem;margin-bottom:1rem;">🚚</div>
+    <h2 style="font-weight:800;margin-bottom:0.5rem;">Confirm Acceptance</h2>
+    <p class="text-muted mb-3">You are about to accept delivery for:</p>
+    <div style="background:#f0fdf4;border-radius:12px;padding:1rem;text-align:left;margin-bottom:1.5rem;">
+      <div><strong>Pickup:</strong> {{ delivery.pickup_district }}</div>
+      <div><strong>Deliver to:</strong> {{ delivery.delivery_district }}</div>
+      <div><strong>Fee:</strong> UGX {{ delivery.offered_price|floatformat:0 }}</div>
+      {% if delivery.notes %}<div><strong>Notes:</strong> {{ delivery.notes }}</div>{% endif %}
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" style="background:linear-gradient(135deg,#00D084,#16a34a);color:white;border:none;border-radius:12px;padding:0.8rem 2rem;font-weight:700;width:100%;cursor:pointer;">
+        ✅ Yes, Accept This Delivery
+      </button>
+    </form>
+    <a href="{% url 'orders:delivery_detail' delivery.id %}" class="btn btn-link mt-2">Cancel</a>
+  </div>
+</div>
+{% endblock %}

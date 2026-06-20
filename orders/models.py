@@ -128,23 +128,62 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = "Order Item"
         verbose_name_plural = "Order Items"
-##```
 
-### **Code Explanation:**
 
-##Order Model:
-##- `buyer`: Who is buying (consumer/business)
-##- `farmer`: Who is selling
-##- `order_number`: Unique ID like "ORD-20250208-001"
-##- `status`: Track order progress
-##- `total_amount`: Total cost
+class DeliveryRequest(models.Model):
+    """
+    Links an order to a transporter for last-mile delivery.
+    Farmers request delivery; transporters accept and fulfill.
+    """
+    STATUS_CHOICES = [
+        ('open', 'Open — Looking for Transporter'),
+        ('assigned', 'Assigned to Transporter'),
+        ('in_transit', 'In Transit'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
 
-##**OrderItem Model:**
-##- Links to parent Order
-##- Stores product, quantity, price
-##- `save()` method auto-calculates subtotal
+    order = models.OneToOneField(
+        Order, on_delete=models.CASCADE, related_name='delivery_request',
+        help_text="Order this delivery is for"
+    )
+    transporter = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        limit_choices_to={'user_type': 'transporter'},
+        related_name='assigned_deliveries',
+        help_text="Assigned transporter (blank = open request)"
+    )
 
-##**Key Relationship:**
-##```
-##Order (1) -----> (Many) OrderItem
-##One order can have multiple products##
+    pickup_district = models.CharField(
+        max_length=100, help_text="District where goods will be picked up"
+    )
+    delivery_district = models.CharField(
+        max_length=100, help_text="District where goods will be delivered"
+    )
+    pickup_address = models.TextField(
+        blank=True, help_text="Specific pickup location / landmark"
+    )
+
+    # Financial
+    offered_price = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Transport fee offered in UGX"
+    )
+
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='open', db_index=True
+    )
+    notes = models.TextField(blank=True, help_text="Special delivery instructions")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    assigned_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Delivery for Order #{self.order.order_number} [{self.get_status_display()}]"
+
+    class Meta:
+        verbose_name = "Delivery Request"
+        verbose_name_plural = "Delivery Requests"
+        ordering = ['-created_at']

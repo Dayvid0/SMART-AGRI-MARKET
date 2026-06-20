@@ -8,6 +8,7 @@ Provides intelligent farming recommendations based on:
 - Uganda agricultural best practices
 """
 
+import os
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Optional
 import requests
@@ -56,8 +57,8 @@ class FarmingAdvisor:
         }
     }
     
-    def __init__(self, api_key: str = 'be5fb80ee9e2e0af2f0292ec2d628012'):
-        self.api_key = api_key
+    def __init__(self, api_key: str = None):
+        self.api_key = api_key or os.environ.get('OPENWEATHER_API_KEY', '')
         self.base_url = 'http://api.openweathermap.org/data/2.5'
     
     def get_planting_recommendations(self, location: str, current_weather: Dict) -> List[Dict]:

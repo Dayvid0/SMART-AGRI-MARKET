@@ -1,175 +1,281 @@
 {% extends 'base.html' %}
 
-{% block title %}Market Prices - Smart Agricultural Marketplace{% endblock %}
+{% block title %}Market Prices — AgriMarket Uganda{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mp-hero {
+        background: linear-gradient(160deg, #064e3b 0%, #0f172a 100%);
+        padding: 3rem 0 2.5rem;
+        color: #fff;
+    }
+    .mp-hero h1 {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 900;
+        font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+        letter-spacing: -0.03em;
+    }
+
+    .source-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .pill-wfp  { background: #eff6ff; color: #1d4ed8; }
+    .pill-cs   { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .pill-off  { background: #fefce8; color: #854d0e; border: 1px solid #fde68a; }
+
+    .stats-bar {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.75rem 0;
+    }
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.82rem;
+        color: #374151;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        background: #f3f4f6;
+    }
+    .stat-chip span { font-weight: 700; color: #111827; }
+
+    .filter-bar {
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.85rem 0;
+    }
+
+    .price-table thead th {
+        background: #064e3b;
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border: none;
+        white-space: nowrap;
+    }
+    .price-table tbody tr:hover { background: #f0fdf4; }
+    .price-table td {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    .price-table .product-name { font-weight: 700; color: #111827; }
+
+    .price-cell { text-align: right; }
+    .price-wfp  { color: #1d4ed8; font-weight: 600; }
+    .price-cs   { color: #166534; font-weight: 600; }
+    .price-off  { color: #854d0e; font-weight: 600; }
+    .price-na   { color: #d1d5db; font-size: 0.8rem; }
+
+    .mini-range {
+        font-size: 0.72rem;
+        color: #6b7280;
+        display: block;
+    }
+
+    .count-badge {
+        font-size: 0.68rem;
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 10px;
+        padding: 0.1rem 0.45rem;
+        font-weight: 600;
+    }
+
+    .tip-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        font-size: 0.88rem;
+        color: #92400e;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 0;
+        color: #9ca3af;
+    }
+    .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; }
+</style>
+{% endblock %}
 
 {% block content %}
 
-<section class="py-5 bg-light">
+<!-- Hero -->
+<div class="mp-hero">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h2 class="mb-2">
-                    <i class="bi bi-graph-up-arrow"></i> Current Market Prices
-                </h2>
-                <p class="text-muted mb-0">
-                    Know the fair market rates before selling your produce. Updated daily from major markets.
-                </p>
-            </div>
-            <div class="col-md-4 text-end">
-                <span class="badge bg-success fs-6">
-                    <i class="bi bi-calendar-check"></i> Updated: {{ latest_prices.first.date_recorded|date:"M d, Y"|default:"Today" }}
-                </span>
-            </div>
-        </div>
+        <h1 class="mb-2"><i class="bi bi-graph-up-arrow me-2"></i>Price Intelligence</h1>
+        <p style="opacity:0.72;max-width:560px;margin:0;font-size:0.97rem;line-height:1.65;">
+            Three data sources combined — official WFP market data, farmer field reports, and admin-entered local prices.
+            Compare before you sell.
+        </p>
     </div>
-</section>
+</div>
 
-<section class="py-4">
-    <div class="container">
-        <!-- Category Filter -->
-        <div class="mb-4">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <select name="category" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Categories</option>
-                        {% for category in categories %}
-                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
+<!-- Stats bar -->
+<div class="stats-bar">
+    <div class="container d-flex gap-3 flex-wrap align-items-center">
+        <div class="stat-chip">
+            <i class="bi bi-globe2 text-primary"></i>
+            WFP/HDX: <span>{{ ext_count }}</span> product{{ ext_count|pluralize }}
         </div>
-        
-        <!-- Alert Box -->
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> 
-            <strong>Why market prices matter:</strong> These prices help you negotiate fairly with buyers and avoid being exploited by middlemen. 
-            Always compare your offer with these rates!
+        <div class="stat-chip">
+            <i class="bi bi-people-fill text-success"></i>
+            Farmer Reports: <span>{{ cs_count }}</span> product{{ cs_count|pluralize }}
         </div>
-        
-        <!-- Price Table with Sparklines -->
-        {% if price_data %}
-        <div class="card shadow">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-success">
-                            <tr>
-                                <th><i class="bi bi-box-seam"></i> Product</th>
-                                <th><i class="bi bi-arrow-down"></i> Min</th>
-                                <th><i class="bi bi-graph-up"></i> Average</th>
-                                <th><i class="bi bi-arrow-up"></i> Max</th>
-                                <th><i class="bi bi-rulers"></i> Unit</th>
-                                <th style="min-width:160px;"><i class="bi bi-bar-chart"></i> Price Range</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in price_data %}
-                            <tr>
-                                <td class="fw-bold">{{ item.product_name }}</td>
-                                <td class="text-danger">UGX {{ item.avg_min|floatformat:0 }}</td>
-                                <td class="text-primary fw-bold">UGX {{ item.avg_price|floatformat:0 }}</td>
-                                <td class="text-success">UGX {{ item.avg_max|floatformat:0 }}</td>
-                                <td>{{ item.unit }}</td>
-                                <td>
-                                    <canvas class="price-chart"
-                                        data-min="{{ item.avg_min|floatformat:0 }}"
-                                        data-avg="{{ item.avg_price|floatformat:0 }}"
-                                        data-max="{{ item.avg_max|floatformat:0 }}"
-                                        height="40" width="150"></canvas>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="stat-chip">
+            <i class="bi bi-clipboard-data text-warning"></i>
+            Official: <span>{{ off_count }}</span> product{{ off_count|pluralize }}
         </div>
-
-        <!-- Detailed Price List by Market -->
-        <div class="mt-4">
-            <h4 class="mb-3">Prices by Market Location</h4>
-            <div class="row">
-                {% for price in latest_prices %}
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title text-success">{{ price.product_name }}</h6>
-                            <p class="text-muted mb-2">
-                                <i class="bi bi-geo-alt"></i> {{ price.market_location }}
-                            </p>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Min:</span>
-                                <span class="text-danger">UGX {{ price.min_price|floatformat:0 }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Avg:</span>
-                                <span class="fw-bold">UGX {{ price.average_price|floatformat:0 }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Max:</span>
-                                <span class="text-success">UGX {{ price.max_price|floatformat:0 }}</span>
-                            </div>
-                            <small class="text-muted d-block mt-2">
-                                <i class="bi bi-calendar"></i> {{ price.date_recorded|date:"M d, Y" }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-graph-down" style="font-size: 4rem; color: #ccc;"></i>
-            <h4 class="mt-3">No Price Data Available</h4>
-            <p class="text-muted">Market price information will be updated soon</p>
+        {% if last_fetch %}
+        <div class="stat-chip ms-auto">
+            <i class="bi bi-clock"></i> Last synced: {{ last_fetch|date:"M d, Y H:i" }}
         </div>
         {% endif %}
     </div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+    <div class="container">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+            <input type="text" name="product" class="form-control form-control-sm"
+                   style="max-width:260px;" placeholder="Filter by product…"
+                   value="{{ product_filter }}">
+            <button type="submit" class="btn btn-sm btn-success fw-semibold px-3">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            {% if product_filter %}
+            <a href="{% url 'marketplace:market_prices' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+            {% endif %}
+            <a href="{% url 'marketplace:report_price' %}" class="btn btn-sm btn-outline-success ms-auto fw-semibold">
+                <i class="bi bi-plus-circle"></i> Report a Price
+            </a>
+        </form>
+    </div>
+</div>
+
+<section class="py-4" style="background:#f9fafb;">
+    <div class="container">
+
+        <!-- Legend -->
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            <span class="source-pill pill-wfp"><i class="bi bi-globe2"></i> WFP / HDX (international data)</span>
+            <span class="source-pill pill-cs"><i class="bi bi-people-fill"></i> Farmer Reports (crowdsourced)</span>
+            <span class="source-pill pill-off"><i class="bi bi-clipboard-data"></i> Official / Admin Entered</span>
+        </div>
+
+        <!-- Tip -->
+        <div class="tip-box mb-4">
+            <i class="bi bi-lightbulb-fill me-1"></i>
+            <strong>How to use this table:</strong>
+            WFP prices reflect national wholesale/retail benchmarks.
+            Farmer-reported prices show what is actually paid at the farm gate — compare both to negotiate fairly.
+            A big gap between WFP and farmer prices usually means middlemen are taking a large cut.
+        </div>
+
+        {% if unified_prices %}
+        <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table price-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Unit</th>
+                            <th class="price-cell" style="min-width:160px;">
+                                <i class="bi bi-globe2 me-1"></i>WFP / HDX
+                            </th>
+                            <th class="price-cell" style="min-width:180px;">
+                                <i class="bi bi-people-fill me-1"></i>Farmer Reports
+                            </th>
+                            <th class="price-cell" style="min-width:160px;">
+                                <i class="bi bi-clipboard-data me-1"></i>Official
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in unified_prices %}
+                        <tr>
+                            <td class="product-name">{{ row.product_name }}</td>
+                            <td><small class="text-muted">{{ row.unit }}</small></td>
+
+                            <!-- WFP / External -->
+                            <td class="price-cell">
+                                {% if row.external %}
+                                    <span class="price-wfp">
+                                        UGX {{ row.external.avg_price|floatformat:0 }}
+                                    </span>
+                                    <span class="mini-range">
+                                        {{ row.external.min_price|floatformat:0 }} – {{ row.external.max_price|floatformat:0 }}
+                                        &nbsp;<span class="count-badge">{{ row.external.data_points }}pt</span>
+                                    </span>
+                                    <span class="mini-range">{{ row.external.latest_date|date:"M d" }}</span>
+                                {% else %}
+                                    <span class="price-na">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Crowdsourced -->
+                            <td class="price-cell">
+                                {% if row.crowdsourced %}
+                                    <span class="price-cs">
+                                        UGX {{ row.crowdsourced.avg_price|floatformat:0 }}
+                                    </span>
+                                    <span class="mini-range">
+                                        {{ row.crowdsourced.min_price|floatformat:0 }} – {{ row.crowdsourced.max_price|floatformat:0 }}
+                                        &nbsp;<span class="count-badge">{{ row.crowdsourced.report_count }} report{{ row.crowdsourced.report_count|pluralize }}</span>
+                                    </span>
+                                {% else %}
+                                    <span class="price-na">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Official -->
+                            <td class="price-cell">
+                                {% if row.official %}
+                                    <span class="price-off">
+                                        UGX {{ row.official.avg_price|floatformat:0 }}
+                                    </span>
+                                    <span class="mini-range">
+                                        {{ row.official.min_price|floatformat:0 }} – {{ row.official.max_price|floatformat:0 }}
+                                    </span>
+                                {% else %}
+                                    <span class="price-na">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-graph-down"></i>
+            <h5 class="fw-bold">No Price Data Yet</h5>
+            <p>
+                Run <code>python manage.py fetch_market_prices</code> to pull prices from WFP/HDX,
+                or <a href="{% url 'marketplace:report_price' %}">report a price</a> yourself.
+            </p>
+        </div>
+        {% endif %}
+
+    </div>
 </section>
 
 {% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-document.querySelectorAll('.price-chart').forEach(canvas => {
-    const min = parseFloat(canvas.dataset.min) || 0;
-    const avg = parseFloat(canvas.dataset.avg) || 0;
-    const max = parseFloat(canvas.dataset.max) || 0;
-
-    new Chart(canvas, {
-        type: 'bar',
-        data: {
-            labels: ['Min', 'Avg', 'Max'],
-            datasets: [{
-                data: [min, avg, max],
-                backgroundColor: [
-                    'rgba(220,53,69,0.7)',
-                    'rgba(13,110,253,0.7)',
-                    'rgba(25,135,84,0.7)'
-                ],
-                borderRadius: 4,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: { legend: { display: false }, tooltip: {
-                callbacks: {
-                    label: ctx => 'UGX ' + ctx.raw.toLocaleString()
-                }
-            }},
-            scales: {
-                x: { display: false },
-                y: { display: false }
-            }
-        }
-    });
-});
-</script>
-{% endblock %}
-

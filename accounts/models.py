@@ -1,6 +1,7 @@
 # apps/accounts/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 from .constants import UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES
 
 class User(AbstractUser):
@@ -56,3 +57,99 @@ class InputSupplierProfile(models.Model):
 
     def __str__(self):
         return f"{self.company_name} - {self.user.username}"
+
+
+class TransporterProfile(models.Model):
+    """
+    Profile for transporter users — vehicle details and coverage area.
+    """
+    VEHICLE_TYPES = [
+        ('motorcycle', 'Motorcycle / Boda-Boda'),
+        ('pickup', 'Pickup Truck'),
+        ('lorry', 'Lorry / Truck'),
+        ('van', 'Van / Mini-Bus'),
+        ('tractor', 'Tractor'),
+    ]
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='transporter_profile'
+    )
+    vehicle_type = models.CharField(max_length=20, choices=VEHICLE_TYPES)
+    vehicle_registration = models.CharField(
+        max_length=20, blank=True, help_text="Number plate e.g. UAA 123B"
+    )
+    capacity_kg = models.DecimalField(
+        max_digits=8, decimal_places=2,
+        help_text="Maximum load capacity in kg"
+    )
+    coverage_districts = models.TextField(
+        help_text="Comma-separated districts covered e.g. Kampala,Wakiso,Mukono"
+    )
+    rating_average = models.DecimalField(
+        max_digits=3, decimal_places=2, default=0.00
+    )
+    total_deliveries = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.get_vehicle_type_display()})"
+
+    def get_districts_list(self):
+        return [d.strip() for d in self.coverage_districts.split(',') if d.strip()]
+
+
+class VerificationRequest(models.Model):
+    """
+    Verification requests submitted by farmers and suppliers.
+    Admin approves → user.is_verified = True.
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='verification_request'
+    )
+    # Identity documents
+    national_id_image = models.ImageField(
+        upload_to='verifications/ids/',
+        blank=True, null=True,
+        help_text="National ID or passport scan"
+    )
+    farm_or_business_photo = models.ImageField(
+        upload_to='verifications/farms/',
+        blank=True, null=True,
+        help_text="Photo of farm, business premises, or vehicle"
+    )
+    business_reg_number = models.CharField(
+        max_length=100, blank=True,
+        help_text="Business registration number (if applicable)"
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Additional context from the applicant"
+    )
+
+    # Workflow
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        help_text="Reason for rejection (shown to user)"
+    )
+    reviewed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='verifications_reviewed'
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} — {self.get_status_display()}"
+
+    class Meta:
+        verbose_name = "Verification Request"
+        verbose_name_plural = "Verification Requests"
+        ordering = ['-submitted_at']

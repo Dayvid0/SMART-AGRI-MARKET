@@ -250,6 +250,8 @@ class Command(BaseCommand):
                         published_at=pub_date,
                         is_featured=False,
                         is_urgent=False,
+                        status='published',
+                        source_type='external_feed',
                         published_by=None,
                     )
                     total_new += 1
