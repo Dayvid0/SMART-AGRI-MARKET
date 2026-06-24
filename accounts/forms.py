@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from .models import User
+from .constants import UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES
 
 
 class RegisterForm(forms.Form):
@@ -18,16 +19,25 @@ class RegisterForm(forms.Form):
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your@email.com'}),
     )
     phone = forms.CharField(
-        max_length=15, required=False,
+        max_length=15, required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+256700000000'}),
     )
     user_type = forms.ChoiceField(
         choices=User.USER_TYPES,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
-    location = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Kampala'}),
+    location = forms.ChoiceField(
+        choices=[('', '— Select District —')] + [
+            (district, district)
+            for region, districts in [
+                ('Central', ['Buikwe', 'Bukomansimbi', 'Buvuma', 'Gomba', 'Kalangala', 'Kalungu', 'Kampala', 'Kayunga', 'Kiboga', 'Kyankwanzi', 'Luweero', 'Lwengo', 'Lyantonde', 'Masaka', 'Mityana', 'Mpigi', 'Mubende', 'Mukono', 'Nakaseke', 'Nakasongola', 'Rakai', 'Sembabule', 'Wakiso']),
+                ('Eastern', ['Amuria', 'Budaka', 'Bududa', 'Bugiri', 'Bugweri', 'Bukedea', 'Bukwa', 'Bulambuli', 'Busia', 'Buyende', 'Iganga', 'Jinja', 'Kaberamaido', 'Kaliro', 'Kamuli', 'Kapchorwa', 'Katakwi', 'Kibuku', 'Kumi', 'Kween', 'Luuka', 'Manafwa', 'Mayuge', 'Mbale', 'Namayingo', 'Namisindwa', 'Namutumba', 'Ngora', 'Pallisa', 'Serere', 'Sironko', 'Soroti', 'Tororo']),
+                ('Northern', ['Abim', 'Adjumani', 'Agago', 'Alebtong', 'Amolatar', 'Amudat', 'Amuru', 'Apac', 'Arua', 'Dokolo', 'Gulu', 'Kaabong', 'Kitgum', 'Koboko', 'Kole', 'Kotido', 'Kwania', 'Lamwo', 'Lira', 'Maracha', 'Moroto', 'Moyo', 'Madi-Okollo', 'Nakapiripirit', 'Napak', 'Nebbi', 'Nwoya', 'Obongi', 'Omoro', 'Otuke', 'Oyam', 'Pader', 'Pakwach', 'Terego', 'Yumbe', 'Zombo']),
+                ('Western', ['Buhweju', 'Buliisa', 'Bundibugyo', 'Bushenyi', 'Hoima', 'Ibanda', 'Isingiro', 'Kabale', 'Kabarole', 'Kagadi', 'Kakumiro', 'Kamwenge', 'Kanungu', 'Kasese', 'Kibaale', 'Kikuube', 'Kiruhura', 'Kiryandongo', 'Kisoro', 'Kitagwenda', 'Kyegegwa', 'Kyenjojo', 'Masindi', 'Mbarara', 'Mitooma', 'Ntoroko', 'Ntungamo', 'Rubanda', 'Rubirizi', 'Rukiga', 'Rukungiri', 'Sheema', 'Rwampara']),
+            ]
+            for district in districts
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'}),
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Create a strong password'}),
@@ -37,7 +47,7 @@ class RegisterForm(forms.Form):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Repeat password'}),
     )
 
-    # Farmer-specific (optional — only required when user_type == farmer)
+    # Farmer-specific (optional)
     farm_name = forms.CharField(
         max_length=200, required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your farm name'}),
@@ -46,7 +56,11 @@ class RegisterForm(forms.Form):
         min_value=0, required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Size in acres'}),
     )
-    specialization = forms.CharField(max_length=100, required=False)
+    specialization = forms.ChoiceField(
+        choices=[('', '— Select Specialization (optional) —')] + SPECIALIZATION_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip()
@@ -62,8 +76,6 @@ class RegisterForm(forms.Form):
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
-        if not phone:
-            return phone
         # Accept Uganda formats: +256XXXXXXXXX, 0XXXXXXXXX, 256XXXXXXXXX
         cleaned = re.sub(r'[\s\-()]', '', phone)
         if not re.match(r'^(\+256|256|0)[3-9]\d{8}$', cleaned):

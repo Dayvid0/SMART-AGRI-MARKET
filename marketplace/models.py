@@ -59,9 +59,9 @@ class Product(models.Model):
     farmer = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        limit_choices_to={'user_type': 'farmer'},
+        limit_choices_to={'user_type__in': ['farmer', 'business']},
         related_name='products',
-        help_text="Farmer who listed this product"
+        help_text="Farmer or business user who listed this product"
     )
     category = models.ForeignKey(
         Category,

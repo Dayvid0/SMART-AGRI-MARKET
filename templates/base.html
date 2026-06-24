@@ -1,10 +1,17 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Smart Agricultural Marketplace{% endblock %}</title>
-    
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}">
+    <meta name="theme-color" content="#1A4331">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -938,7 +945,7 @@
         ============================================= */
         .page-wrapper {
             display: flex;
-            min-height: calc(100vh - 76px); /* Adjust for navbar */
+            min-height: calc(100vh - var(--navbar-h, 64px));
             position: relative;
         }
 
@@ -950,8 +957,8 @@
             border-right: 1px solid rgba(0, 208, 132, 0.2);
             padding: 1.5rem 0;
             position: sticky;
-            top: 76px; /* Below navbar */
-            height: calc(100vh - 76px);
+            top: 0;
+            height: 100vh;
             overflow-y: auto;
             z-index: 1020;
             transition: transform 0.3s ease, left 0.3s ease;
@@ -1019,8 +1026,8 @@
             .sidebar {
                 position: fixed;
                 left: -280px; /* Hide off-screen */
-                top: 76px;
-                height: calc(100vh - 76px);
+                top: 0;
+                height: 100vh;
                 box-shadow: 10px 0 30px rgba(0,0,0,0.5);
             }
             .sidebar.open {
@@ -1032,6 +1039,8 @@
             flex: 1;
             width: 100%;
             overflow-x: hidden;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
         }
     </style>
     

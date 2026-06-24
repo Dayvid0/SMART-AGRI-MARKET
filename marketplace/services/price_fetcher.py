@@ -229,6 +229,9 @@ def combine_price_sources(external_prices: List[Dict], crowdsourced_prices) -> L
                 "unit": price["unit"],
                 "has_external": True,
                 "has_crowdsourced": False,
+                # Aligning template keys
+                "has_wfp": True,
+                "wfp_price": price["price"],
             }
 
     # --- Crowdsourced prices: aggregate all reports per product ---
@@ -260,6 +263,8 @@ def combine_price_sources(external_prices: List[Dict], crowdsourced_prices) -> L
             combined[key]["cs_count"] = len(prices_list)
             combined[key]["cs_location"] = meta["location"]
             combined[key]["has_crowdsourced"] = True
+            # Aligning template keys
+            combined[key]["crowdsourced_price"] = avg
         else:
             combined[key] = {
                 "product_name": meta["product_name"],
@@ -271,6 +276,9 @@ def combine_price_sources(external_prices: List[Dict], crowdsourced_prices) -> L
                 "unit": meta["unit"],
                 "has_external": False,
                 "has_crowdsourced": True,
+                # Aligning template keys
+                "has_wfp": False,
+                "crowdsourced_price": avg,
             }
 
     return sorted(combined.values(), key=lambda x: x["product_name"])

@@ -43,10 +43,18 @@ def register(request):
             messages.success(request, 'Registration successful! Please login.')
             return redirect('accounts:login')
         # Form is invalid — re-render with errors
-        return render(request, 'accounts/register.html', {'form': form})
+        return render(request, 'accounts/register.html', {
+            'form': form,
+            'district_choices': UGANDA_DISTRICT_CHOICES,
+            'specialization_choices': SPECIALIZATION_CHOICES,
+        })
 
     form = RegisterForm()
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {
+        'form': form,
+        'district_choices': UGANDA_DISTRICT_CHOICES,
+        'specialization_choices': SPECIALIZATION_CHOICES,
+    })
 
 def user_login(request):
     """User login view."""
@@ -146,7 +154,7 @@ def verification_status(request):
 def edit_profile(request):
     """User profile edit view — supports Personal Info, Business Details, and Security tabs."""
     user = request.user
-    farmer_profile   = getattr(user, 'farmerprofile',  None)
+    farmer_profile   = getattr(user, 'farmer_profile',  None)
     supplier_profile = getattr(user, 'supplier_profile', None)
 
     section = request.POST.get('section', 'personal')   # which tab submitted

@@ -349,16 +349,26 @@
 
     .product-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.85rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
     }
 
-    @media (max-width: 900px) {
-        .product-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (min-width: 1600px) {
+        .product-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
     }
 
-    @media (max-width: 480px) {
-        .product-grid { grid-template-columns: 1fr; }
+    @media (max-width: 1400px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .product-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .product-card {
@@ -421,7 +431,7 @@
 
     .product-card-body .location {
         font-size: 0.8rem;
-        color: rgba(255,255,255,0.55) !important;
+        color: var(--text-secondary) !important;
         margin-bottom: 0.75rem;
         text-shadow: none !important;
     }
@@ -436,7 +446,7 @@
 
     .product-card-body .farmer {
         font-size: 0.78rem;
-        color: rgba(255,255,255,0.45) !important;
+        color: var(--text-secondary) !important;
         margin-top: 0.4rem;
         text-shadow: none !important;
     }
@@ -1199,8 +1209,8 @@
                    <div class="position-absolute top-0 start-0 w-100 h-100" style="opacity: 0.1; background-image: url('https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png'); background-repeat: repeat;"></div>
                     <div style="font-size: 1.5rem; color: #00D084; margin-bottom: 0.2rem;"><i class="bi bi-map-fill"></i></div>
                     <h6 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Explore Districts</h6>
-                    <a href="{% url 'marketplace:district_list' %}" class="btn btn-success rounded-pill fw-bold position-relative z-1 mt-2" style="font-size: 0.65rem; padding: 0.25rem 0.8rem;">
-                        <i class="bi bi-geo-alt me-1"></i> Open Map
+                    <a href="{% url 'marketplace:district_list' %}" class="btn btn-success rounded-pill fw-semibold d-inline-flex align-items-center gap-1 position-relative z-1 mt-2" style="font-size: 0.72rem; padding: 0.28rem 0.9rem; white-space: nowrap;">
+                        <i class="bi bi-geo-alt" style="font-size:0.75rem;"></i> Open Map
                     </a>
                 </div>
             </div>

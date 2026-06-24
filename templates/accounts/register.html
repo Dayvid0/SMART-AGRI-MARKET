@@ -2,143 +2,423 @@
 
 {% block title %}Register - Smart Agricultural Marketplace{% endblock %}
 
+{% block extra_css %}
+<style>
+  .main-content { padding: 0 !important; }
+
+  .reg-split {
+    display: flex;
+    min-height: calc(100vh - 76px);
+  }
+
+  /* LEFT brand panel */
+  .reg-left {
+    flex: 1;
+    background: linear-gradient(160deg, #064e3b 0%, #0f172a 100%);
+    padding: 4rem 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .reg-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300D084' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .reg-left::after {
+    content: '';
+    position: absolute;
+    bottom: -120px; right: -120px;
+    width: 450px; height: 450px;
+    background: radial-gradient(circle, rgba(0,208,132,0.18), transparent 65%);
+    pointer-events: none;
+  }
+  .reg-brand {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 3rem; position: relative; z-index: 1;
+  }
+  .reg-brand i { font-size: 2rem; color: #00D084; }
+  .reg-brand span {
+    font-family: 'Archivo', sans-serif; font-weight: 900;
+    font-size: 1.4rem; color: #fff; letter-spacing: -.03em;
+  }
+  .reg-headline {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.85rem, 3vw, 2.5rem);
+    font-weight: 900; color: #fff; line-height: 1.2;
+    margin-bottom: 1rem; letter-spacing: -.03em; position: relative; z-index: 1;
+  }
+  .reg-headline .accent { color: #00D084; }
+  .reg-sub {
+    font-size: .97rem; color: rgba(255,255,255,.62);
+    line-height: 1.72; margin-bottom: 2rem;
+    position: relative; z-index: 1; max-width: 420px;
+  }
+  .reg-features { display: flex; flex-direction: column; gap: .85rem; position: relative; z-index: 1; }
+  .reg-feature { display: flex; align-items: center; gap: .75rem; color: rgba(255,255,255,.82); font-size: .93rem; }
+  .reg-feature i { color: #00D084; font-size: 1.1rem; flex-shrink: 0; }
+
+  /* RIGHT form panel */
+  .reg-right {
+    width: 560px; min-width: 560px;
+    background: #fff;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 3rem 2.75rem;
+    box-shadow: -8px 0 48px rgba(0,0,0,.08);
+    overflow-y: auto;
+  }
+  .reg-form-wrap { width: 100%; max-width: 460px; padding: .5rem 0 2rem; }
+
+  .reg-form-title {
+    font-family: 'Archivo', sans-serif; font-size: 1.75rem;
+    font-weight: 800; color: #111827; margin-bottom: .25rem; letter-spacing: -.04em;
+  }
+  .reg-form-sub { font-size: .9rem; color: #6b7280; margin-bottom: 1.75rem; }
+  .reg-form-sub a { color: #00D084; font-weight: 600; text-decoration: none; }
+  .reg-form-sub a:hover { text-decoration: underline; }
+
+  /* User-type pill buttons */
+  .type-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: 1.5rem; }
+  .type-check { display: none; }
+  .type-label {
+    display: flex; flex-direction: column; align-items: center; gap: .3rem;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    padding: .65rem .5rem; cursor: pointer;
+    font-size: .82rem; font-weight: 600; color: #6b7280;
+    transition: border-color .2s, background .2s, color .2s;
+  }
+  .type-label i { font-size: 1.25rem; }
+  .type-check:checked + .type-label {
+    border-color: #00D084; background: #f0fdf9; color: #065f46;
+  }
+
+  /* Fields */
+  .reg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .reg-field { margin-bottom: 1rem; }
+  .reg-label {
+    display: block; font-size: .82rem; font-weight: 600;
+    color: #374151; margin-bottom: .35rem;
+  }
+  .reg-label .req { color: #ef4444; margin-left: .15rem; }
+  .reg-input, .reg-select {
+    width: 100%; padding: .7rem .9rem;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: .9rem; color: #111827; background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none; display: block;
+    appearance: none; -webkit-appearance: none;
+  }
+  .reg-input:focus, .reg-select:focus {
+    border-color: #00D084; box-shadow: 0 0 0 3px rgba(0,208,132,.12);
+  }
+  .reg-input.is-invalid, .reg-select.is-invalid { border-color: #ef4444; }
+  .reg-input.is-invalid:focus, .reg-select.is-invalid:focus {
+    border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.1);
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾'; position: absolute; right: .9rem; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+    font-size: .9rem; color: #6b7280;
+  }
+  .field-error {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .8rem; color: #ef4444; margin-top: .3rem; font-weight: 500;
+  }
+  .field-error i { font-size: .85rem; flex-shrink: 0; }
+
+  /* Seller section */
+  .seller-section {
+    background: #f0fdf9; border: 1.5px solid #bbf7d0;
+    border-radius: 12px; padding: 1.2rem 1.2rem 0.5rem;
+    margin-bottom: 1rem; display: none;
+  }
+  .seller-section-title {
+    font-size: .9rem; font-weight: 700; color: #065f46;
+    margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem;
+  }
+
+  /* Submit button */
+  .reg-submit {
+    width: 100%; padding: .85rem;
+    background: #00D084; color: #fff;
+    font-size: 1rem; font-weight: 700;
+    border: none; border-radius: 10px; cursor: pointer;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    margin-top: 1.2rem; letter-spacing: .3px;
+  }
+  .reg-submit:hover {
+    background: #00b872; transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,208,132,.35);
+  }
+
+  /* Global error banner */
+  .global-error {
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    border-radius: 10px; padding: .8rem 1rem;
+    margin-bottom: 1.2rem; color: #b91c1c;
+    font-size: .875rem; display: flex; align-items: flex-start; gap: .5rem;
+  }
+  .global-error i { font-size: 1rem; margin-top: .1rem; flex-shrink: 0; }
+
+  @media (max-width: 960px) {
+    .reg-split { flex-direction: column; }
+    .reg-left { padding: 2.5rem 1.75rem; }
+    .reg-right { width: 100%; min-width: unset; padding: 2rem 1.25rem; box-shadow: none; }
+    .reg-row { grid-template-columns: 1fr; gap: 0; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="reg-split">
 
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">
-                            <i class="bi bi-person-plus"></i> Create Account
-                        </h2>
-                        
-                        <form method="post" id="registerForm">
-                            {% csrf_token %}
-                            
-                            <!-- User Type Selection -->
-                            <div class="mb-4">
-                                <label class="form-label">I am a:</label>
-                                <div class="btn-group w-100" role="group">
-                                    <input type="radio" class="btn-check" name="user_type" id="farmer" value="farmer" checked>
-                                    <label class="btn btn-outline-success" for="farmer">
-                                        <i class="bi bi-person-workspace"></i> Farmer
-                                    </label>
-                                    
-                                    <input type="radio" class="btn-check" name="user_type" id="consumer" value="consumer">
-                                    <label class="btn btn-outline-success" for="consumer">
-                                        <i class="bi bi-person"></i> Consumer
-                                    </label>
-                                    
-                                    <input type="radio" class="btn-check" name="user_type" id="business" value="business">
-                                    <label class="btn btn-outline-success" for="business">
-                                        <i class="bi bi-building"></i> Business
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <!-- Basic Information -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Username *</label>
-                                    <input type="text" class="form-control" name="username" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email *</label>
-                                    <input type="email" class="form-control" name="email" required>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Password *</label>
-                                    <input type="password" class="form-control" name="password" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Confirm Password *</label>
-                                    <input type="password" class="form-control" name="password2" required>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Phone Number</label>
-                                    <input type="text" class="form-control" name="phone" placeholder="+256...">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Location *</label>
-                                    <input type="text" class="form-control" name="location" placeholder="e.g., Kampala" required>
-                                </div>
-                            </div>
-                            
-                            <!-- Farmer-specific fields -->
-                            <div id="farmerFields">
-                                <hr>
-                                <h5 class="mb-3">Farm Information</h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Farm Name *</label>
-                                        <input type="text" class="form-control" name="farm_name">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Farm Size (acres)</label>
-                                        <input type="number" step="0.1" class="form-control" name="farm_size">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Specialization *</label>
-                                    <input type="text" class="form-control" name="specialization" placeholder="e.g., Vegetables, Coffee, Livestock">
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="bi bi-check-circle"></i> Register
-                                </button>
-                            </div>
-                        </form>
-                        
-                        <div class="text-center mt-3">
-                            <p class="text-muted">
-                                Already have an account? 
-                                <a href="{% url 'accounts:login' %}">Login here</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- LEFT: Brand panel -->
+  <div class="reg-left">
+    <div class="reg-brand">
+      <i class="bi bi-basket"></i>
+      <span>AgriMarket Uganda</span>
     </div>
-</section>
+    <h1 class="reg-headline">
+      Join Uganda's<br>
+      <span class="accent">Agri Marketplace</span>
+    </h1>
+    <p class="reg-sub">
+      Connect directly with buyers, suppliers, and farmers across all districts — no middlemen, better prices for everyone.
+    </p>
+    <div class="reg-features">
+      <div class="reg-feature"><i class="bi bi-check-circle-fill"></i><span>Sell your produce directly to buyers</span></div>
+      <div class="reg-feature"><i class="bi bi-check-circle-fill"></i><span>Access live market prices district by district</span></div>
+      <div class="reg-feature"><i class="bi bi-check-circle-fill"></i><span>Group buying to cut input costs</span></div>
+      <div class="reg-feature"><i class="bi bi-check-circle-fill"></i><span>Weather alerts &amp; planting guidance</span></div>
+    </div>
+  </div>
 
+  <!-- RIGHT: Form panel -->
+  <div class="reg-right">
+    <div class="reg-form-wrap">
+      <h2 class="reg-form-title">Create Account</h2>
+      <p class="reg-form-sub">
+        Already have an account? <a href="{% url 'accounts:login' %}">Sign in here</a>
+      </p>
+
+      <form method="post" id="registerForm" novalidate>
+        {% csrf_token %}
+
+        <!-- Global non-field errors -->
+        {% if form.non_field_errors %}
+          <div class="global-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Account Type -->
+        <div class="reg-field">
+          <label class="reg-label">I am a: <span class="req">*</span></label>
+          <div class="type-group">
+            <span>
+              <input type="radio" class="type-check" name="user_type" id="type_farmer" value="farmer"
+                {% if form.user_type.value == 'farmer' or not form.user_type.value %}checked{% endif %}>
+              <label class="type-label" for="type_farmer">
+                <i class="bi bi-person-workspace"></i> Farmer
+              </label>
+            </span>
+            <span>
+              <input type="radio" class="type-check" name="user_type" id="type_consumer" value="consumer"
+                {% if form.user_type.value == 'consumer' %}checked{% endif %}>
+              <label class="type-label" for="type_consumer">
+                <i class="bi bi-person"></i> Consumer
+              </label>
+            </span>
+            <span>
+              <input type="radio" class="type-check" name="user_type" id="type_business" value="business"
+                {% if form.user_type.value == 'business' %}checked{% endif %}>
+              <label class="type-label" for="type_business">
+                <i class="bi bi-building"></i> Business
+              </label>
+            </span>
+          </div>
+          {% if form.user_type.errors %}
+            <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.user_type.errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <!-- Username & Email -->
+        <div class="reg-row">
+          <div class="reg-field">
+            <label class="reg-label" for="id_username">Username <span class="req">*</span></label>
+            <input type="text" id="id_username" name="username"
+              class="reg-input {% if form.username.errors %}is-invalid{% endif %}"
+              value="{{ form.username.value|default:'' }}"
+              placeholder="Choose a username" required autocomplete="username">
+            {% if form.username.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.username.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_email">Email <span class="req">*</span></label>
+            <input type="email" id="id_email" name="email"
+              class="reg-input {% if form.email.errors %}is-invalid{% endif %}"
+              value="{{ form.email.value|default:'' }}"
+              placeholder="your@email.com" required autocomplete="email">
+            {% if form.email.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.email.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Phone & District -->
+        <div class="reg-row">
+          <div class="reg-field">
+            <label class="reg-label" for="id_phone">Phone Number <span class="req">*</span></label>
+            <input type="tel" id="id_phone" name="phone"
+              class="reg-input {% if form.phone.errors %}is-invalid{% endif %}"
+              value="{{ form.phone.value|default:'' }}"
+              placeholder="+256700000000" required>
+            {% if form.phone.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.phone.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_location">District <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="id_location" name="location"
+                class="reg-select {% if form.location.errors %}is-invalid{% endif %}" required>
+                <option value="">— Select District —</option>
+                {% for region, districts in district_choices %}
+                  <optgroup label="{{ region }}">
+                    {% for val, label in districts %}
+                      <option value="{{ val }}" {% if form.location.value == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </optgroup>
+                {% endfor %}
+              </select>
+            </div>
+            {% if form.location.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.location.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Password & Confirm -->
+        <div class="reg-row">
+          <div class="reg-field">
+            <label class="reg-label" for="id_password">Password <span class="req">*</span></label>
+            <input type="password" id="id_password" name="password"
+              class="reg-input {% if form.password.errors %}is-invalid{% endif %}"
+              placeholder="Create a strong password" required autocomplete="new-password">
+            {% if form.password.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.password.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_password2">Confirm Password <span class="req">*</span></label>
+            <input type="password" id="id_password2" name="password2"
+              class="reg-input {% if form.password2.errors %}is-invalid{% endif %}"
+              placeholder="Repeat password" required autocomplete="new-password">
+            {% if form.password2.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.password2.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Seller Section (Farmer + Business) -->
+        <div id="sellerSection" class="seller-section">
+          <div class="seller-section-title">
+            <i class="bi bi-shop"></i>
+            <span id="sellerSectionTitle">Farm Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span></span>
+          </div>
+          <div class="reg-row">
+            <div class="reg-field">
+              <label class="reg-label" for="id_farm_name" id="farmNameLabel">Farm Name</label>
+              <input type="text" id="id_farm_name" name="farm_name"
+                class="reg-input {% if form.farm_name.errors %}is-invalid{% endif %}"
+                value="{{ form.farm_name.value|default:'' }}"
+                placeholder="e.g. Green Valley Farm">
+              {% if form.farm_name.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.farm_name.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="reg-field">
+              <label class="reg-label" for="id_farm_size">Farm Size (acres)</label>
+              <input type="number" step="0.1" id="id_farm_size" name="farm_size"
+                class="reg-input {% if form.farm_size.errors %}is-invalid{% endif %}"
+                value="{{ form.farm_size.value|default:'' }}"
+                placeholder="e.g. 5.5">
+              {% if form.farm_size.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.farm_size.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_specialization">Specialization <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <div class="select-wrap">
+              <select id="id_specialization" name="specialization"
+                class="reg-select {% if form.specialization.errors %}is-invalid{% endif %}">
+                <option value="">— Select Specialization —</option>
+                {% for val, label in specialization_choices %}
+                  <option value="{{ val }}" {% if form.specialization.value == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% if form.specialization.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.specialization.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="reg-submit" id="regSubmitBtn">
+          <i class="bi bi-person-check me-2"></i>Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Show/hide farmer fields based on user type
-    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
-    const farmerFields = document.getElementById('farmerFields');
-    
-    userTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'farmer') {
-                farmerFields.style.display = 'block';
-                // Make farmer fields required
-                document.querySelector('input[name="farm_name"]').required = true;
-                document.querySelector('input[name="specialization"]').required = true;
-            } else {
-                farmerFields.style.display = 'none';
-                // Make farmer fields not required
-                document.querySelector('input[name="farm_name"]').required = false;
-                document.querySelector('input[name="specialization"]').required = false;
-            }
-        });
-    });
-    
-    // Initialize on page load
-    if (document.getElementById('farmer').checked) {
-        farmerFields.style.display = 'block';
+  const typeRadios = document.querySelectorAll('input[name="user_type"]');
+  const sellerSection = document.getElementById('sellerSection');
+  const sellerTitle = document.getElementById('sellerSectionTitle');
+  const farmNameLabel = document.getElementById('farmNameLabel');
+
+  function updateSellerSection() {
+    const selectedType = document.querySelector('input[name="user_type"]:checked')?.value;
+    if (selectedType === 'farmer' || selectedType === 'business') {
+      sellerSection.style.display = 'block';
+      if (selectedType === 'business') {
+        sellerTitle.innerHTML = 'Business Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span>';
+        farmNameLabel.textContent = 'Business Name';
+        document.getElementById('id_farm_name').placeholder = 'e.g. Nakasero Grocers Ltd';
+        document.getElementById('id_farm_size').closest('.reg-field').style.display = 'none';
+      } else {
+        sellerTitle.innerHTML = 'Farm Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span>';
+        farmNameLabel.textContent = 'Farm Name';
+        document.getElementById('id_farm_name').placeholder = 'e.g. Green Valley Farm';
+        document.getElementById('id_farm_size').closest('.reg-field').style.display = '';
+      }
+    } else {
+      sellerSection.style.display = 'none';
     }
+  }
+
+  typeRadios.forEach(r => r.addEventListener('change', updateSellerSection));
+  updateSellerSection();
+
+  // Restore seller section if form was resubmitted with errors
+  {% if form.errors %}
+    updateSellerSection();
+  {% endif %}
 </script>
 {% endblock %}

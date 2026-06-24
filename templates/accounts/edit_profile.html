@@ -275,6 +275,38 @@
 .pf-root.edit-mode .pf-view-section { display: none; }
 .pf-root.edit-mode .pf-edit-section { display: block; }
 
+/* ─── Avatar Hover & Overlay ─── */
+.profile-avatar-hover {
+  position: relative;
+  transition: all 0.3s ease;
+}
+.profile-avatar-hover:hover {
+  border-color: var(--df-dark) !important;
+  transform: scale(1.03);
+}
+.avatar-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  border-radius: 50%;
+}
+.profile-avatar-hover:hover .avatar-overlay {
+  opacity: 1;
+}
+.pf-avatar-clickable {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+.pf-avatar-clickable:hover {
+  transform: scale(1.05);
+  border-color: #fff !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 767px) {
   .pf-banner { padding: 1.25rem 1rem; }
@@ -301,7 +333,7 @@
 
   <!-- ══ BANNER ══ -->
   <div class="pf-banner d-flex align-items-center gap-3">
-    <div class="pf-avatar">
+    <div class="pf-avatar pf-avatar-clickable" title="Click to change photo" onclick="document.getElementById('id_pic').click()">
       {% if user.profile_picture %}<img src="{{ user.profile_picture.url }}" alt="avatar">
       {% else %}<i class="bi bi-person-fill"></i>{% endif %}
     </div>
@@ -360,14 +392,38 @@
               <i class="bi bi-person-lines-fill"></i>
               <h5>Personal Information</h5>
             </div>
-            <button type="button" class="btn-df-edit" onclick="toggleEditMode()">
-              <i class="bi bi-pencil-fill"></i> <span class="edit-btn-label">Edit Profile</span>
-            </button>
           </div>
           <div class="card-body p-4">
 
             <!-- VIEW MODE -->
             <div class="pf-view-section">
+
+              <!-- Profile Photo Display -->
+              <div class="d-flex align-items-center gap-4 mb-4 pb-4" style="border-bottom:1.5px solid var(--df-border);">
+                <div style="position:relative;flex-shrink:0;cursor:pointer;" title="Click to change photo" onclick="document.getElementById('id_pic').click()">
+                  <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid var(--df-border);background:var(--df-tint);display:flex;align-items:center;justify-content:center;position:relative;" class="profile-avatar-hover">
+                    {% if user.profile_picture %}
+                      <img src="{{ user.profile_picture.url }}" alt="Profile photo" style="width:100%;height:100%;object-fit:cover;">
+                    {% else %}
+                      <i class="bi bi-person-fill" style="font-size:2.8rem;color:var(--df-muted);"></i>
+                    {% endif %}
+                    <div class="avatar-overlay">
+                      <i class="bi bi-camera-fill text-white" style="font-size:1.4rem;"></i>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:1.1rem;color:var(--df-text);">{{ user.get_full_name|default:user.username }}</div>
+                  <div style="font-size:.85rem;color:var(--df-muted);margin-top:.15rem;">@{{ user.username }}</div>
+                  <div class="mt-2">
+                    <span class="pf-role-badge"><i class="bi bi-person-badge-fill"></i>{{ user.get_user_type_display }}</span>
+                  </div>
+                  <button type="button" class="btn-df-outline mt-2" style="font-size:.78rem;padding:.3rem .85rem;" onclick="document.getElementById('id_pic').click()">
+                    <i class="bi bi-camera-fill"></i> Change Photo
+                  </button>
+                </div>
+              </div>
+
               <p class="pf-section-label">Account Identity</p>
               <div class="pf-view-grid mb-4">
                 <div class="pf-field">
@@ -767,5 +823,93 @@ function checkPwdStrength(pwd) {
   bar.style.background = lvl.bg;
   label.textContent    = pwd.length ? `Strength: ${lvl.txt}` : 'Strength: —';
 }
+
+/* ── Profile photo file select / auto-upload ── */
+document.getElementById('id_pic').addEventListener('change', function(e) {
+  if (this.files && this.files[0]) {
+    const file = this.files[0];
+    
+    // Update local previews immediately
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      // 1. View-mode avatar
+      const viewAvatar = document.querySelector('.profile-avatar-hover');
+      if (viewAvatar) {
+        let img = viewAvatar.querySelector('img');
+        if (!img) {
+          const icon = viewAvatar.querySelector('.bi-person-fill');
+          if (icon) icon.remove();
+          img = document.createElement('img');
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          const overlay = viewAvatar.querySelector('.avatar-overlay');
+          if (overlay) viewAvatar.insertBefore(img, overlay);
+          else viewAvatar.appendChild(img);
+        }
+        img.src = evt.target.result;
+      }
+      
+      // 2. Banner avatar
+      const bannerAvatar = document.querySelector('.pf-avatar');
+      if (bannerAvatar) {
+        let img = bannerAvatar.querySelector('img');
+        if (!img) {
+          const icon = bannerAvatar.querySelector('.bi-person-fill');
+          if (icon) icon.remove();
+          img = document.createElement('img');
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          bannerAvatar.appendChild(img);
+        }
+        img.src = evt.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // If NOT currently in edit mode, auto-submit the form immediately!
+    if (!isEditing) {
+      const form = document.getElementById('profileForm');
+      let secInput = form.querySelector('input[name="section"]');
+      if (!secInput) {
+        secInput = document.createElement('input');
+        secInput.type = 'hidden';
+        secInput.name = 'section';
+        form.appendChild(secInput);
+      }
+      secInput.value = 'personal';
+      
+      // Change buttons to uploading state
+      const changeBtns = document.querySelectorAll('button[onclick*="id_pic"]');
+      changeBtns.forEach(btn => {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+        btn.disabled = true;
+      });
+      
+      form.submit();
+    }
+  }
+});
+
+/* ── Auto-scroll/activate section based on tab parameter in URL ── */
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('tab');
+  if (activeTab) {
+    const targetLink = document.querySelector(`.pf-sidebar .nav-link[href="#sec-${activeTab}"]`);
+    if (targetLink) {
+      document.querySelectorAll('.pf-sidebar .nav-link').forEach(l => l.classList.remove('pf-active'));
+      targetLink.classList.add('pf-active');
+      
+      setTimeout(() => {
+        const el = document.getElementById(`sec-${activeTab}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 200);
+    }
+  }
+});
 </script>
 {% endblock %}

@@ -375,9 +375,10 @@ def price_tracker(request):
 
 @login_required
 def farmer_dashboard(request):
-    if request.user.user_type != 'farmer':
-        messages.error(request, 'Only farmers can access this page!')
-        return redirect('home')
+    # Allow both farmers and business users to manage their listings
+    if request.user.user_type not in ('farmer', 'business'):
+        messages.error(request, 'Only farmers and business accounts can access the seller dashboard!')
+        return redirect('marketplace:home')
     
     products = Product.objects.filter(farmer=request.user)
     orders_received = Order.objects.filter(farmer=request.user).order_by('-created_at')[:5]
@@ -394,36 +395,116 @@ def farmer_dashboard(request):
 
 @login_required
 def add_product(request):
-    if request.user.user_type != 'farmer':
-        messages.error(request, 'Only farmers can add products!')
-        return redirect('home')
-    
+    """Allow farmers and business users to list a new product for sale."""
+    # Permission check
+    if request.user.user_type not in ('farmer', 'business'):
+        messages.error(request, 'Only farmers and business accounts can add products.')
+        return redirect('marketplace:home')
+
+    categories = Category.objects.all().order_by('name')
+
     if request.method == 'POST':
-        name = request.POST.get('name')
-        is_urgent = request.POST.get('is_urgent') == 'on'
-        harvest_date = request.POST.get('harvest_date')
-        
-        Product.objects.create(
-            farmer=request.user,
-            category_id=request.POST.get('category'),
-            name=name,
-            description=request.POST.get('description'),
-            price=request.POST.get('price'),
-            quantity=request.POST.get('quantity'),
-            unit=request.POST.get('unit'),
-            location=request.POST.get('location'),
-            image=request.FILES.get('image'),
-            image2=request.FILES.get('image2'),
-            image3=request.FILES.get('image3'),
-            is_urgent=is_urgent,
-            urgent_discount=request.POST.get('urgent_discount') or 0,
-            harvest_date=harvest_date if harvest_date else None,
-            status='available'
-        )
-        messages.success(request, f'Product "{name}" added successfully!')
-        return redirect('farmer_dashboard')
-    
-    return render(request, 'marketplace/add_product.html', {'categories': Category.objects.all()})
+        # ── Collect POST values ──────────────────────────────
+        name            = request.POST.get('name', '').strip()
+        category_id     = request.POST.get('category', '').strip()
+        description     = request.POST.get('description', '').strip()
+        price_raw       = request.POST.get('price', '').strip()
+        quantity_raw    = request.POST.get('quantity', '').strip()
+        unit            = request.POST.get('unit', 'kg').strip()
+        location        = request.POST.get('location', '').strip()
+        harvest_date    = request.POST.get('harvest_date', '').strip() or None
+        is_urgent       = request.POST.get('is_urgent') == 'on'
+        urgent_discount = request.POST.get('urgent_discount', '0').strip() or '0'
+
+        # ── Validation ───────────────────────────────────────
+        errors = []
+
+        if not name:
+            errors.append('Product name is required.')
+        if not category_id:
+            errors.append('Please select a category.')
+        if not description:
+            errors.append('Product description is required.')
+        if not location:
+            errors.append('Location / district is required.')
+
+        # Validate price
+        try:
+            price = float(price_raw)
+            if price <= 0:
+                errors.append('Price must be greater than zero.')
+        except (ValueError, TypeError):
+            price = None
+            errors.append('Enter a valid price (numbers only).')
+
+        # Validate quantity
+        try:
+            quantity = int(quantity_raw)
+            if quantity <= 0:
+                errors.append('Quantity must be at least 1.')
+        except (ValueError, TypeError):
+            quantity = None
+            errors.append('Enter a valid quantity (whole number).')
+
+        # Validate category exists
+        category_obj = None
+        if category_id:
+            try:
+                category_obj = Category.objects.get(pk=category_id)
+            except Category.DoesNotExist:
+                errors.append('Selected category does not exist.')
+
+        # Validate urgent discount
+        try:
+            urgent_discount_val = int(urgent_discount)
+            if urgent_discount_val < 0 or urgent_discount_val > 50:
+                urgent_discount_val = 0
+        except (ValueError, TypeError):
+            urgent_discount_val = 0
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            # Re-render form with submitted values preserved
+            return render(request, 'marketplace/add_product.html', {
+                'categories': categories,
+                'form_data': request.POST,   # template can reuse these
+            })
+
+        # ── Save ─────────────────────────────────────────────
+        try:
+            product = Product.objects.create(
+                farmer          = request.user,
+                category        = category_obj,
+                name            = name,
+                description     = description,
+                price           = price,
+                quantity        = quantity,
+                unit            = unit,
+                location        = location,
+                image           = request.FILES.get('image') or None,
+                image2          = request.FILES.get('image2') or None,
+                image3          = request.FILES.get('image3') or None,
+                is_urgent       = is_urgent,
+                urgent_discount = urgent_discount_val,
+                harvest_date    = harvest_date if harvest_date else None,
+                status          = 'available',
+            )
+            messages.success(request, f'✅ Product "{product.name}" listed successfully! Buyers can now see it.')
+            return redirect('marketplace:farmer_dashboard')
+
+        except Exception as e:
+            messages.error(request, f'Something went wrong while saving your product. Please try again. ({e})')
+            return render(request, 'marketplace/add_product.html', {
+                'categories': categories,
+                'form_data': request.POST,
+            })
+
+    # ── GET ───────────────────────────────────────────────────
+    return render(request, 'marketplace/add_product.html', {
+        'categories': categories,
+        'form_data': {},
+    })
 
 
 @login_required
@@ -452,7 +533,7 @@ def edit_product(request, pk):
         
         product.save()
         messages.success(request, f'Product "{product.name}" updated!')
-        return redirect('farmer_dashboard')
+        return redirect('marketplace:farmer_dashboard')
     
     return render(request, 'marketplace/edit_product.html', {'product': product, 'categories': Category.objects.all()})
 
@@ -464,7 +545,7 @@ def delete_product(request, pk):
         name = product.name
         product.delete()
         messages.success(request, f'Product "{name}" deleted!')
-        return redirect('farmer_dashboard')
+        return redirect('marketplace:farmer_dashboard')
     return render(request, 'marketplace/delete_product.html', {'product': product})
 
 

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from accounts.models import User
 
@@ -80,8 +81,10 @@ class AgriculturalInput(models.Model):
 
     @property
     def group_price(self):
-        if self.group_discount_percentage > 0:
-            return self.price * (1 - self.group_discount_percentage / 100)
+        """Calculate discounted group price using pure Decimal arithmetic."""
+        if self.group_discount_percentage and self.group_discount_percentage > 0:
+            discount_factor = (Decimal('100') - Decimal(str(self.group_discount_percentage))) / Decimal('100')
+            return (self.price * discount_factor).quantize(Decimal('0.01'))
         return self.price
 
     class Meta:

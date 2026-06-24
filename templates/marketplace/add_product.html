@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Product - Smart Agricultural Marketplace{% endblock %}
+
+{% block extra_css %}
+<style>
+  .add-product-header {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: #fff;
+    padding: 2rem 2rem 1.5rem;
+    border-radius: 16px 16px 0 0;
+  }
+  .add-product-header h4 { font-weight: 800; letter-spacing: -.02em; margin: 0; }
+  .add-product-header p  { opacity: .7; margin: .25rem 0 0; font-size: .9rem; }
+
+  .form-section-title {
+    font-size: .85rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: #065f46;
+    border-bottom: 2px solid #d1fae5; padding-bottom: .5rem; margin-bottom: 1.25rem;
+  }
+
+  .form-label { font-weight: 600; font-size: .875rem; color: #374151; }
+  .form-control, .form-select {
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: .9rem; padding: .65rem .9rem;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #00D084; box-shadow: 0 0 0 3px rgba(0,208,132,.12);
+    outline: none;
+  }
+
+  .urgent-box {
+    background: #fffbeb; border: 1.5px solid #fcd34d;
+    border-radius: 12px; padding: 1.25rem;
+  }
+
+  .image-upload-zone {
+    border: 2px dashed #d1fae5; border-radius: 12px;
+    padding: 1.5rem 1rem; text-align: center;
+    cursor: pointer; transition: border-color .2s, background .2s;
+    position: relative;
+  }
+  .image-upload-zone:hover { border-color: #00D084; background: #f0fdf9; }
+  .image-upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .image-upload-zone i { font-size: 2rem; color: #6b7280; display: block; margin-bottom: .5rem; }
+  .image-upload-zone span { font-size: .82rem; color: #6b7280; }
+
+  .btn-submit {
+    background: #00D084; color: #fff; border: none;
+    padding: .85rem 2.5rem; font-weight: 700; font-size: 1rem;
+    border-radius: 10px; transition: background .2s, transform .15s, box-shadow .2s;
+  }
+  .btn-submit:hover {
+    background: #00b872; transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,208,132,.35); color: #fff;
+  }
+
+  .preview-img {
+    width: 100%; height: 120px; object-fit: cover;
+    border-radius: 8px; display: none; margin-top: .5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-9">
+
+        <!-- Back link -->
+        <a href="{% url 'marketplace:farmer_dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">
+          <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="card shadow-sm" style="border-radius:16px; overflow:hidden; border:none;">
+
+          <!-- Header -->
+          <div class="add-product-header">
+            <h4><i class="bi bi-plus-circle me-2"></i>List a New Product</h4>
+            <p>Fill in the details below to make your product visible to buyers across Uganda.</p>
+          </div>
+
+          <div class="card-body p-4">
+            {% if messages %}
+            <div class="mb-3">
+              {% for message in messages %}
+              <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-x-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <form method="post" enctype="multipart/form-data" id="addProductForm">
+              {% csrf_token %}
+
+              <div class="row g-4">
+
+                <!-- LEFT column -->
+                <div class="col-md-7">
+
+                  <!-- Basic Info -->
+                  <div class="form-section-title"><i class="bi bi-info-circle me-1"></i>Basic Information</div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Product Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name" placeholder="e.g. Fresh Tomatoes (Kampala Round)" value="{{ form_data.name }}" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    <select name="category" class="form-select" required>
+                      <option value="">Select a category...</option>
+                      {% for category in categories %}
+                        <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="description" rows="4"
+                      placeholder="Describe your product — quality, variety, how it was grown, etc." required>{{ form_data.description }}</textarea>
+                  </div>
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="form-label">Price (UGX) <span class="text-danger">*</span></label>
+                      <input type="number" class="form-control" name="price" min="0" placeholder="e.g. 2500" value="{{ form_data.price }}" required>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Unit <span class="text-danger">*</span></label>
+                      <select name="unit" class="form-select" required>
+                        <option value="kg" {% if form_data.unit == 'kg' or not form_data.unit %}selected{% endif %}>Kilogram (kg)</option>
+                        <option value="bags" {% if form_data.unit == 'bags' %}selected{% endif %}>Bags</option>
+                        <option value="bunches" {% if form_data.unit == 'bunches' %}selected{% endif %}>Bunches</option>
+                        <option value="pieces" {% if form_data.unit == 'pieces' %}selected{% endif %}>Pieces</option>
+                        <option value="liters" {% if form_data.unit == 'liters' %}selected{% endif %}>Liters</option>
+                        <option value="tons" {% if form_data.unit == 'tons' %}selected{% endif %}>Tons</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="form-label">Quantity Available <span class="text-danger">*</span></label>
+                      <input type="number" class="form-control" name="quantity" min="1" placeholder="e.g. 500" value="{{ form_data.quantity }}" required>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Location / District <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" name="location"
+                        placeholder="e.g. Mukono" value="{% if form_data.location %}{{ form_data.location }}{% else %}{{ user.location }}{% endif %}" required>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Harvest Date <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="date" class="form-control" name="harvest_date">
+                  </div>
+
+                  <!-- Urgent Sale -->
+                  <div class="urgent-box mt-4">
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" name="is_urgent" id="isUrgent">
+                      <label class="form-check-label fw-bold" for="isUrgent">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+                        Mark as Urgent Sale
+                      </label>
+                    </div>
+                    <small class="text-muted d-block mb-3">Urgent products appear highlighted and get more visibility — ideal for perishables.</small>
+                    <div id="urgentFields" style="display:none;">
+                      <label class="form-label">Discount Percentage (0–50%)</label>
+                      <input type="number" class="form-control" name="urgent_discount" min="0" max="50" value="0" placeholder="e.g. 15">
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- RIGHT column — Images -->
+                <div class="col-md-5">
+
+                  <div class="form-section-title"><i class="bi bi-images me-1"></i>Product Photos</div>
+                  <p class="text-muted small mb-3">Upload up to 3 photos. Clear photos sell faster.</p>
+
+                  <!-- Main Image -->
+                  <div class="mb-3">
+                    <label class="form-label">Main Photo <span class="text-danger">*</span></label>
+                    <div class="image-upload-zone" id="mainZone">
+                      <input type="file" name="image" accept="image/*" id="mainImg" onchange="previewImg(this,'mainPreview','mainZone')">
+                      <i class="bi bi-camera"></i>
+                      <span>Click to upload main photo</span>
+                    </div>
+                    <img id="mainPreview" class="preview-img" alt="Preview">
+                  </div>
+
+                  <!-- Image 2 -->
+                  <div class="mb-3">
+                    <label class="form-label">Extra Photo 1 <span class="text-muted fw-normal">(optional)</span></label>
+                    <div class="image-upload-zone" id="img2Zone">
+                      <input type="file" name="image2" accept="image/*" id="img2" onchange="previewImg(this,'img2Preview','img2Zone')">
+                      <i class="bi bi-image"></i>
+                      <span>Click to upload</span>
+                    </div>
+                    <img id="img2Preview" class="preview-img" alt="Preview">
+                  </div>
+
+                  <!-- Image 3 -->
+                  <div class="mb-3">
+                    <label class="form-label">Extra Photo 2 <span class="text-muted fw-normal">(optional)</span></label>
+                    <div class="image-upload-zone" id="img3Zone">
+                      <input type="file" name="image3" accept="image/*" id="img3" onchange="previewImg(this,'img3Preview','img3Zone')">
+                      <i class="bi bi-image"></i>
+                      <span>Click to upload</span>
+                    </div>
+                    <img id="img3Preview" class="preview-img" alt="Preview">
+                  </div>
+
+                  <div class="alert alert-info small mt-3">
+                    <i class="bi bi-lightbulb me-1"></i>
+                    <strong>Tip:</strong> Good photos increase buyer confidence. Use natural light and show the actual produce clearly.
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <hr class="my-4">
+              <div class="d-flex gap-3 align-items-center">
+                <button type="submit" class="btn btn-submit">
+                  <i class="bi bi-check-circle me-2"></i>List Product for Sale
+                </button>
+                <a href="{% url 'marketplace:farmer_dashboard' %}" class="btn btn-outline-secondary">
+                  Cancel
+                </a>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Toggle urgent discount field
+  document.getElementById('isUrgent').addEventListener('change', function () {
+    document.getElementById('urgentFields').style.display = this.checked ? 'block' : 'none';
+  });
+
+  // Image preview
+  function previewImg(input, previewId, zoneId) {
+    const preview = document.getElementById(previewId);
+    const zone = document.getElementById(zoneId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        zone.querySelector('span').textContent = input.files[0].name;
+        zone.querySelector('i').style.display = 'none';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+{% endblock %}

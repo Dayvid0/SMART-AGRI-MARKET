@@ -130,11 +130,35 @@
     .login-form-sub {
         font-size: 0.9rem;
         color: #6b7280;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
 
     .login-form-sub a { color: #00D084; font-weight: 600; text-decoration: none; }
     .login-form-sub a:hover { text-decoration: underline; }
+
+    /* Inline alert — appears right above the fields */
+    .login-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+        border: 1.5px solid;
+    }
+    .login-alert.alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+    .login-alert.alert-success {
+        background: #f0fdf9;
+        border-color: #bbf7d0;
+        color: #065f46;
+    }
+    .login-alert i { font-size: 1rem; margin-top: 0.1rem; flex-shrink: 0; }
 
     .login-field { margin-bottom: 1.25rem; }
 
@@ -260,6 +284,21 @@
             <p class="login-form-sub">
                 No account? <a href="{% url 'accounts:register' %}">Register for free</a>
             </p>
+
+            <!-- Inline messages — positioned right above the form fields -->
+            {% for message in messages %}
+              {% if 'error' in message.tags %}
+                <div class="login-alert alert-error" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>{{ message }}</span>
+                </div>
+              {% elif 'success' in message.tags %}
+                <div class="login-alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>{{ message }}</span>
+                </div>
+              {% endif %}
+            {% endfor %}
 
             <form method="post" autocomplete="on">
                 {% csrf_token %}
