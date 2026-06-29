@@ -18,6 +18,9 @@ def home(request):
     """
     Homepage view - displays featured products, categories, news, weather, and user data
     """
+    if not request.user.is_authenticated:
+        return render(request, 'marketplace/landing.html')
+        
     # Products & stats — uses your actual 'status' field
     featured_products = (
         Product.objects

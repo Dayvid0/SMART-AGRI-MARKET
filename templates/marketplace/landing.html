@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agri Place - Uganda's Agricultural Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f2b25;
+            --bg-gradient-1: #0f392a;
+            --bg-gradient-2: #081a17;
+            --text-main: #ffffff;
+            --text-muted: #b0c9c3;
+            --accent-green: #00e676;
+            --accent-green-hover: #00c853;
+            --accent-teal: #00bfa5;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .landing-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent-teal);
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .headline {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+
+        .headline-highlight {
+            color: var(--accent-green);
+        }
+
+        .description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+        }
+
+        .features-grid {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .feature-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 191, 165, 0.3);
+            background: rgba(0, 191, 165, 0.05);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--accent-teal);
+        }
+
+        .feature-badge i {
+            font-size: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-green);
+            color: var(--bg-dark);
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-green-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            color: var(--accent-green);
+        }
+
+        .landing-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            padding: 1.5rem 2rem;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .header-link {
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .header-login {
+            color: var(--text-main);
+        }
+
+        .header-login:hover {
+            color: var(--accent-green);
+        }
+
+        .header-join {
+            color: var(--accent-green);
+            border: 2px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 0.5rem 1.25rem;
+        }
+
+        .header-join:hover {
+            background-color: rgba(0, 230, 118, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .headline {
+                font-size: 2.5rem;
+            }
+            .features-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="landing-header">
+        <a href="{% url 'accounts:login' %}" class="header-link header-login">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Login
+        </a>
+        <a href="{% url 'accounts:register' %}" class="header-link header-join">
+            <i class="fa-solid fa-user-plus"></i> Join Us
+        </a>
+    </header>
+
+    <div class="landing-container">
+        <div class="subtitle">Uganda's Agricultural Platform</div>
+        
+        <h1 class="headline">
+            From Farm to Market,<br>
+            <span class="headline-highlight">Without the Middlemen</span>
+        </h1>
+        
+        <p class="description">
+            Connect directly with verified farmers across Uganda. Buy fresh produce, track live prices, and join group buying pools — all in one place.
+        </p>
+        
+        <div class="features-grid">
+            <div class="feature-badge">
+                <i class="fa-solid fa-circle-check"></i>
+                Verified Farmers
+            </div>
+            <div class="feature-badge">
+                <i class="fa-solid fa-chart-line"></i>
+                Live Prices
+            </div>
+            <div class="feature-badge">
+                <i class="fa-solid fa-users"></i>
+                Group Buying
+            </div>
+            <div class="feature-badge">
+                <i class="fa-solid fa-cloud-sun"></i>
+                Climate Suite
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                <i class="fa-solid fa-basket-shopping"></i>
+                Browse Products
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
