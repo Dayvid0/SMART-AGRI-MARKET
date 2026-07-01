@@ -147,6 +147,13 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} - {self.farmer.username}"
     
+    @property
+    def discounted_price(self):
+        """Sale price after applying urgent_discount percentage to the listed price."""
+        if self.is_urgent and self.urgent_discount > 0:
+            return self.price * (1 - self.urgent_discount / 100)
+        return self.price
+    
     class Meta:
         verbose_name = "Product"
         verbose_name_plural = "Products"

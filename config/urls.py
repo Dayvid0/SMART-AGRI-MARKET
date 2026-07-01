@@ -15,6 +15,7 @@ urlpatterns = [
     path('weather/', include('weather.urls')),  
     path('home/', product_list, name='home'),
     path('notifications/', include('notifications.urls')),
+    path('chat/', include('chat.urls')),
 ]
 
 if settings.DEBUG:

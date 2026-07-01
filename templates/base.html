@@ -1076,6 +1076,19 @@
                 </ul>
             </div>
 
+            <!-- 💬 Chat Inbox Button with Unread Badge -->
+            <a class="nav-link px-2" href="{% url 'chat:my_chats' %}"
+               id="chatNavBtn" title="My Negotiations" aria-label="Chat Inbox"
+               style="position:relative;display:inline-flex;align-items:center;">
+                <i class="bi bi-chat-dots-fill fs-5 text-white"></i>
+                <span id="chat-unread-badge"
+                      style="display:none;position:absolute;top:-4px;right:-6px;
+                             background:#16a34a;color:#fff;font-size:0.6rem;font-weight:700;
+                             min-width:16px;height:16px;border-radius:50px;
+                             padding:0 4px;line-height:16px;text-align:center;
+                             border:2px solid #1a1a2e;"></span>
+            </a>
+
             <!-- User Dropdown -->
             <div class="dropdown">
                 <a class="nav-link dropdown-toggle text-neon fw-bold d-flex align-items-center gap-1 px-2" href="#" role="button" data-bs-toggle="dropdown">
@@ -1086,6 +1099,10 @@
                     <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}"><i class="bi bi-speedometer2"></i> My Dashboard</a></li>
                     <li><a class="dropdown-item" href="{% url 'orders:my_orders' %}"><i class="bi bi-bag-check-fill"></i> My Orders</a></li>
                     <li><a class="dropdown-item" href="{% url 'inputs:my_pools' %}"><i class="bi bi-people-fill"></i> My Group Pools</a></li>
+                    <li><a class="dropdown-item" href="{% url 'chat:my_chats' %}">
+                        <i class="bi bi-chat-dots-fill"></i> My Negotiations
+                        <span id="chat-dropdown-badge" class="badge ms-1" style="background:#16a34a;display:none;font-size:.65rem;"></span>
+                    </a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form action="{% url 'accounts:logout' %}" method="post" style="margin:0;">
@@ -1249,6 +1266,12 @@
             <li class="nav-item">
                 <a href="{% url 'orders:my_orders' %}" class="{% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
                     <i class="bi bi-bag-check-fill"></i> My Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'chat:my_chats' %}" class="{% if 'chat' in request.path %}active{% endif %} d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-chat-dots-fill"></i> My Negotiations</span>
+                    <span id="sidebar-chat-badge" class="badge rounded-pill" style="background:#16a34a;font-size:.65rem;display:none;"></span>
                 </a>
             </li>
             <li class="nav-item">
@@ -1506,6 +1529,43 @@ function markAsRead(notificationId) {
 // Fetch notifications immediately and every 30 seconds
 fetchNotifications();
 notificationInterval = setInterval(fetchNotifications, 30000);
+</script>
+
+<!-- 💬 Chat Unread Badge Polling -->
+<script>
+(function() {
+  const chatBadge = document.getElementById('chat-unread-badge');
+  const chatDropdownBadge = document.getElementById('chat-dropdown-badge');
+  const sidebarBadge = document.getElementById('sidebar-chat-badge');
+
+  function updateChatBadge(count) {
+    if (!chatBadge) return;
+    if (count > 0) {
+      const label = count > 99 ? '99+' : count;
+      chatBadge.textContent = label;
+      chatBadge.style.display = 'inline-flex';
+      if (chatDropdownBadge) { chatDropdownBadge.textContent = label; chatDropdownBadge.style.display = 'inline-flex'; }
+      if (sidebarBadge) { sidebarBadge.textContent = label; sidebarBadge.style.display = 'inline-flex'; }
+    } else {
+      chatBadge.style.display = 'none';
+      if (chatDropdownBadge) chatDropdownBadge.style.display = 'none';
+      if (sidebarBadge) sidebarBadge.style.display = 'none';
+    }
+  }
+
+  function fetchChatUnread() {
+    fetch('/chat/unread-count/', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if (data) updateChatBadge(data.unread_count); })
+    .catch(() => {});
+  }
+
+  // Start polling every 10 seconds
+  fetchChatUnread();
+  setInterval(fetchChatUnread, 10000);
+})();
 </script>
 {% endif %}
 

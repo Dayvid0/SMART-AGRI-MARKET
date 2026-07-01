@@ -314,10 +314,10 @@
                                 {% if product.is_urgent and product.urgent_discount > 0 %}
                                     <div>
                                         <span class="h5 text-danger mb-0 fw-bold">
-                                            UGX {{ product.price|floatformat:0 }}
+                                            UGX {{ product.discounted_price|floatformat:0 }}
                                         </span>
                                         <small class="text-muted text-decoration-line-through ms-1">
-                                            UGX {% widthratio product.price 1 1 %}
+                                            UGX {{ product.price|floatformat:0 }}
                                         </small>
                                     </div>
                                 {% else %}

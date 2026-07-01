@@ -68,10 +68,21 @@
                     <h1 class="fw-bold mb-3">{{ product.name }}</h1>
 
                     <div class="mb-4">
-                        <h2 class="{% if product.is_urgent %}text-danger{% else %}text-success{% endif %} fw-bold">
+                        {% if product.is_urgent and product.urgent_discount > 0 %}
+                        <div class="d-flex align-items-baseline gap-2 flex-wrap">
+                            <h2 class="text-danger fw-bold mb-0">
+                                UGX {{ product.discounted_price|floatformat:0 }}
+                                <small class="text-muted fs-6 fw-normal">/ {{ product.unit }}</small>
+                            </h2>
+                            <span class="text-muted text-decoration-line-through fs-5">UGX {{ product.price|floatformat:0 }}</span>
+                            <span class="badge bg-danger">{{ product.urgent_discount }}% OFF</span>
+                        </div>
+                        {% else %}
+                        <h2 class="text-success fw-bold">
                             UGX {{ product.price|floatformat:0 }}
                             <small class="text-muted fs-6 fw-normal">/ {{ product.unit }}</small>
                         </h2>
+                        {% endif %}
                         <p class="text-muted small"><i class="bi bi-geo-alt"></i> {{ product.location }}</p>
                     </div>
 
@@ -133,6 +144,12 @@
                                 <a href="{% url 'orders:place_order' product.pk %}" class="btn btn-success btn-lg">
                                     <i class="bi bi-cart-plus"></i> Place Order
                                 </a>
+
+                                <!-- 💬 SafeBoda-style: Negotiate Price → opens a direct chat thread -->
+                                <a href="{% url 'chat:open_chat' product.pk %}"
+                                   class="btn btn-lg negotiate-btn">
+                                    <i class="bi bi-chat-dots-fill me-2"></i>Negotiate Price
+                                </a>
                                 
                                 {% if product.farmer.whatsapp_number %}
                                 <a href="https://wa.me/{{ product.farmer.whatsapp_number }}?text=Hi, I'm interested in {{ product.name }} from your farm." 
@@ -144,6 +161,9 @@
                                 <button class="btn btn-secondary btn-lg" disabled>
                                     <i class="bi bi-info-circle"></i> This is Your Product
                                 </button>
+                                <a href="{% url 'chat:my_chats' %}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-chat-dots"></i> View Buyer Negotiations
+                                </a>
                             {% endif %}
                         {% else %}
                             <a href="{% url 'accounts:login' %}" class="btn btn-success btn-lg">
@@ -226,6 +246,25 @@
 }
 #mainImage {
     transition: opacity 0.25s ease;
+}
+
+/* Negotiate Price button — SafeBoda inspired chat CTA */
+.negotiate-btn {
+    background: linear-gradient(135deg, #0f766e, #16a34a);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    letter-spacing: .3px;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+    transition: transform .18s, box-shadow .18s;
+}
+.negotiate-btn:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.48);
+}
+.negotiate-btn:active {
+    transform: translateY(0);
 }
 </style>
 

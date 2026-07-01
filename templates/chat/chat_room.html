@@ -1,0 +1,947 @@
+{% extends 'base.html' %}
+{% block title %}Negotiate: {{ product.name }} — Smart Agri Market{% endblock %}
+
+{% block content %}
+<style>
+  /* ============================
+     CHAT ROOM — PREMIUM UI
+     Inspired by WhatsApp / SafeBoda
+     ============================ */
+  :root {
+    --agri-green: #16a34a;
+    --agri-green-dark: #15803d;
+    --agri-green-light: #dcfce7;
+    --chat-bg: #f0f4f0;
+    --bubble-own: linear-gradient(135deg, #16a34a, #22c55e);
+    --bubble-other: #ffffff;
+    --bubble-own-text: #ffffff;
+    --bubble-other-text: #1e293b;
+    --header-bg: linear-gradient(135deg, #064e3b, #16a34a);
+    --border: #e2e8f0;
+    --text-muted: #64748b;
+  }
+
+  /* Hide default page padding for full-height layout */
+  body { background: var(--chat-bg) !important; }
+
+  .chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px); /* minus navbar */
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 0 60px rgba(0,0,0,.12);
+  }
+
+  /* ---- CHAT HEADER ---- */
+  .chat-header {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .chat-back-btn {
+    color: rgba(255,255,255,.8);
+    text-decoration: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: color .15s;
+  }
+  .chat-back-btn:hover { color: #fff; }
+  .chat-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .chat-header-info { flex-grow: 1; }
+  .chat-header-name { font-weight: 700; font-size: 1rem; margin: 0; }
+  .chat-header-product {
+    font-size: .78rem;
+    opacity: .8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+  .chat-header-actions { display: flex; gap: 8px; }
+  .chat-header-btn {
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    border-radius: 50px;
+    padding: 5px 14px;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s;
+    white-space: nowrap;
+  }
+  .chat-header-btn:hover { background: rgba(255,255,255,.3); }
+  .chat-header-btn.danger {
+    background: rgba(220,38,38,.3);
+    border-color: rgba(220,38,38,.4);
+  }
+
+  /* ---- PRODUCT CONTEXT BAR ---- */
+  .product-context-bar {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .product-ctx-img {
+    width: 42px; height: 42px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--agri-green-light);
+  }
+  .product-ctx-name { font-weight: 700; font-size: .9rem; margin: 0; }
+  .product-ctx-price { font-size: .8rem; color: var(--agri-green); font-weight: 600; margin: 0; }
+  .product-ctx-link {
+    margin-left: auto;
+    font-size: .78rem;
+    color: var(--agri-green);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .product-ctx-link:hover { text-decoration: underline; }
+
+  /* ---- CLOSED BANNER ---- */
+  .closed-banner {
+    background: #fee2e2;
+    border-bottom: 1px solid #fecaca;
+    color: #991b1b;
+    text-align: center;
+    padding: 10px;
+    font-size: .85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* ---- MESSAGES AREA ---- */
+  .messages-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 20px 8px;
+    background: var(--chat-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .messages-area::-webkit-scrollbar { width: 5px; }
+  .messages-area::-webkit-scrollbar-track { background: transparent; }
+  .messages-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  /* Date separator */
+  .date-sep {
+    text-align: center;
+    margin: 12px 0;
+    position: relative;
+  }
+  .date-sep span {
+    background: rgba(100,116,139,.15);
+    color: var(--text-muted);
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 50px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Message row */
+  .msg-row {
+    display: flex;
+    margin-bottom: 2px;
+    animation: msgIn .2s ease;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg-row.own { justify-content: flex-end; }
+  .msg-row.other { justify-content: flex-start; }
+
+  .msg-bubble {
+    max-width: 68%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+    line-height: 1.5;
+    font-size: .9rem;
+  }
+  .msg-row.own .msg-bubble {
+    background: var(--bubble-own);
+    color: var(--bubble-own-text);
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(22,163,74,.25);
+  }
+  .msg-row.other .msg-bubble {
+    background: var(--bubble-other);
+    color: var(--bubble-other-text);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  .msg-time {
+    font-size: .68rem;
+    opacity: .6;
+    display: block;
+    text-align: right;
+    margin-top: 4px;
+  }
+  .msg-row.other .msg-time { text-align: left; }
+
+  .msg-sender-name {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--agri-green);
+    margin-bottom: 3px;
+    display: block;
+  }
+
+  /* ---- OFFER BUBBLES ---- */
+  .msg-bubble.offer-card {
+    background: #fff;
+    border: 2px solid var(--agri-green);
+    color: #1e293b;
+    width: 240px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.15);
+  }
+  .offer-header {
+    background: var(--agri-green-light);
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: .85rem;
+    color: var(--agri-green-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(22, 163, 74, 0.2);
+  }
+  .offer-body {
+    padding: 14px;
+    text-align: center;
+  }
+  .offer-price {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+  .offer-qty {
+    font-size: .85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .offer-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .offer-status-badge.pending { background: #fef08a; color: #854d0e; }
+  .offer-status-badge.accepted { background: #dcfce7; color: #166534; }
+  .offer-status-badge.rejected { background: #fee2e2; color: #991b1b; }
+  .offer-status-badge.superseded { background: #f1f5f9; color: #475569; }
+
+  .offer-actions {
+    display: flex;
+    border-top: 1px solid var(--border);
+  }
+  .offer-actions button {
+    flex: 1;
+    border: none;
+    background: #f8fafc;
+    padding: 10px;
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .offer-actions button.btn-reject {
+    color: #dc2626;
+    border-right: 1px solid var(--border);
+  }
+  .offer-actions button.btn-reject:hover { background: #fee2e2; }
+  .offer-actions button.btn-accept {
+    color: var(--agri-green);
+  }
+  .offer-actions button.btn-accept:hover { background: var(--agri-green-light); }
+  
+  .offer-checkout-btn {
+    display: block;
+    width: 100%;
+    border: none;
+    background: var(--agri-green);
+    color: white;
+    padding: 10px;
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .offer-checkout-btn:hover { background: var(--agri-green-dark); color: white; }
+
+  /* Empty messages placeholder */
+  .chat-empty {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 40px;
+  }
+  .chat-empty i { font-size: 3rem; margin-bottom: 16px; color: #94a3b8; }
+
+  /* ---- INPUT AREA ---- */
+  .chat-input-bar {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex-grow: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .18s;
+    resize: none;
+    max-height: 120px;
+    min-height: 44px;
+    line-height: 1.4;
+    background: #f8fafc;
+  }
+  .chat-input:focus {
+    border-color: var(--agri-green);
+    background: #fff;
+  }
+  .chat-send-btn {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border: none;
+    color: #fff;
+    font-size: 1.15rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(22,163,74,.35);
+  }
+  .chat-send-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 5px 18px rgba(22,163,74,.45);
+  }
+  .chat-send-btn:active { transform: scale(.96); }
+  .chat-send-btn:disabled {
+    background: #e2e8f0;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: none;
+    padding: 4px 0;
+    justify-content: flex-start;
+  }
+  .typing-indicator .dots {
+    background: #fff;
+    border-radius: 18px;
+    padding: 10px 16px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  .typing-indicator .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-indicator .dot:nth-child(2) { animation-delay: .2s; }
+  .typing-indicator .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes typingBounce {
+    0%, 100% { transform: translateY(0); opacity: .5; }
+    50%       { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* Responsive */
+  @media (max-width: 576px) {
+    .chat-wrapper { height: calc(100vh - 60px); }
+    .msg-bubble { max-width: 85%; }
+    .chat-header-actions { display: none; }
+  }
+</style>
+
+<div class="chat-wrapper">
+
+  <!-- ===== HEADER ===== -->
+  <div class="chat-header">
+    <a href="{% url 'chat:my_chats' %}" class="chat-back-btn" title="Back to inbox">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+
+    <div class="chat-avatar">
+      {% if other_user.profile_picture %}
+        <img src="{{ other_user.profile_picture.url }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+      {% else %}
+        {{ other_user.username|first|upper }}
+      {% endif %}
+    </div>
+
+    <div class="chat-header-info">
+      <p class="chat-header-name">
+        {{ other_user.get_full_name|default:other_user.username }}
+        {% if other_user.is_verified %}
+          <i class="bi bi-patch-check-fill text-warning" title="Verified" style="font-size:.8rem;"></i>
+        {% endif %}
+      </p>
+      <p class="chat-header-product">
+        <i class="bi bi-tag me-1"></i>{{ product.name }}
+      </p>
+    </div>
+
+    <div class="chat-header-actions">
+      <a href="{% url 'marketplace:product_detail' product.pk %}" class="chat-header-btn">
+        <i class="bi bi-box-arrow-up-right me-1"></i>View Listing
+      </a>
+      {% if thread.status == 'open' %}
+        <button class="chat-header-btn danger" id="closeThreadBtn">
+          <i class="bi bi-x-circle me-1"></i>Close
+        </button>
+      {% else %}
+        <button class="chat-header-btn" id="reopenThreadBtn">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reopen
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ===== PRODUCT CONTEXT BAR ===== -->
+  <div class="product-context-bar">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="" class="product-ctx-img">
+    {% else %}
+      <div class="product-ctx-img d-flex align-items-center justify-content-center text-success fs-5">
+        <i class="bi bi-basket2"></i>
+      </div>
+    {% endif %}
+    <div>
+      <p class="product-ctx-name">{{ product.name }}</p>
+      <p class="product-ctx-price">UGX {{ product.price|floatformat:0 }} / {{ product.unit }} · {{ product.location }}</p>
+    </div>
+    <a href="{% url 'marketplace:product_detail' product.pk %}" class="product-ctx-link">
+      View Listing <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  <!-- ===== CLOSED BANNER ===== -->
+  {% if thread.status != 'open' %}
+  <div class="closed-banner" id="closedBanner">
+    <i class="bi bi-lock-fill me-2"></i>
+    This negotiation is <strong>{{ thread.status }}</strong>.
+    {% if thread.status == 'closed' %}
+      <button class="btn btn-sm btn-outline-danger ms-2 py-0" id="reopenBannerBtn">Reopen</button>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ===== MESSAGES AREA ===== -->
+  <div class="messages-area" id="messagesArea">
+    {% if messages %}
+      {% for message in messages %}
+      <div class="msg-row {% if message.sender == request.user %}own{% else %}other{% endif %}"
+           data-msg-id="{{ message.pk }}">
+        {% if message.msg_type == 'offer' %}
+          <div class="msg-bubble offer-card">
+            <div class="offer-header">
+              <i class="bi bi-tag-fill"></i> Price Offer
+            </div>
+            <div class="offer-body">
+              <div class="offer-price">UGX {{ message.offer_price|floatformat:0 }}</div>
+              <div class="offer-qty">for {{ message.offer_quantity }} {{ product.unit }}(s)</div>
+              
+              <div class="offer-status-badge {{ message.offer_status }}">
+                {{ message.get_offer_status_display }}
+              </div>
+            </div>
+            
+            {% if message.offer_status == 'pending' and request.user == thread.buyer and thread.status == 'open' %}
+              <div class="offer-actions" data-msg-id="{{ message.pk }}">
+                <button class="btn-reject" onclick="respondToOffer({{ message.pk }}, 'reject')">Reject</button>
+                <button class="btn-accept" onclick="respondToOffer({{ message.pk }}, 'accept')">Accept Deal</button>
+              </div>
+            {% elif message.offer_status == 'accepted' and request.user == thread.buyer and message.deal %}
+              <a href="{% url 'orders:place_order' product.pk %}?deal_id={{ message.deal.pk }}" class="offer-checkout-btn">
+                Proceed to Checkout <i class="bi bi-arrow-right"></i>
+              </a>
+            {% endif %}
+            
+            <div class="px-3 pb-2 text-end">
+              <span class="msg-time" style="display:inline;">{{ message.sent_at|date:"H:i" }}</span>
+            </div>
+          </div>
+        {% else %}
+          <div class="msg-bubble {% if message.msg_type == 'offer_accepted' %}bg-success text-white{% elif message.msg_type == 'offer_rejected' %}bg-danger text-white{% endif %}">
+            {% if message.sender != request.user %}
+              <span class="msg-sender-name {% if message.msg_type != 'text' %}text-light{% endif %}">{{ message.sender.username }}</span>
+            {% endif %}
+            {{ message.content|linebreaksbr }}
+            <span class="msg-time {% if message.msg_type != 'text' %}text-light{% endif %}">{{ message.sent_at|date:"H:i" }}</span>
+          </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="chat-empty" id="emptyState">
+        <i class="bi bi-chat-heart"></i>
+        <p class="fw-semibold mb-1">Start your negotiation</p>
+        <p class="small text-muted">
+          Say hello and make your best offer on<br>
+          <strong>{{ product.name }}</strong> — listed at
+          <span class="text-success fw-bold">UGX {{ product.price|floatformat:0 }}/{{ product.unit }}</span>
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Typing indicator (cosmetic) -->
+    <div class="msg-row other typing-indicator" id="typingIndicator">
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INPUT BAR ===== -->
+  <div class="chat-input-bar">
+    {% if request.user == thread.seller %}
+    <button class="btn text-white rounded-circle flex-shrink-0" id="showOfferModalBtn" title="Make Price Offer" 
+            style="width: 44px; height: 44px; background: #064e3b; display: flex; align-items: center; justify-content: center; border:none;"
+            {% if thread.status != 'open' %}disabled{% endif %}>
+      <i class="bi bi-tag-fill"></i>
+    </button>
+    {% endif %}
+    <textarea
+      id="chatInput"
+      class="chat-input"
+      placeholder="Type your message…"
+      rows="1"
+      {% if thread.status != 'open' %}disabled{% endif %}
+    ></textarea>
+    <button class="chat-send-btn" id="sendBtn"
+            {% if thread.status != 'open' %}disabled{% endif %}
+            title="Send message">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </div>
+
+</div><!-- .chat-wrapper -->
+
+<!-- ===== MAKE OFFER MODAL ===== -->
+{% if request.user == thread.seller %}
+<div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold text-success" id="offerModalLabel"><i class="bi bi-tag-fill me-2"></i>Make an Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-4">Send an official price and quantity offer to the buyer. If they accept, they can immediately place an order at this negotiated rate.</p>
+        
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Price per {{ product.unit }} (UGX)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted">UGX</span>
+            <input type="number" class="form-control form-control-lg" id="offerPrice" placeholder="e.g., {{ product.price|floatformat:0 }}" value="{{ product.price|floatformat:0 }}">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Quantity ({{ product.unit }}s)</label>
+          <input type="number" class="form-control form-control-lg" id="offerQty" placeholder="e.g., 5" value="1" min="1">
+          <div class="form-text">Available stock: {{ product.quantity }} {{ product.unit }}s</div>
+        </div>
+        
+        <button type="button" class="btn btn-success btn-lg w-100 fw-bold rounded-pill" id="submitOfferBtn">Send Offer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+  const THREAD_ID = {{ thread.pk }};
+  const CURRENT_USER_ID = {{ request.user.pk }};
+  const SEND_URL = "{% url 'chat:send_message' thread.pk %}";
+  const POLL_URL = "{% url 'chat:poll_messages' thread.pk %}";
+  const CLOSE_URL = "{% url 'chat:close_thread' thread.pk %}";
+  const REOPEN_URL = "{% url 'chat:reopen_thread' thread.pk %}";
+  const CSRF_TOKEN = "{{ csrf_token }}";
+
+  const messagesArea = document.getElementById('messagesArea');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const emptyState = document.getElementById('emptyState');
+  const typingIndicator = document.getElementById('typingIndicator');
+
+  // Track last message ID for polling delta
+  let lastMessageId = {% if messages %}{{ messages.last.pk|default:0 }}{% else %}0{% endif %};
+  let isThreadOpen = {% if thread.status == 'open' %}true{% else %}false{% endif %};
+  let isSending = false;
+
+  // ---- Auto-scroll to bottom ----
+  function scrollToBottom(smooth = false) {
+    messagesArea.scrollTo({
+      top: messagesArea.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  }
+  scrollToBottom();
+
+  // ---- Auto-resize textarea ----
+  chatInput.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // ---- Build a message bubble DOM element ----
+  function buildBubble(msg) {
+    const row = document.createElement('div');
+    row.className = 'msg-row ' + (msg.is_own ? 'own' : 'other');
+    row.dataset.msgId = msg.id;
+
+    if (msg.msg_type === 'offer') {
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble offer-card';
+      let actionsHtml = '';
+      if (msg.offer_status === 'pending' && CURRENT_USER_ID !== msg.sender_id && isThreadOpen) {
+          actionsHtml = `
+            <div class="offer-actions" data-msg-id="${msg.id}">
+              <button class="btn-reject" onclick="respondToOffer(${msg.id}, 'reject')">Reject</button>
+              <button class="btn-accept" onclick="respondToOffer(${msg.id}, 'accept')">Accept Deal</button>
+            </div>
+          `;
+      } else if (msg.offer_status === 'accepted' && CURRENT_USER_ID !== msg.sender_id && msg.deal_id) {
+          actionsHtml = `
+            <a href="{% url 'orders:place_order' product.pk %}?deal_id=${msg.deal_id}" class="offer-checkout-btn">
+              Proceed to Checkout <i class="bi bi-arrow-right"></i>
+            </a>
+          `;
+      }
+
+      const statusMap = {
+        'pending': 'Pending Response',
+        'accepted': 'Accepted',
+        'rejected': 'Rejected',
+        'superseded': 'Superseded'
+      };
+
+      bubble.innerHTML = `
+        <div class="offer-header">
+          <i class="bi bi-tag-fill"></i> Price Offer
+        </div>
+        <div class="offer-body">
+          <div class="offer-price">UGX ${new Intl.NumberFormat().format(msg.offer_price)}</div>
+          <div class="offer-qty">for ${msg.offer_quantity} {{ product.unit }}(s)</div>
+          <div class="offer-status-badge ${msg.offer_status}">
+            ${statusMap[msg.offer_status] || msg.offer_status}
+          </div>
+        </div>
+        ${actionsHtml}
+        <div class="px-3 pb-2 text-end">
+          <span class="msg-time" style="display:inline;">${msg.sent_at_time}</span>
+        </div>
+      `;
+      row.appendChild(bubble);
+      return row;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    
+    if (msg.msg_type === 'offer_accepted') {
+        bubble.className += ' bg-success text-white';
+    } else if (msg.msg_type === 'offer_rejected') {
+        bubble.className += ' bg-danger text-white';
+    }
+
+    if (!msg.is_own) {
+      const senderName = document.createElement('span');
+      senderName.className = 'msg-sender-name' + (msg.msg_type !== 'text' ? ' text-light' : '');
+      senderName.textContent = msg.sender;
+      bubble.appendChild(senderName);
+    }
+
+    const contentNode = document.createElement('span');
+    contentNode.innerHTML = msg.content.replace(/\n/g, '<br>');
+    bubble.appendChild(contentNode);
+
+    const time = document.createElement('span');
+    time.className = 'msg-time' + (msg.msg_type !== 'text' ? ' text-light' : '');
+    time.textContent = msg.sent_at_time;
+    bubble.appendChild(time);
+
+    row.appendChild(bubble);
+    return row;
+  }
+
+  // ---- Offer Logic ----
+  const offerModalEl = document.getElementById('offerModal');
+  const showOfferModalBtn = document.getElementById('showOfferModalBtn');
+  const submitOfferBtn = document.getElementById('submitOfferBtn');
+  
+  if (showOfferModalBtn && offerModalEl) {
+    const offerModal = new bootstrap.Modal(offerModalEl);
+    showOfferModalBtn.addEventListener('click', () => offerModal.show());
+    
+    submitOfferBtn.addEventListener('click', async () => {
+      const price = document.getElementById('offerPrice').value;
+      const quantity = document.getElementById('offerQty').value;
+      
+      if (!price || !quantity || price <= 0 || quantity <= 0) {
+        alert("Please enter a valid price and quantity.");
+        return;
+      }
+      
+      submitOfferBtn.disabled = true;
+      submitOfferBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+      
+      try {
+        const res = await fetch("{% url 'chat:send_offer' thread.pk %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': CSRF_TOKEN,
+          },
+          body: JSON.stringify({ price, quantity })
+        });
+        
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Failed to send offer');
+        
+        offerModal.hide();
+        document.getElementById('offerPrice').value = "{{ product.price|floatformat:0 }}";
+        document.getElementById('offerQty').value = "1";
+        
+        // Remove empty state if present
+        if (emptyState) emptyState.remove();
+
+        const bubble = buildBubble(data);
+        messagesArea.insertBefore(bubble, typingIndicator);
+        lastMessageId = Math.max(lastMessageId, data.id);
+        scrollToBottom(true);
+        
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        submitOfferBtn.disabled = false;
+        submitOfferBtn.innerHTML = 'Send Offer';
+      }
+    });
+  }
+
+  async function respondToOffer(messageId, action) {
+    try {
+      const res = await fetch(`/chat/offer-respond/${messageId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': CSRF_TOKEN,
+        },
+        body: JSON.stringify({ action })
+      });
+      
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Failed to respond to offer');
+      
+      // Let the polling pick up the status change and new messages, or we can just reload
+      // But polling is better. We can also force a reload for safety.
+      location.reload();
+      
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  // ---- Send a message ----
+  async function sendMessage() {
+    if (isSending || !isThreadOpen) return;
+    const content = chatInput.value.trim();
+    if (!content) return;
+
+    isSending = true;
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch(SEND_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': CSRF_TOKEN,
+        },
+        body: JSON.stringify({ content })
+      });
+
+      if (!res.ok) throw new Error('Send failed');
+
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+
+      // Remove empty state if present
+      if (emptyState) emptyState.remove();
+
+      // Append own bubble before typing indicator
+      const bubble = buildBubble(data);
+      messagesArea.insertBefore(bubble, typingIndicator);
+      lastMessageId = Math.max(lastMessageId, data.id);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      scrollToBottom(true);
+
+    } catch (e) {
+      console.error('Send error:', e);
+    } finally {
+      isSending = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ---- Poll for new messages every 3 seconds ----
+  async function pollMessages() {
+    try {
+      const res = await fetch(`${POLL_URL}?last_id=${lastMessageId}`, {
+        headers: { 'X-CSRFToken': CSRF_TOKEN }
+      });
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (data.messages && data.messages.length > 0) {
+        // Only add messages from the OTHER user (we add our own immediately on send)
+        const newFromOther = data.messages.filter(m => !m.is_own);
+
+        if (newFromOther.length > 0) {
+          if (emptyState) emptyState.remove();
+
+          // Show typing indicator briefly
+          typingIndicator.style.display = 'flex';
+          scrollToBottom(true);
+
+          setTimeout(() => {
+            typingIndicator.style.display = 'none';
+            newFromOther.forEach(msg => {
+              const bubble = buildBubble(msg);
+              messagesArea.insertBefore(bubble, typingIndicator);
+              lastMessageId = Math.max(lastMessageId, msg.id);
+            });
+            scrollToBottom(true);
+          }, 700);
+        }
+
+        // Also update lastMessageId from all messages
+        data.messages.forEach(m => {
+          lastMessageId = Math.max(lastMessageId, m.id);
+        });
+      }
+
+      // Handle thread status change
+      if (data.thread_status && data.thread_status !== 'open' && isThreadOpen) {
+        isThreadOpen = false;
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+        if (!document.getElementById('closedBanner')) {
+          const banner = document.createElement('div');
+          banner.className = 'closed-banner';
+          banner.id = 'closedBanner';
+          banner.innerHTML = '<i class="bi bi-lock-fill me-2"></i>This negotiation has been <strong>closed</strong>.';
+          // Insert after product context bar
+          messagesArea.parentNode.insertBefore(banner, messagesArea);
+        }
+      }
+
+    } catch (e) {
+      // Silently fail — will retry on next poll
+    }
+  }
+
+  // Start polling if thread is open
+  if (isThreadOpen) {
+    setInterval(pollMessages, 3000);
+  }
+
+  // ---- Close thread ----
+  const closeBtn = document.getElementById('closeThreadBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', async function () {
+      if (!confirm('Close this negotiation? The other party will not be able to send messages.')) return;
+      try {
+        const res = await fetch(CLOSE_URL, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': CSRF_TOKEN }
+        });
+        if (res.ok) location.reload();
+      } catch(e) {}
+    });
+  }
+
+  // ---- Reopen thread ----
+  [document.getElementById('reopenThreadBtn'), document.getElementById('reopenBannerBtn')]
+    .filter(Boolean)
+    .forEach(btn => {
+      btn.addEventListener('click', async function () {
+        try {
+          const res = await fetch(REOPEN_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN }
+          });
+          if (res.ok) location.reload();
+        } catch(e) {}
+      });
+    });
+</script>
+{% endblock %}
+{% endblock %}

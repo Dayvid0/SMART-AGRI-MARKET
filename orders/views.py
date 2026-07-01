@@ -5,6 +5,13 @@ from django.utils import timezone
 from .models import Order, OrderItem, DeliveryRequest
 from accounts.models import TransporterProfile
 from marketplace.models import Product
+from notifications.helpers import (
+    notify_new_order,
+    notify_order_status_changed,
+    notify_order_cancelled_by_buyer,
+    notify_delivery_accepted,
+)
+from chat.models import NegotiatedDeal
 import random
 import string
 from datetime import datetime
@@ -118,6 +125,11 @@ def accept_delivery(request, delivery_id):
         delivery.status = 'assigned'
         delivery.assigned_at = timezone.now()
         delivery.save()
+        # Notify farmer and buyer that a transporter has been assigned
+        try:
+            notify_delivery_accepted(delivery)
+        except Exception:
+            pass
         messages.success(request, 'You have accepted this delivery. Contact the farmer to coordinate pickup.')
         return redirect('orders:delivery_detail', delivery_id=delivery_id)
 
@@ -127,7 +139,7 @@ def accept_delivery(request, delivery_id):
 @login_required
 def place_order(request, product_id):
     """
-    Place an order for a single product
+    Place an order for a single product. Handles negotiated deals.
     """
     product = get_object_or_404(Product, pk=product_id, status='available')
     
@@ -135,9 +147,23 @@ def place_order(request, product_id):
     if request.user == product.farmer:
         messages.error(request, 'You cannot order your own products!')
         return redirect('marketplace:product_detail', pk=product_id)
+        
+    deal_id = request.GET.get('deal_id') or request.POST.get('deal_id')
+    deal = None
+    if deal_id:
+        deal = get_object_or_404(NegotiatedDeal, pk=deal_id, thread__buyer=request.user, thread__product=product)
+        if deal.order:
+            messages.error(request, 'This deal has already been used to place an order.')
+            return redirect('marketplace:product_detail', pk=product_id)
     
     if request.method == 'POST':
-        quantity = int(request.POST.get('quantity', 1))
+        if deal:
+            quantity = deal.agreed_quantity
+            unit_price = deal.agreed_price
+        else:
+            quantity = int(request.POST.get('quantity', 1))
+            unit_price = product.price
+            
         delivery_address = request.POST.get('delivery_address')
         delivery_phone = request.POST.get('delivery_phone')
         notes = request.POST.get('notes', '')
@@ -152,7 +178,6 @@ def place_order(request, product_id):
             return redirect('marketplace:product_detail', pk=product_id)
         
         # Calculate total
-        unit_price = product.price
         total_amount = quantity * unit_price
         
         # Create order
@@ -181,11 +206,21 @@ def place_order(request, product_id):
             product.status = 'out_of_stock'
         product.save()
         
+        if deal:
+            deal.order = order
+            deal.save(update_fields=['order'])
+        
+        # Notify the farmer about the new order
+        try:
+            notify_new_order(order)
+        except Exception:
+            pass
         messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
-        return redirect('orders:order_detail', order_id=order.id)  # FIXED
+        return redirect('orders:order_detail', order_id=order.id)
     
     context = {
-        'product': product
+        'product': product,
+        'deal': deal
     }
     return render(request, 'orders/place_order.html', context)
 
@@ -244,6 +279,11 @@ def update_order_status(request, order_id):
         if new_status in dict(Order.STATUS_CHOICES):
             order.status = new_status
             order.save()
+            # Notify buyer about the status change
+            try:
+                notify_order_status_changed(order)
+            except Exception:
+                pass
             messages.success(request, f'Order status updated to {order.get_status_display()}')
         else:
             messages.error(request, 'Invalid status!')
@@ -278,7 +318,11 @@ def cancel_order(request, order_id):
     # Update order status
     order.status = 'cancelled'
     order.save()
-    
+    # Notify farmer that the buyer cancelled
+    try:
+        notify_order_cancelled_by_buyer(order)
+    except Exception:
+        pass
     messages.success(request, 'Order cancelled successfully!')
     return redirect('orders:order_detail', order_id=order_id)  # FIXED
 

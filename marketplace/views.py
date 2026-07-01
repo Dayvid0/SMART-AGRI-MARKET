@@ -661,6 +661,13 @@ def create_review(request, order_id):
         
         # Update farmer's average rating
         update_farmer_rating(order.farmer)
+
+        # Notify farmer about the new review
+        try:
+            from notifications.helpers import notify_new_review
+            notify_new_review(review)
+        except Exception:
+            pass
         
         messages.success(request, 'Review submitted successfully!')
         return redirect('orders:order_detail', order_id=order_id)

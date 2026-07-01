@@ -26,9 +26,15 @@
                                 <h5>{{ product.name }}</h5>
                                 <p class="text-muted">{{ product.description|truncatewords:20 }}</p>
                                 <p class="mb-1">
-                                    <strong>Price:</strong> 
-                                    <span class="text-success">UGX {{ product.price|floatformat:0 }}</span> per {{ product.unit }}
+                                    <strong>Listed Price:</strong> 
+                                    <span class="text-muted text-decoration-line-through">UGX {{ product.price|floatformat:0 }}</span>
                                 </p>
+                                {% if deal %}
+                                <div class="alert alert-success py-2 mt-2 border-success border-2 shadow-sm">
+                                    <h6 class="alert-heading mb-1 fw-bold"><i class="bi bi-tag-fill me-1"></i> Negotiated Deal Applied</h6>
+                                    You and the seller agreed to a special price of <strong>UGX {{ deal.agreed_price|floatformat:0 }}</strong> for <strong>{{ deal.agreed_quantity }} {{ product.unit }}(s)</strong>.
+                                </div>
+                                {% endif %}
                                 <p class="mb-1">
                                     <strong>Available:</strong> {{ product.quantity }} {{ product.unit }}
                                 </p>
@@ -43,22 +49,28 @@
                         <!-- Order Form -->
                         <form method="post" id="orderForm">
                             {% csrf_token %}
+                            {% if deal %}
+                            <input type="hidden" name="deal_id" value="{{ deal.pk }}">
+                            {% endif %}
                             
                             <div class="mb-3">
                                 <label class="form-label">Quantity *</label>
                                 <input 
                                     type="number" 
-                                    class="form-control" 
+                                    class="form-control fw-bold {% if deal %}bg-light{% endif %}" 
                                     name="quantity" 
                                     id="quantity"
                                     min="1" 
                                     max="{{ product.quantity }}"
-                                    value="1"
+                                    value="{% if deal %}{{ deal.agreed_quantity }}{% else %}1{% endif %}"
+                                    {% if deal %}readonly{% endif %}
                                     required
                                 >
+                                {% if not deal %}
                                 <small class="text-muted">
                                     Maximum: {{ product.quantity }} {{ product.unit }}
                                 </small>
+                                {% endif %}
                             </div>
                             
                             <div class="mb-3">
@@ -67,9 +79,9 @@
                                     <span class="input-group-text">UGX</span>
                                     <input 
                                         type="text" 
-                                        class="form-control form-control-lg text-success fw-bold" 
+                                        class="form-control form-control-lg text-success fw-bold bg-light" 
                                         id="totalAmount"
-                                        value="{{ product.price|floatformat:0 }}"
+                                        value=""
                                         readonly
                                     >
                                 </div>
@@ -135,12 +147,24 @@
     // Calculate total amount when quantity changes
     const quantityInput = document.getElementById('quantity');
     const totalAmountInput = document.getElementById('totalAmount');
-    const pricePerUnit = {{ product.price }};
     
-    quantityInput.addEventListener('input', function() {
-        const quantity = parseInt(this.value) || 1;
+    {% if deal %}
+        const pricePerUnit = {{ deal.agreed_price|floatformat:0 }};
+    {% else %}
+        const pricePerUnit = {{ product.price|floatformat:0 }};
+    {% endif %}
+    
+    function calculateTotal() {
+        const quantity = parseInt(quantityInput.value) || 1;
         const total = quantity * pricePerUnit;
         totalAmountInput.value = total.toLocaleString('en-UG', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-    });
+    }
+    
+    {% if not deal %}
+    quantityInput.addEventListener('input', calculateTotal);
+    {% endif %}
+    
+    // Run once on load to set initial value
+    calculateTotal();
 </script>
 {% endblock %}

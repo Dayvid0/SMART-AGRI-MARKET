@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'weather',
     'notifications',
     'django_apscheduler',
+    'chat',
 ]
 
 MIDDLEWARE = [
