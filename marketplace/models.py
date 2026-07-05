@@ -150,8 +150,10 @@ class Product(models.Model):
     @property
     def discounted_price(self):
         """Sale price after applying urgent_discount percentage to the listed price."""
+        from decimal import Decimal
         if self.is_urgent and self.urgent_discount > 0:
-            return self.price * (1 - self.urgent_discount / 100)
+            factor = Decimal(100 - self.urgent_discount) / Decimal(100)
+            return (self.price * factor).quantize(Decimal('0.01'))
         return self.price
     
     class Meta:

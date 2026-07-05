@@ -1505,7 +1505,7 @@ function updateNotificationList(notifications) {
         <li>
             <a class="dropdown-item ${n.read ? '' : 'bg-light'}" 
                href="${n.link || '#'}" 
-               onclick="markAsRead(${n.id}); return false;">
+               onclick="markAsRead(${n.id}, '${n.link || ''}'); return false;">
                 <strong>${n.title}</strong>
                 <p class="mb-0 small">${n.message}</p>
                 <small>${new Date(n.created_at).toLocaleString()}</small>
@@ -1515,14 +1515,20 @@ function updateNotificationList(notifications) {
     `).join('');
 }
 
-function markAsRead(notificationId) {
+function markAsRead(notificationId, link) {
     fetch(`/notifications/api/${notificationId}/read/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}'
         }
     })
-    .then(() => fetchNotifications())
+    .then(() => {
+        if (link && link !== 'null' && link !== '#') {
+            window.location.href = link;
+        } else {
+            fetchNotifications();
+        }
+    })
     .catch(error => console.error('Error marking as read:', error));
 }
 

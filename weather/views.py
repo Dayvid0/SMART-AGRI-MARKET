@@ -1,109 +1,143 @@
 import os
+import json
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.core.cache import cache
 from .models import WeatherAlert, PlantingSeason, PestAlert
 from .services.farming_advisor import FarmingAdvisor
 import requests
-from datetime import datetime, date
+from datetime import datetime
+
 
 def climate_suite(request):
     """
-    Enhanced climate suite dashboard with weather, planting seasons, pest alerts,
-    and intelligent farming recommendations
+    Climate Suite dashboard. Renders the page skeleton IMMEDIATELY —
+    weather data and recommendations are loaded client-side via AJAX
+    so the user never stares at a blank screen.
     """
-    active_alerts = WeatherAlert.objects.filter(
-        is_active=True,
-        end_date__gte=timezone.now()
-    ).order_by('-severity')
-    
+    active_alerts   = WeatherAlert.objects.filter(is_active=True, end_date__gte=timezone.now()).order_by('-severity')
     planting_seasons = PlantingSeason.objects.all()[:6]
-    pest_alerts = PestAlert.objects.filter(is_active=True)[:6]
-    
-    # List of districts for the auto-rotating JavaScript dashboard
+    pest_alerts     = PestAlert.objects.filter(is_active=True)[:6]
+
     featured_districts = ['Kampala', 'Entebbe', 'Mbarara', 'Gulu', 'Jinja', 'Mbale']
-    
-    # Get initial weather for user's location or default to Kampala
-    user_location = request.user.location if request.user.is_authenticated and hasattr(request.user, 'location') and request.user.location else 'Kampala'
-    weather_data = get_weather_data(user_location)
-    
-    # Initialize Farming Advisor
+
+    # Determine user's district for personalisation (no API call at this point)
+    user_district = 'Kampala'
+    if request.user.is_authenticated:
+        user_district = (
+            getattr(request.user, 'district', None)
+            or getattr(request.user, 'location', None)
+            or 'Kampala'
+        )
+
+    # Get zone info (pure Python — instant, no network call)
     advisor = FarmingAdvisor()
-    
-    # Generate intelligent recommendations
-    planting_recommendations = []
-    spray_recommendation = {}
-    daily_activities = []
-    
-    if weather_data:
-        planting_recommendations = advisor.get_planting_recommendations(user_location, weather_data)
-        spray_recommendation = advisor.get_spray_recommendations(user_location, weather_data)
-        daily_activities = advisor.get_daily_activities(weather_data)
-    
-    # Sample harvest predictions (in real app, get from user's planted crops)
-    sample_planted_crops = [
-        {'crop': 'maize', 'planted_date': date(2026, 1, 15)},
-        {'crop': 'beans', 'planted_date': date(2026, 2, 1)},
-    ]
-    harvest_predictions = advisor.get_harvest_predictions(sample_planted_crops)
-    
+    region  = advisor.get_region_for_district(user_district)
+
     context = {
-        'active_alerts': active_alerts,
+        'active_alerts':    active_alerts,
         'planting_seasons': planting_seasons,
-        'pest_alerts': pest_alerts,
-        'weather_data': weather_data,
+        'pest_alerts':      pest_alerts,
         'featured_districts': featured_districts,
-        # New intelligent recommendations
-        'planting_recommendations': planting_recommendations,
-        'spray_recommendation': spray_recommendation,
-        'daily_activities': daily_activities,
-        'harvest_predictions': harvest_predictions,
+        'user_district':    user_district,
+        'region':           region,
     }
-    
     return render(request, 'weather/climate_suite.html', context)
 
+
+@require_GET
 def get_weather_api(request):
     """
-    API endpoint for JavaScript to fetch weather for a specific district
-    Usage: /weather/api/get-weather/?district=Gulu
+    AJAX: Returns weather for a given district.
+    Used by the district cards and the recommendation engine.
+    Cached for 20 minutes per district.
     """
     district = request.GET.get('district', 'Kampala')
-    data = get_weather_data(district)
-    
+    cache_key = f'current_weather_{district.lower().replace(" ", "_")}'
+    data = cache.get(cache_key)
+    if data is None:
+        data = _fetch_weather(district)
+        if data:
+            cache.set(cache_key, data, timeout=1200)  # 20 minutes
+
     if data:
         return JsonResponse(data)
     return JsonResponse({'error': 'Could not fetch weather data'}, status=400)
 
-def get_weather_data(location):
+
+@require_GET
+def get_recommendations_api(request):
     """
-    Fetch weather data from OpenWeatherMap API
+    AJAX: Returns full intelligent recommendations for a district.
+    Called by the frontend after page paint — keeps initial page load instant.
+    Cached for 30 minutes per district (advisor already caches forecast internally).
     """
-    API_KEY = os.environ.get('OPENWEATHER_API_KEY')
+    district = request.GET.get('district', 'Kampala')
+    cache_key = f'full_recs_{district.lower().replace(" ", "_")}'
+    result = cache.get(cache_key)
+
+    if result is None:
+        # Fetch weather first (may come from its own cache)
+        weather = _fetch_weather(district)
+        if not weather:
+            return JsonResponse({'error': 'Weather unavailable'}, status=503)
+
+        # Get active pest alerts from DB
+        active_pest_alerts = list(PestAlert.objects.filter(is_active=True))
+
+        # Get farmer's own crops from marketplace if authenticated
+        farmer_crops = []
+        if request.user.is_authenticated:
+            try:
+                from marketplace.models import Product
+                farmer_crops = list(
+                    Product.objects.filter(farmer=request.user, status='available')
+                    .values_list('name', flat=True)
+                )
+            except Exception:
+                pass
+
+        advisor = FarmingAdvisor()
+        result  = advisor.get_full_recommendations(
+            district=district,
+            weather=weather,
+            active_pest_alerts=active_pest_alerts,
+            farmer_crops=farmer_crops,
+        )
+        # Add weather into result for frontend convenience
+        result['weather'] = weather
+        cache.set(cache_key, result, timeout=1800)  # 30 minutes
+
+    return JsonResponse(result, safe=False)
+
+
+def _fetch_weather(location: str):
+    """Internal helper — fetch current weather from OpenWeatherMap, with caching."""
+    API_KEY  = os.environ.get('OPENWEATHER_API_KEY')
     BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
-    
     try:
-        params = {
+        resp = requests.get(BASE_URL, params={
             'q': f"{location},UG",
             'appid': API_KEY,
             'units': 'metric'
-        }
-        
-        response = requests.get(BASE_URL, params=params, timeout=5)
-        
-        if response.status_code == 200:
-            data = response.json()
+        }, timeout=6)
+        if resp.status_code == 200:
+            d = resp.json()
             return {
-                'temperature': data['main']['temp'],
-                'feels_like': data['main']['feels_like'],
-                'humidity': data['main']['humidity'],
-                'description': data['weather'][0]['description'],
-                'icon': data['weather'][0]['icon'],
-                'wind_speed': data['wind']['speed'],
+                'temperature':  d['main']['temp'],
+                'feels_like':   d['main']['feels_like'],
+                'humidity':     d['main']['humidity'],
+                'description':  d['weather'][0]['description'],
+                'icon':         d['weather'][0]['icon'],
+                'wind_speed':   d['wind']['speed'],
+                'location':     location,
             }
     except Exception as e:
-        print(f"Weather API Error: {e}")
-    
+        print(f"[Weather] API error for {location}: {e}")
     return None
+
 
 def pest_alert_detail(request, pk):
     pest_alert = get_object_or_404(PestAlert, pk=pk)
