@@ -32,7 +32,7 @@ def notify_new_order(order):
             f'{order.items.first().product.name if order.items.exists() else "your product"}. '
             f'Total: UGX {order.total_amount:,.0f}.'
         ),
-        link=f'/orders/{order.id}/',
+        link=f'/orders/detail/{order.id}/',
     )
 
 
@@ -56,7 +56,7 @@ def notify_order_status_changed(order):
             f'Your order from {order.farmer.username} has been updated to '
             f'<strong>{order.get_status_display()}</strong>.'
         ),
-        link=f'/orders/{order.id}/',
+        link=f'/orders/detail/{order.id}/',
     )
 
 
@@ -73,7 +73,7 @@ def notify_order_cancelled_by_buyer(order):
             f'Order #{order.order_number} from {order.buyer.username} has been cancelled. '
             'Your product stock has been restored.'
         ),
-        link=f'/orders/{order.id}/',
+        link=f'/orders/detail/{order.id}/',
     )
 
 
@@ -109,7 +109,7 @@ def notify_delivery_accepted(delivery):
             f'A transporter has been assigned for your Order #{order.order_number}. '
             'Your goods are being prepared for delivery.'
         ),
-        link=f'/orders/{order.id}/',
+        link=f'/orders/detail/{order.id}/',
     )
 
 

@@ -374,6 +374,51 @@ def price_tracker(request):
     return render(request, 'marketplace/price_tracker.html', context)
 
 
+# --- TRANSPORTER VIEWS ---
+
+@login_required
+def transporter_dashboard(request):
+    """
+    Dashboard for transporters to view open delivery requests
+    and manage their assigned deliveries.
+    """
+    if request.user.user_type != 'transporter':
+        messages.error(request, 'Only transporters can access this dashboard.')
+        return redirect('home')
+        
+    from orders.models import DeliveryRequest
+    
+    # Optional: Filter by transporter's districts
+    # TransporterProfile should exist if registered as transporter
+    # tp = getattr(request.user, 'transporter_profile', None)
+    # districts = tp.get_districts_list() if tp else []
+    
+    # Open requests looking for transporters
+    open_requests = DeliveryRequest.objects.filter(status='open').select_related('order', 'order__farmer')
+    
+    # My active/past deliveries
+    my_deliveries = DeliveryRequest.objects.filter(
+        transporter=request.user
+    ).exclude(status='open').select_related('order', 'order__buyer', 'order__farmer').order_by('-created_at')
+    
+    # Quick Stats
+    active_count = my_deliveries.filter(status__in=['assigned', 'in_transit']).count()
+    completed_count = my_deliveries.filter(status='delivered').count()
+    
+    # Sum earnings
+    from django.db.models import Sum
+    earnings = my_deliveries.filter(status='delivered').aggregate(total=Sum('offered_price'))['total'] or 0
+    
+    context = {
+        'open_requests': open_requests,
+        'my_deliveries': my_deliveries,
+        'active_count': active_count,
+        'completed_count': completed_count,
+        'earnings': earnings,
+    }
+    return render(request, 'marketplace/transporter_dashboard.html', context)
+
+
 # --- FARMER MANAGEMENT VIEWS ---
 
 @login_required
@@ -386,12 +431,17 @@ def farmer_dashboard(request):
     products = Product.objects.filter(farmer=request.user)
     orders_received = Order.objects.filter(farmer=request.user).order_by('-created_at')[:5]
     
+    farmer_profile = getattr(request.user, 'farmer_profile', None)
+    total_sales = farmer_profile.total_sales if farmer_profile else 0
+
     context = {
         'products': products,
         'orders_received': orders_received,
         'total_products': products.count(),
         'available_products': products.filter(status='available').count(),
         'pending_orders': Order.objects.filter(farmer=request.user, status='pending').count(),
+        'farmer_profile': farmer_profile,
+        'total_sales': total_sales,
     }
     return render(request, 'marketplace/farmer_dashboard.html', context)
 
@@ -580,36 +630,91 @@ def district_list(request):
 
 def farmer_list(request):
     """
-    Display a list of all registered farmers grouped by region
+    Display a list of all registered farmers grouped by region.
+    Supports search (name/district), region filter, and crop filter.
     """
     from accounts.models import User
-    
+
     # Use imported regions
     REGIONS = UGANDA_REGIONS
-    
-    farmers = User.objects.filter(user_type='farmer').select_related('farmer_profile')
-    
-    farmers_by_region = {region: [] for region in REGIONS.keys()}
-    farmers_by_region['Other'] = []
-    
-    for farmer in farmers:
+
+    # ── Filter parameters ──
+    search_query   = request.GET.get('search', '').strip()
+    region_filter  = request.GET.get('region', '').strip()
+    crop_filter    = request.GET.get('crop', '').strip()
+    rating_filter  = request.GET.get('rating', '').strip()
+
+    farmers_qs = User.objects.filter(user_type='farmer').select_related('farmer_profile')
+
+    # Search by username, district, or farm name
+    if search_query:
+        from django.db.models import Q
+        farmers_qs = farmers_qs.filter(
+            Q(username__icontains=search_query) |
+            Q(district__icontains=search_query) |
+            Q(farmer_profile__farm_name__icontains=search_query) |
+            Q(farmer_profile__specialization__icontains=search_query)
+        )
+
+    # Rating filter (minimum average)
+    if rating_filter:
+        try:
+            min_rating = float(rating_filter)
+            farmers_qs = farmers_qs.filter(farmer_profile__rating_average__gte=min_rating)
+        except ValueError:
+            pass
+
+    # Crop filter
+    if crop_filter:
+        farmers_qs = farmers_qs.filter(farmer_profile__specialization__icontains=crop_filter)
+
+    # Group into regions (respecting optional region filter)
+    farmers_by_region = {}
+    for region in (REGIONS.keys() if not region_filter else [region_filter]):
+        farmers_by_region[region] = []
+    if not region_filter:
+        farmers_by_region['Other'] = []
+
+    for farmer in farmers_qs:
         district = farmer.district
-        placed = False
+        placed   = False
         if district:
             for region, districts in REGIONS.items():
                 if district in districts:
-                    farmers_by_region[region].append(farmer)
+                    if region_filter and region != region_filter:
+                        placed = True  # skip — filtered out
+                        break
+                    farmers_by_region.setdefault(region, []).append(farmer)
                     placed = True
                     break
-        
-        if not placed:
-            farmers_by_region['Other'].append(farmer)
-            
+        if not placed and not region_filter:
+            farmers_by_region.setdefault('Other', []).append(farmer)
+
     # Remove empty regions
     farmers_by_region = {k: v for k, v in farmers_by_region.items() if v}
-    
+
+    # Build distinct crop list for dropdown
+    from accounts.models import FarmerProfile
+    crop_list = (
+        FarmerProfile.objects
+        .exclude(specialization='')
+        .exclude(specialization__isnull=True)
+        .values_list('specialization', flat=True)
+        .distinct()
+        .order_by('specialization')
+    )
+
+    total_farmers = sum(len(v) for v in farmers_by_region.values())
+
     context = {
         'farmers_by_region': farmers_by_region,
+        'region_list':  list(REGIONS.keys()),
+        'crop_list':    list(crop_list),
+        'search_query': search_query,
+        'region_filter': region_filter,
+        'crop_filter':  crop_filter,
+        'rating_filter': rating_filter,
+        'total_farmers': total_farmers,
     }
     return render(request, 'marketplace/farmer_list.html', context)
 

@@ -13,4 +13,7 @@ urlpatterns = [
     path('delivery/request/<int:order_id>/', views.request_delivery, name='request_delivery'),
     path('delivery/<int:delivery_id>/', views.delivery_detail, name='delivery_detail'),
     path('delivery/accept/<int:delivery_id>/', views.accept_delivery, name='accept_delivery'),
+    path('delivery/update-status/<int:delivery_id>/', views.update_delivery_status, name='update_delivery_status'),
+    # Fallback for old notifications
+    path('<int:order_id>/', views.order_detail, name='order_detail_legacy'),
 ]

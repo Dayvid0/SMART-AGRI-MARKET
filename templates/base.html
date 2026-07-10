@@ -10,7 +10,14 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon.png' %}">
     <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}">
-    <meta name="theme-color" content="#1A4331">
+    <meta name="theme-color" content="#000000">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgriMarket">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -910,6 +917,88 @@
             }
         }
 
+        /* ── Mobile-First: Small screens (phones) ── */
+        @media (max-width: 576px) {
+            /* Navbar: tighten spacing so items stay on one line */
+            .navbar {
+                padding: 0.5rem 0;
+            }
+            .navbar-brand {
+                font-size: 1.15rem;
+                gap: 0.4rem;
+            }
+            .navbar-brand i {
+                font-size: 1.4rem;
+            }
+            .navbar .ms-auto {
+                gap: 0 !important;
+            }
+            .navbar .nav-link {
+                padding: 0.4rem 0.5rem !important;
+                margin: 0 0.1rem;
+            }
+            .navbar .nav-link .fs-5 {
+                font-size: 1.1rem !important;
+            }
+            /* Hide text labels in navbar auth buttons on mobile */
+            .navbar .auth-label {
+                display: none;
+            }
+            .navbar .btn {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            /* Notification dropdown: fit on screen */
+            .notification-bell .dropdown-menu {
+                width: calc(100vw - 1.5rem) !important;
+                max-width: 350px;
+                right: -0.5rem !important;
+            }
+
+            /* Cards: less padding */
+            .card-body {
+                padding: 1rem;
+            }
+
+            /* Tables: allow horizontal scroll */
+            .table-responsive-mobile {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Page wrapper: no gap on mobile */
+            .main-content {
+                padding: 0 !important;
+            }
+
+            /* User dropdown: keep compact */
+            .dropdown-toggle.text-neon {
+                font-size: 0.85rem;
+                gap: 0.3rem !important;
+            }
+
+            /* Product images: shorter on mobile */
+            .product-img-main {
+                height: 260px !important;
+            }
+
+            /* Forms: full width inputs */
+            .form-control, .form-select {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* ── Medium phones: extra-small tweaks ── */
+        @media (max-width: 380px) {
+            .navbar-brand span {
+                display: none;
+            }
+            .navbar-brand i {
+                font-size: 1.6rem;
+            }
+        }
+
         /* Selection Highlight */
         ::selection {
             background: var(--crop-fresh);
@@ -1067,7 +1156,7 @@
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                           id="notification-badge" style="display:none;font-size:0.65rem;">0</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" style="width:350px;max-height:500px;overflow-y:auto;">
+                <ul class="dropdown-menu dropdown-menu-end" style="max-width:350px;width:calc(100vw - 1.5rem);max-height:500px;overflow-y:auto;">
                     <li class="dropdown-header">Notifications</li>
                     <li><hr class="dropdown-divider"></li>
                     <div id="notification-list">
@@ -1634,6 +1723,76 @@ notificationInterval = setInterval(fetchNotifications, 30000);
     }
 })();
 </script>
+
+<!-- ── PWA: Service Worker Registration & Install Prompt ── -->
+<script>
+(function() {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then(function(reg) {
+                    console.log('[PWA] Service Worker registered, scope:', reg.scope);
+                })
+                .catch(function(err) {
+                    console.warn('[PWA] Service Worker registration failed:', err);
+                });
+        });
+    }
+
+    // Capture the install prompt
+    let deferredPrompt;
+    const installBanner = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBanner) installBanner.style.display = 'flex';
+    });
+
+    if (installBtn) {
+        installBtn.addEventListener('click', function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function(choiceResult) {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('[PWA] App installed');
+                    }
+                    deferredPrompt = null;
+                    if (installBanner) installBanner.style.display = 'none';
+                });
+            }
+        });
+    }
+
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', function() {
+            if (installBanner) installBanner.style.display = 'none';
+        });
+    }
+
+    // Hide banner if already installed
+    window.addEventListener('appinstalled', function() {
+        if (installBanner) installBanner.style.display = 'none';
+        console.log('[PWA] App was installed');
+    });
+})();
+</script>
+
+<!-- PWA Install Banner (hidden by default, shown when browser offers install) -->
+<div id="pwa-install-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#000; color:#fff; padding:1rem 1.25rem; align-items:center; justify-content:space-between; gap:1rem; font-family:'DM Sans',sans-serif; box-shadow:0 -4px 24px rgba(0,0,0,0.3); border-top:2px solid #00D084;">
+    <div style="display:flex; align-items:center; gap:0.75rem; flex:1;">
+        <img src="{% static 'images/icon-192x192.png' %}" alt="App Icon" style="width:40px; height:40px; border-radius:10px;">
+        <div>
+            <div style="font-weight:700; font-size:0.95rem;">Install Smart Agri Market</div>
+            <div style="font-size:0.8rem; color:rgba(255,255,255,0.6);">Add to home screen for quick access</div>
+        </div>
+    </div>
+    <button id="pwa-install-btn" style="background:#00D084; color:#000; border:none; padding:0.6rem 1.25rem; border-radius:10px; font-weight:700; font-size:0.85rem; cursor:pointer; white-space:nowrap;">Install</button>
+    <button id="pwa-dismiss-btn" style="background:none; border:none; color:rgba(255,255,255,0.4); font-size:1.25rem; cursor:pointer; padding:0.25rem;">&times;</button>
+</div>
 
 </body>
 </html>

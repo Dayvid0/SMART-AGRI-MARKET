@@ -4,6 +4,38 @@
 
 {% block content %}
 
+{% block extra_css %}
+<style>
+    .product-img-main {
+        height: 450px;
+        object-fit: cover;
+    }
+    .product-img-placeholder {
+        height: 450px;
+    }
+    @media (max-width: 768px) {
+        .product-img-main {
+            height: 280px;
+        }
+        .product-img-placeholder {
+            height: 280px;
+        }
+        .product-detail-section {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+    }
+    @media (max-width: 576px) {
+        .product-img-main {
+            height: 220px;
+        }
+        .product-img-placeholder {
+            height: 220px;
+        }
+    }
+</style>
+{% endblock %}
+
 <section class="bg-light py-3">
     <div class="container">
         <nav aria-label="breadcrumb">
@@ -16,15 +48,15 @@
     </div>
 </section>
 
-<section class="py-5">
+<section class="py-5 product-detail-section">
     <div class="container">
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="card shadow-sm border-0">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top rounded" alt="{{ product.name }}" id="mainImage" style="height: 450px; object-fit: cover;">
+                        <img src="{{ product.image.url }}" class="card-img-top rounded product-img-main" alt="{{ product.name }}" id="mainImage">
                     {% else %}
-                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 450px;">
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center product-img-placeholder">
                             <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
                         </div>
                     {% endif %}

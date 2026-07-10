@@ -110,6 +110,20 @@
         color: #9ca3af;
     }
     .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; }
+
+    /* Mobile: tighter price table */
+    @media (max-width: 768px) {
+        .mp-hero { padding: 2rem 0 2.5rem; }
+        .mp-hero h1 { font-size: 1.6rem; }
+        .price-table thead th { padding: 0.55rem 0.6rem; font-size: 0.7rem; }
+        .price-table td { padding: 0.6rem 0.6rem; font-size: 0.82rem; }
+        .source-pill { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+        .tip-box { font-size: 0.85rem; padding: 0.8rem; }
+    }
+    @media (max-width: 576px) {
+        .filter-bar .form-control,
+        .filter-bar .form-select { font-size: 0.85rem; }
+    }
 </style>
 {% endblock %}
 

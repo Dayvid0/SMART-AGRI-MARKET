@@ -31,6 +31,9 @@ class LoginRequiredMiddleware:
             '/accounts/login/',
             '/accounts/register/',
             '/accounts/password-reset/',
+            '/sw.js',          # PWA service worker
+            '/manifest.json',  # PWA manifest
+            '/offline/',       # PWA offline page
         ]
         
         path = request.path_info

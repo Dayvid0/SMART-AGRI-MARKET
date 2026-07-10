@@ -125,15 +125,46 @@ def accept_delivery(request, delivery_id):
         delivery.status = 'assigned'
         delivery.assigned_at = timezone.now()
         delivery.save()
-        # Notify farmer and buyer that a transporter has been assigned
+        
+        # Notify farmer and buyer
         try:
             notify_delivery_accepted(delivery)
         except Exception:
             pass
+            
         messages.success(request, 'You have accepted this delivery. Contact the farmer to coordinate pickup.')
         return redirect('orders:delivery_detail', delivery_id=delivery_id)
-
+        
     return render(request, 'orders/accept_delivery_confirm.html', {'delivery': delivery})
+
+
+@login_required
+def update_delivery_status(request, delivery_id):
+    """Transporter updates delivery status (assigned -> in_transit -> delivered)"""
+    delivery = get_object_or_404(DeliveryRequest, pk=delivery_id)
+    
+    if request.user != delivery.transporter:
+        messages.error(request, 'You do not have permission to update this delivery.')
+        return redirect('marketplace:transporter_dashboard')
+        
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        valid_statuses = ['assigned', 'in_transit', 'delivered']
+        
+        if new_status in valid_statuses:
+            delivery.status = new_status
+            if new_status == 'delivered':
+                delivery.delivered_at = timezone.now()
+                # Auto-complete the order
+                order = delivery.order
+                order.status = 'completed'
+                order.save()
+            delivery.save()
+            messages.success(request, f'Delivery status updated to {delivery.get_status_display()}.')
+        else:
+            messages.error(request, 'Invalid status update.')
+            
+    return redirect('marketplace:transporter_dashboard')
 
 
 @login_required

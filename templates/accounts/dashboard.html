@@ -286,6 +286,36 @@
                 </div>
                 {% endif %}
             </div>
+            {% elif user.user_type == 'transporter' %}
+            <!-- Transporter Overview -->
+            <div class="dash-card">
+                <div class="dash-card-title">
+                    <i class="bi bi-truck"></i> Transporter Overview
+                    {% if not transporter_profile %}
+                    <span class="badge bg-warning text-dark ms-auto" style="font-weight:600;">Incomplete</span>
+                    {% endif %}
+                </div>
+                
+                {% if transporter_profile %}
+                <div class="farm-stats">
+                    <div class="stat-box">
+                        <div class="stat-value">{{ transporter_profile.get_vehicle_type_display }}</div>
+                        <div class="stat-label">Vehicle Type</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ transporter_profile.capacity_kg|floatformat:0 }} kg</div>
+                        <div class="stat-label">Capacity</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 text-center bg-light rounded-3">
+                    <div class="mb-3 text-secondary"><i class="bi bi-truck fs-3"></i></div>
+                    <h5>Complete your profile</h5>
+                    <p class="text-secondary small">Add your vehicle details to start accepting deliveries.</p>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-success btn-sm rounded-pill px-4">Setup Profile</a>
+                </div>
+                {% endif %}
+            </div>
             {% endif %}
 
             <!-- Personal Info -->
@@ -329,11 +359,11 @@
             </a>
 
             {% if user.user_type == 'farmer' %}
-            <a href="#" class="action-card ac-green">
-                <div class="action-icon"><i class="bi bi-plus-lg"></i></div>
+            <a href="{% url 'marketplace:farmer_dashboard' %}" class="action-card ac-green">
+                <div class="action-icon"><i class="bi bi-shop"></i></div>
                 <div class="action-info">
-                    <h6>Add Product</h6>
-                    <p>List new crop for sale</p>
+                    <h6>Seller Dashboard</h6>
+                    <p>Manage your products</p>
                 </div>
             </a>
 
@@ -342,6 +372,14 @@
                 <div class="action-info">
                     <h6>Market Prices</h6>
                     <p>Check live daily rates</p>
+                </div>
+            </a>
+            {% elif user.user_type == 'transporter' %}
+            <a href="{% url 'marketplace:transporter_dashboard' %}" class="action-card ac-green">
+                <div class="action-icon"><i class="bi bi-truck"></i></div>
+                <div class="action-info">
+                    <h6>Transporter Dashboard</h6>
+                    <p>Find and manage deliveries</p>
                 </div>
             </a>
             {% endif %}

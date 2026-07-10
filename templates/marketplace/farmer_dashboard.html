@@ -1,194 +1,826 @@
 {% extends 'base.html' %}
 
-{% block title %}Farmer Dashboard - Smart Agricultural Marketplace{% endblock %}
+{% block title %}Farmer Dashboard — AgriMarket Uganda{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════
+   FARMER DASHBOARD — REDESIGN
+   ══════════════════════════════════════════ */
+
+/* ── Page wrapper ── */
+.fd-page {
+    padding: 2rem 0 4rem;
+    background: #f4f6f9;
+    min-height: 100vh;
+}
+
+/* ── HEADER CARD ── */
+.fd-header-card {
+    background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+    border-radius: 20px;
+    padding: 2rem 2.25rem 1.75rem;
+    box-shadow: 0 8px 32px rgba(6,78,59,0.22);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle watermark pattern */
+.fd-header-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300D084' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+}
+
+/* Bottom green accent bar — contained & intentional */
+.fd-header-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00D084, #16a34a);
+    border-radius: 0 0 20px 20px;
+}
+
+.fd-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00D084, #16a34a);
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 800;
+    font-family: 'Archivo', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0,208,132,0.35);
+    overflow: hidden;
+}
+
+.fd-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.fd-header-text .fd-greeting {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.25rem;
+}
+
+.fd-header-text .fd-email {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+}
+
+.fd-header-text .fd-joined {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.38);
+    margin-top: 0.2rem;
+}
+
+/* Role badge — primary, brand pill */
+.badge-role {
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0.3em 0.75em;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+/* Verify CTA — brand green, inviting */
+.badge-verify {
+    background: #00D084;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.35em 0.9em;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 2px 10px rgba(0,208,132,0.4);
+}
+.badge-verify:hover {
+    background: #00b872;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,208,132,0.5);
+}
+.badge-verify:active { transform: translateY(0); }
+
+/* Verified badge */
+.badge-verified {
+    background: rgba(0,208,132,0.15);
+    color: #00D084;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.35em 0.9em;
+    border-radius: 20px;
+    border: 1px solid rgba(0,208,132,0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Edit profile button */
+.btn-edit-profile {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.55rem 1.2rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.btn-edit-profile:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+}
+
+/* ── SECTION LABEL ── */
+.fd-section-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.fd-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* ── FARM INFO CARDS (Group A) ── */
+.fd-info-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.fd-info-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.fd-info-card .fd-card-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7280;
+}
+.fd-info-card .fd-card-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    font-family: 'Archivo', sans-serif;
+}
+
+/* ── PERFORMANCE CARDS (Group B) ── */
+.fd-perf-card {
+    background: linear-gradient(135deg, #064e3b, #0f2d1e);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 16px rgba(6,78,59,0.18);
+}
+.fd-perf-card.perf-sales { background: linear-gradient(135deg, #064e3b, #0f2d1e); }
+.fd-perf-card.perf-listings { background: linear-gradient(135deg, #1e40af, #0f172a); }
+.fd-perf-card.perf-orders { background: linear-gradient(135deg, #7c2d12, #1c0a05); }
+
+.fd-perf-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.fd-perf-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.6);
+}
+.fd-perf-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    font-family: 'Archivo', sans-serif;
+}
+.fd-perf-empty {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+    margin-top: 0.1rem;
+}
+.fd-perf-cta {
+    font-size: 0.72rem;
+    color: #00D084;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.fd-perf-cta:hover { color: #00b872; text-decoration: underline; }
+
+/* ── PERSONAL DETAILS ── */
+.fd-details-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.fd-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 1rem;
+}
+.fd-detail-row:last-child { border-bottom: none; }
+.fd-detail-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #374151;
+    white-space: nowrap;
+    min-width: 90px;
+}
+.fd-detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+    text-align: right;
+    word-break: break-word;
+}
+.fd-detail-empty {
+    font-size: 0.85rem;
+    color: #00D084;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.2s;
+}
+.fd-detail-empty:hover { color: #00b872; }
+
+/* ── QUICK ACCESS PANEL ── */
+.fd-sidebar-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.fd-sidebar-title {
+    padding: 1.1rem 1.25rem 0.85rem;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+.fd-quick-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid #f9fafb;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+.fd-quick-link:last-of-type { border-bottom: none; }
+.fd-quick-link:hover { background: #f9fafb; }
+.fd-quick-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+/* Functional color logic */
+.icon-blue   { background: #eff6ff; color: #2563eb; }
+.icon-green  { background: #f0fdf4; color: #16a34a; }
+.icon-purple { background: #faf5ff; color: #7c3aed; }
+.icon-orange { background: #fff7ed; color: #ea580c; }
+
+.fd-quick-text strong {
+    font-size: 0.88rem;
+    color: #111827;
+    display: block;
+    font-weight: 700;
+}
+.fd-quick-text span {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Logout — separated and subdued */
+.fd-logout-area {
+    border-top: 2px solid #f3f4f6;
+    padding: 0.75rem 1.25rem;
+    margin-top: 0.5rem;
+}
+.fd-logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    background: none;
+    border: 1.5px solid #fee2e2;
+    border-radius: 10px;
+    color: #dc2626;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.fd-logout-btn:hover { background: #fef2f2; }
+
+/* ── PRODUCTS TABLE ── */
+.fd-table-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.fd-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.5rem 0.85rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+.fd-table-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.fd-table-title i { color: #16a34a; }
+
+.table-fd { margin-bottom: 0; }
+.table-fd thead th {
+    background: #f9fafb;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.65rem 1rem;
+}
+.table-fd tbody td {
+    font-size: 0.88rem;
+    color: #374151;
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-color: #f3f4f6;
+}
+.table-fd tbody tr:hover { background: #f9fafb; }
+
+/* Status badges */
+.status-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25em 0.7em;
+    border-radius: 20px;
+}
+.status-available  { background: #dcfce7; color: #166534; }
+.status-outofstock { background: #fee2e2; color: #991b1b; }
+.status-other      { background: #f3f4f6; color: #374151; }
+
+/* ── RECENT ORDERS LIST ── */
+.fd-order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.fd-order-item:last-child { border-bottom: none; }
+.fd-order-item:hover { background: #f9fafb; }
+.fd-order-num { font-size: 0.88rem; font-weight: 700; color: #111827; }
+.fd-order-buyer { font-size: 0.75rem; color: #9ca3af; }
+.status-pill-pending   { background: #fef3c7; color: #92400e; }
+.status-pill-completed { background: #dcfce7; color: #166534; }
+.status-pill-default   { background: #eff6ff; color: #1e40af; }
+
+/* ── EMPTY STATES ── */
+.fd-empty {
+    text-align: center;
+    padding: 3.5rem 1.5rem;
+}
+.fd-empty i { font-size: 3rem; color: #d1d5db; }
+.fd-empty p { font-size: 0.9rem; color: #9ca3af; margin-top: 0.75rem; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .fd-header-card { padding: 1.5rem 1.25rem 1.25rem; }
+    .fd-detail-row { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+    .fd-detail-value, .fd-detail-empty { text-align: left; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="fd-page">
+<div class="container" style="max-width: 1100px;">
 
-<section class="py-5">
-    <div class="container">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2><i class="bi bi-speedometer2"></i> Farmer Dashboard</h2>
-                <p class="text-muted mb-0">Welcome back, {{ user.username }}!</p>
+    {# ══ HEADER CARD ══ #}
+    <div class="fd-header-card mb-4">
+        <div class="d-flex align-items-start gap-3 flex-wrap">
+            {# Avatar #}
+            <div class="fd-avatar">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                {% else %}
+                    {{ user.username|first|upper }}
+                {% endif %}
             </div>
-            <a href="{% url 'marketplace:add_product' %}" class="btn btn-success btn-lg">
-                <i class="bi bi-plus-circle"></i> Add New Product
-            </a>
-        </div>
-        
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 mb-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-box-seam text-success" style="font-size: 2.5rem;"></i>
-                        <h3 class="mt-2">{{ total_products }}</h3>
-                        <p class="text-muted mb-0">Total Products</p>
-                    </div>
+
+            {# Name + badges #}
+            <div class="fd-header-text flex-grow-1">
+                {# Role + Verify row #}
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="badge-role">Farmer Account</span>
+                    {% if user.is_verified %}
+                        <span class="badge-verified"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                    {% else %}
+                        <a href="{% url 'accounts:submit_verification' %}" class="badge-verify">
+                            <i class="bi bi-shield-check"></i> Get Verified
+                        </a>
+                    {% endif %}
                 </div>
+                <h1 class="fd-greeting">Hi, {{ user.first_name|default:user.username|title }}!</h1>
+                <div class="fd-email"><i class="bi bi-envelope me-1"></i>{{ user.email }}</div>
+                <div class="fd-joined">Member since {{ user.date_joined|date:"M Y" }}</div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
-                        <h3 class="mt-2">{{ available_products }}</h3>
-                        <p class="text-muted mb-0">Available Products</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem;"></i>
-                        <h3 class="mt-2">{{ pending_orders }}</h3>
-                        <p class="text-muted mb-0">Pending Orders</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <!-- Products List -->
-            <div class="col-md-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-grid"></i> My Products</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if products %}
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for product in products %}
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                {% if product.image %}
-                                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
-                                                {% endif %}
-                                                <div>
-                                                    <strong>{{ product.name }}</strong><br>
-                                                    <small class="text-muted">{{ product.category.name }}</small>
-                                                    {% if product.is_urgent %}
-                                                        <span class="badge bg-warning text-dark">URGENT</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>UGX {{ product.price|floatformat:0 }}</td>
-                                        <td>{{ product.quantity }} {{ product.unit }}</td>
-                                        <td>
-                                            {% if product.status == 'available' %}
-                                                <span class="badge bg-success">Available</span>
-                                            {% elif product.status == 'out_of_stock' %}
-                                                <span class="badge bg-danger">Out of Stock</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Discontinued</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'marketplace:edit_product' product.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{% url 'marketplace:delete_product' product.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-5">
-                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                            <p class="text-muted mt-3">You haven't added any products yet.</p>
-                            <a href="{% url 'marketplace:add_product' %}" class="btn btn-success">
-                                <i class="bi bi-plus-circle"></i> Add Your First Product
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recent Orders -->
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="bi bi-cart-check"></i> Recent Orders</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if orders_received %}
-                        <div class="list-group list-group-flush">
-                            {% for order in orders_received %}
-                            <a href="{% url 'orders:order_detail' order.id %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>#{{ order.order_number }}</strong><br>
-                                        <small class="text-muted">{{ order.buyer.username }}</small>
-                                    </div>
-                                    {% if order.status == 'pending' %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    {% elif order.status == 'completed' %}
-                                        <span class="badge bg-success">Completed</span>
-                                    {% else %}
-                                        <span class="badge bg-info">{{ order.get_status_display }}</span>
-                                    {% endif %}
-                                </div>
-                                <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
-                            </a>
-                            {% endfor %}
-                        </div>
-                        <div class="card-footer text-center">
-                            <a href="{% url 'orders:my_orders' %}" class="btn btn-sm btn-outline-primary">
-                                View All Orders
-                            </a>
-                        </div>
-                        {% else %}
-                        <div class="text-center py-4">
-                            <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
-                            <p class="text-muted mb-0 mt-2">No orders yet</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Quick Links -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="bi bi-link"></i> Quick Links</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'marketplace:add_product' %}" class="btn btn-outline-success">
-                                <i class="bi bi-plus-circle"></i> Add Product
-                            </a>
-                            <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-cart"></i> My Orders
-                            </a>
-                            <a href="{% url 'marketplace:market_prices' %}" class="btn btn-outline-info">
-                                <i class="bi bi-graph-up"></i> Market Prices
-                            </a>
-                            <a href="{% url 'marketplace:farmer_reviews' user.id %}" class="btn btn-outline-warning">
-                                <i class="bi bi-star"></i> My Reviews
-                            </a>
-                        </div>
-                    </div>
-                </div>
+
+            {# Edit profile CTA #}
+            <div class="ms-auto mt-1">
+                <a href="{% url 'accounts:edit_profile' %}" class="btn-edit-profile">
+                    <i class="bi bi-pencil-square"></i> Edit Profile
+                </a>
             </div>
         </div>
     </div>
-</section>
 
+    <div class="row g-4">
+        {# ══ MAIN COLUMN ══ #}
+        <div class="col-lg-8">
+
+            {# ── Group A: Farm Info ── #}
+            <div class="fd-section-label mb-2"><i class="bi bi-house-heart text-success"></i> Farm Info</div>
+            {% if farmer_profile %}
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-sm-4">
+                    <div class="fd-info-card">
+                        <span class="fd-card-label">Farm Name</span>
+                        <span class="fd-card-value">{{ farmer_profile.farm_name|default:"—" }}</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <div class="fd-info-card">
+                        <span class="fd-card-label">Primary Crop</span>
+                        <span class="fd-card-value">{{ farmer_profile.specialization|default:"—" }}</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <div class="fd-info-card">
+                        <span class="fd-card-label">Farm Size</span>
+                        <span class="fd-card-value">{{ farmer_profile.farm_size }} ac</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ── Group B: Performance ── #}
+            <div class="fd-section-label mb-2"><i class="bi bi-bar-chart-line text-primary"></i> Performance</div>
+            <div class="row g-3 mb-4">
+                {# Total Sales #}
+                <div class="col-12 col-sm-4">
+                    <div class="fd-perf-card perf-sales h-100">
+                        <div class="fd-perf-icon"><i class="bi bi-currency-dollar"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fd-perf-label">Total Sales</div>
+                            {% if total_sales > 0 %}
+                                <div class="fd-perf-value">UGX {{ total_sales|floatformat:0 }}</div>
+                            {% else %}
+                                <div class="fd-perf-value" style="font-size:1rem;">No sales yet</div>
+                                <a href="{% url 'marketplace:add_product' %}" class="fd-perf-cta">
+                                    <i class="bi bi-plus-circle"></i> List your first product
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {# Active Listings #}
+                <div class="col-6 col-sm-4">
+                    <div class="fd-perf-card perf-listings h-100">
+                        <div class="fd-perf-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+                        <div>
+                            <div class="fd-perf-label">Active Listings</div>
+                            <div class="fd-perf-value">{{ available_products }}</div>
+                        </div>
+                    </div>
+                </div>
+                {# Pending Orders #}
+                <div class="col-6 col-sm-4">
+                    <div class="fd-perf-card perf-orders h-100">
+                        <div class="fd-perf-icon"><i class="bi bi-clock-history"></i></div>
+                        <div>
+                            <div class="fd-perf-label">Pending Orders</div>
+                            <div class="fd-perf-value">{{ pending_orders }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Personal Details ── #}
+            <div class="fd-section-label mb-2"><i class="bi bi-person text-secondary"></i> Personal Details</div>
+            <div class="fd-details-card mb-4">
+                <div class="fd-detail-row">
+                    <span class="fd-detail-label">Username</span>
+                    <span class="fd-detail-value">{{ user.username }}</span>
+                </div>
+                <div class="fd-detail-row">
+                    <span class="fd-detail-label">Phone</span>
+                    {% if user.phone %}
+                        <span class="fd-detail-value">{{ user.phone }}</span>
+                    {% else %}
+                        <a href="{% url 'accounts:edit_profile' %}?tab=personal" class="fd-detail-empty">
+                            <i class="bi bi-plus-circle-fill"></i> Add phone number
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="fd-detail-row">
+                    <span class="fd-detail-label">WhatsApp</span>
+                    {% if user.whatsapp_number %}
+                        <span class="fd-detail-value">{{ user.whatsapp_number }}</span>
+                    {% else %}
+                        <a href="{% url 'accounts:edit_profile' %}?tab=personal" class="fd-detail-empty">
+                            <i class="bi bi-plus-circle-fill"></i> Add WhatsApp number
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="fd-detail-row">
+                    <span class="fd-detail-label">Location</span>
+                    {% if user.location %}
+                        <span class="fd-detail-value">{{ user.location }}</span>
+                    {% else %}
+                        <a href="{% url 'accounts:edit_profile' %}?tab=personal" class="fd-detail-empty">
+                            <i class="bi bi-plus-circle-fill"></i> Add location
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="fd-detail-row">
+                    <span class="fd-detail-label">District</span>
+                    {% if user.district %}
+                        <span class="fd-detail-value">{{ user.district }}</span>
+                    {% else %}
+                        <a href="{% url 'accounts:edit_profile' %}?tab=personal" class="fd-detail-empty">
+                            <i class="bi bi-plus-circle-fill"></i> Add district
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ── My Products ── #}
+            <div class="fd-section-label mb-2"><i class="bi bi-box-seam text-success"></i> My Products</div>
+            <div class="fd-table-card">
+                <div class="fd-table-header">
+                    <span class="fd-table-title"><i class="bi bi-grid"></i> Product Listings</span>
+                    <a href="{% url 'marketplace:add_product' %}" class="btn btn-sm btn-success" style="border-radius:8px;font-size:.8rem;font-weight:700;">
+                        <i class="bi bi-plus-lg"></i> Add New
+                    </a>
+                </div>
+                {% if products %}
+                <div class="table-responsive">
+                    <table class="table table-fd">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                                 style="width:40px;height:40px;object-fit:cover;border-radius:8px;">
+                                        {% endif %}
+                                        <div>
+                                            <strong style="font-size:.9rem;color:#111827;">{{ product.name }}</strong><br>
+                                            <small style="color:#9ca3af;">{{ product.category.name }}</small>
+                                            {% if product.is_urgent %}
+                                                <span class="ms-1 status-pill" style="background:#fee2e2;color:#991b1b;">Urgent</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>UGX {{ product.price|floatformat:0 }}</td>
+                                <td>{{ product.quantity }} {{ product.unit }}</td>
+                                <td>
+                                    {% if product.status == 'available' %}
+                                        <span class="status-pill status-available">Available</span>
+                                    {% elif product.status == 'out_of_stock' %}
+                                        <span class="status-pill status-outofstock">Out of Stock</span>
+                                    {% else %}
+                                        <span class="status-pill status-other">{{ product.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'marketplace:edit_product' product.pk %}"
+                                           class="btn btn-sm" style="border:1.5px solid #e5e7eb;border-radius:8px;color:#374151;" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'marketplace:delete_product' product.pk %}"
+                                           class="btn btn-sm" style="border:1.5px solid #fee2e2;border-radius:8px;color:#dc2626;" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="fd-empty">
+                    <i class="bi bi-inbox"></i>
+                    <p>No products listed yet.</p>
+                    <a href="{% url 'marketplace:add_product' %}" class="btn btn-success mt-2" style="border-radius:10px;font-weight:700;">
+                        <i class="bi bi-plus-circle"></i> Add Your First Product
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {# ══ SIDEBAR ══ #}
+        <div class="col-lg-4">
+
+            {# Quick Access #}
+            <div class="fd-sidebar-card mb-4">
+                <div class="fd-sidebar-title">Quick Access</div>
+
+                <a href="{% url 'orders:my_orders' %}" class="fd-quick-link">
+                    <div class="fd-quick-icon icon-blue"><i class="bi bi-bag-check-fill"></i></div>
+                    <div class="fd-quick-text">
+                        <strong>My Orders</strong>
+                        <span>Track purchases &amp; sales</span>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto" style="color:#d1d5db;font-size:.8rem;"></i>
+                </a>
+
+                <a href="{% url 'marketplace:add_product' %}" class="fd-quick-link">
+                    <div class="fd-quick-icon icon-green"><i class="bi bi-plus-circle-fill"></i></div>
+                    <div class="fd-quick-text">
+                        <strong>Add Product</strong>
+                        <span>List new crop for sale</span>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto" style="color:#d1d5db;font-size:.8rem;"></i>
+                </a>
+
+                <a href="{% url 'marketplace:market_prices' %}" class="fd-quick-link">
+                    <div class="fd-quick-icon icon-orange"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="fd-quick-text">
+                        <strong>Market Prices</strong>
+                        <span>Check live daily rates</span>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto" style="color:#d1d5db;font-size:.8rem;"></i>
+                </a>
+
+                <a href="{% url 'news:news_list' %}" class="fd-quick-link">
+                    <div class="fd-quick-icon icon-purple"><i class="bi bi-newspaper"></i></div>
+                    <div class="fd-quick-text">
+                        <strong>Agri-Pulse</strong>
+                        <span>Latest farming news</span>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto" style="color:#d1d5db;font-size:.8rem;"></i>
+                </a>
+
+                <a href="{% url 'marketplace:farmer_reviews' user.id %}" class="fd-quick-link">
+                    <div class="fd-quick-icon icon-orange"><i class="bi bi-star-fill"></i></div>
+                    <div class="fd-quick-text">
+                        <strong>My Reviews</strong>
+                        <span>See what buyers say</span>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto" style="color:#d1d5db;font-size:.8rem;"></i>
+                </a>
+
+                {# Log Out — separated #}
+                <div class="fd-logout-area">
+                    <form action="{% url 'accounts:logout' %}" method="post" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="fd-logout-btn">
+                            <i class="bi bi-box-arrow-right"></i> Log Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {# Recent Orders #}
+            <div class="fd-sidebar-card">
+                <div class="fd-sidebar-title">Recent Sales Orders</div>
+                {% if orders_received %}
+                    {% for order in orders_received %}
+                    <a href="{% url 'orders:order_detail' order.id %}" class="fd-order-item">
+                        <div>
+                            <div class="fd-order-num">#{{ order.order_number }}</div>
+                            <div class="fd-order-buyer">{{ order.buyer.username }}</div>
+                        </div>
+                        {% if order.status == 'pending' %}
+                            <span class="status-pill status-pill-pending">Pending</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="status-pill status-pill-completed">Completed</span>
+                        {% else %}
+                            <span class="status-pill status-pill-default">{{ order.get_status_display }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                    <div style="padding:0.75rem 1.25rem;border-top:1px solid #f3f4f6;">
+                        <a href="{% url 'orders:my_orders' %}" class="btn btn-sm w-100"
+                           style="border:1.5px solid #e5e7eb;border-radius:8px;color:#374151;font-size:.82rem;font-weight:700;">
+                            View All Orders <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="fd-empty" style="padding:2rem 1.25rem;">
+                        <i class="bi bi-inbox" style="font-size:2rem;"></i>
+                        <p style="font-size:.82rem;">No orders received yet</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</div>
 {% endblock %}

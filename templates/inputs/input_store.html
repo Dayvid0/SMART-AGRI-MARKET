@@ -1,133 +1,657 @@
 {% extends 'base.html' %}
 
-{% block title %}Input Store - Smart Agricultural Marketplace{% endblock %}
+{% block title %}Agricultural Input Store — AgriMarket Uganda{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════
+   INPUT STORE — REDESIGN
+   ══════════════════════════════════════════ */
+
+/* ── Page background ── */
+.is-page { background: #f4f6f9; min-height: 100vh; }
+
+/* ── HEADER ── */
+.is-header {
+    background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+    padding: 2rem 0 1.75rem;
+    position: relative;
+    overflow: hidden;
+}
+.is-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300D084' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+}
+.is-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00D084, #16a34a);
+}
+.is-header h1 {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.is-header h1 .header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(0,208,132,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00D084;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.is-header p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
+/* ── GROUP BUY BANNER ── */
+.is-groupbuy-banner {
+    background: linear-gradient(90deg, #78350f, #92400e);
+    border-bottom: 2px solid #d97706;
+}
+.is-groupbuy-banner .banner-pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fef3c7;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2em 0.65em;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* ── SEARCH & FILTER BAR ── */
+.is-filterbar {
+    background: #fff;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.is-search-input {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px 0 0 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    color: #111827;
+    flex: 1;
+    min-width: 0;
+    transition: border-color 0.2s;
+}
+.is-search-input:focus {
+    outline: none;
+    border-color: #00D084;
+    box-shadow: 0 0 0 3px rgba(0,208,132,0.1);
+}
+.is-search-btn {
+    background: #00D084;
+    border: 2px solid #00D084;
+    border-radius: 0 10px 10px 0;
+    color: #fff;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.is-search-btn:hover { background: #00b872; }
+
+.is-select {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    color: #374151;
+    background: #fff;
+    transition: border-color 0.2s;
+    height: 100%;
+}
+.is-select:focus { border-color: #00D084; outline: none; }
+
+/* Results count */
+.is-results-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* ── PRODUCT GRID ── */
+.is-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* ── PRODUCT CARD ── */
+.is-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.is-card:hover {
+    border-color: #00D084;
+    box-shadow: 0 8px 24px rgba(0,208,132,0.12);
+    transform: translateY(-3px);
+}
+
+/* Product image / placeholder */
+.is-card-img {
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    background: #f9fafb;
+}
+.is-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.is-card:hover .is-card-img img { transform: scale(1.05); }
+
+/* Category-specific placeholder tiles */
+.is-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.is-placeholder i { font-size: 2.8rem; }
+.is-placeholder span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    opacity: 0.6;
+}
+/* Category tint classes */
+.ph-seeds    { background: #f0fdf4; color: #16a34a; }
+.ph-fert     { background: #fff7ed; color: #ea580c; }
+.ph-pest     { background: #fef2f2; color: #dc2626; }
+.ph-herb     { background: #fffbeb; color: #d97706; }
+.ph-tools    { background: #eff6ff; color: #2563eb; }
+.ph-irrig    { background: #f0f9ff; color: #0284c7; }
+.ph-default  { background: #f4f6f9; color: #6b7280; }
+
+/* Stock badge on image */
+.is-stock-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.22em 0.65em;
+    border-radius: 20px;
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.stock-in    { background: #dcfce7; color: #166534; }
+.stock-low   { background: #fef3c7; color: #92400e; }
+.stock-out   { background: #fee2e2; color: #991b1b; }
+.stock-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+}
+.stock-in .stock-dot    { background: #16a34a; }
+.stock-low .stock-dot   { background: #d97706; }
+.stock-out .stock-dot   { background: #dc2626; }
+
+/* Group discount ribbon on image */
+.is-discount-ribbon {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(90deg, #78350f, #d97706);
+    color: #fef3c7;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Card body */
+.is-card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0;
+}
+
+/* Category badge — color-coded by type */
+.cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 0.2em 0.65em;
+    border-radius: 20px;
+    align-self: flex-start;
+    margin-bottom: 0.5rem;
+    border: 1px solid transparent;
+}
+.cat-seeds  { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.cat-fert   { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+.cat-pest   { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.cat-herb   { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.cat-tools  { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+.cat-irrig  { background: #e0f9ff; color: #0369a1; border-color: #bae6fd; }
+.cat-other  { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+
+.is-product-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.2rem;
+    line-height: 1.35;
+}
+.is-brand {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    margin: 0 0 0.5rem;
+    font-style: italic;
+}
+.is-price {
+    font-family: 'Archivo', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #00b872;
+    margin: 0 0 0.6rem;
+}
+.is-price span { font-size: 0.75rem; font-weight: 600; color: #9ca3af; }
+
+/* Supplier row */
+.is-supplier-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid #f3f4f6;
+    margin-bottom: 0.75rem;
+}
+.is-supplier-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #064e3b, #00D084);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.is-supplier-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.is-verified-badge {
+    color: #0ea5e9;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* View Details button */
+.is-view-btn {
+    display: block;
+    width: 100%;
+    padding: 0.55rem;
+    background: #064e3b;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.15s ease;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+.is-view-btn:hover {
+    background: #00D084;
+    color: #fff;
+    transform: translateY(-1px);
+}
+.is-view-btn.out-of-stock {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ── EMPTY STATE ── */
+.is-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+}
+.is-empty i { font-size: 3rem; color: #d1d5db; display: block; margin-bottom: 0.75rem; }
+.is-empty h4 { color: #374151; font-size: 1.1rem; font-weight: 700; }
+.is-empty p  { color: #9ca3af; font-size: 0.88rem; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+    .is-filterbar-form { flex-direction: column; }
+    .is-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .is-card-img { height: 140px; }
+}
+@media (max-width: 380px) {
+    .is-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="is-page">
 
-<!-- Page Header -->
-<section class="bg-light py-4">
+{# ══ PAGE HEADER ══ #}
+<div class="is-header">
     <div class="container">
-        <h2 class="mb-2">
-            <i class="bi bi-shop"></i> Agricultural Input Store
-        </h2>
-        <p class="text-muted mb-0">
-            Quality seeds, fertilizers, pesticides, and farming tools from verified suppliers
-        </p>
+        <h1>
+            <span class="header-icon"><i class="bi bi-bag-heart-fill"></i></span>
+            Agricultural Input Store
+        </h1>
+        <p>Quality seeds, fertilizers, pesticides &amp; tools from verified suppliers</p>
     </div>
-</section>
+</div>
 
-<!-- Group Buy Alert -->
+{# ══ GROUP BUY BANNER ══ #}
 {% if active_pools %}
-<section class="py-3 bg-warning bg-opacity-10">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
+<div class="is-groupbuy-banner py-2">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="banner-pill">Group Buy</span>
             <div>
-                <h5 class="mb-1">
-                    <i class="bi bi-people-fill"></i> {{ active_pools.count }} Active Group Buy Pool{{ active_pools.count|pluralize }}
-                </h5>
-                <p class="text-muted mb-0">Join with other farmers to get bulk discounts!</p>
+                <div class="fw-bold text-white" style="font-size:.9rem;">
+                    <i class="bi bi-people-fill me-1"></i>
+                    {{ active_pools.count }} Active Pool{{ active_pools.count|pluralize }}
+                </div>
+                <div style="font-size:.78rem;color:#fef3c7;">Join with other farmers to unlock bulk discounts</div>
             </div>
-            <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-warning">
-                View Group Buys
-            </a>
         </div>
+        <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-warning btn-sm fw-bold rounded-pill">
+            <i class="bi bi-people me-1"></i>View Pools
+        </a>
     </div>
-</section>
+</div>
 {% endif %}
 
-<!-- Filters -->
-<section class="py-4 border-bottom">
+{# ══ SEARCH & FILTER BAR ══ #}
+<div class="is-filterbar">
     <div class="container">
-        <form method="get" class="row g-3">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Search inputs..." value="{{ search_query }}">
+        <form method="get">
+            <div class="d-flex gap-2 flex-wrap is-filterbar-form">
+                {# Search input #}
+                <div class="d-flex flex-grow-1" style="min-width:220px;">
+                    <input type="text"
+                           name="search"
+                           class="is-search-input"
+                           placeholder="Search products, brands, suppliers…"
+                           value="{{ search_query|default:'' }}"
+                           autocomplete="off">
+                    <button type="submit" class="is-search-btn">
+                        <i class="bi bi-search"></i><span class="d-none d-sm-inline">Search</span>
+                    </button>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <select name="category" class="form-select">
+
+                {# Category dropdown — acts as filter on submit #}
+                <select name="category" class="is-select" style="min-width:170px;">
                     <option value="">All Categories</option>
                     {% for category in categories %}
-                        <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                        <option value="{{ category.id }}"
+                                {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
                             {{ category.name }}
                         </option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-funnel"></i> Filter
-                </button>
+
+                {# Stock quick-filter #}
+                <select name="stock" class="is-select" style="min-width:130px;">
+                    <option value="">All Stock</option>
+                    <option value="in" {% if request.GET.stock == 'in' %}selected{% endif %}>In Stock</option>
+                    <option value="low" {% if request.GET.stock == 'low' %}selected{% endif %}>Low Stock</option>
+                    <option value="out" {% if request.GET.stock == 'out' %}selected{% endif %}>Out of Stock</option>
+                </select>
             </div>
         </form>
-    </div>
-</section>
 
-<!-- Products Grid -->
-<section class="py-5">
+        {# Results count #}
+        {% if inputs %}
+        <div class="mt-2 is-results-label">
+            {{ inputs|length }} product{{ inputs|length|pluralize }} found
+            {% if search_query %} for "<strong>{{ search_query }}</strong>"{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ══ PRODUCT GRID ══ #}
+<div class="py-4">
     <div class="container">
         {% if inputs %}
-        <div class="row">
+        <div class="is-grid">
             {% for input in inputs %}
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <a href="{% url 'inputs:input_detail' input.pk %}">
-                        {% if input.image %}
-                            <img src="{{ input.image.url }}" class="card-img-top" alt="{{ input.name }}" style="height: 200px; object-fit: cover;">
-                        {% else %}
-                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-box-seam text-white" style="font-size: 3rem;"></i>
-                            </div>
-                        {% endif %}
-                    </a>
-                    
-                    <div class="card-body d-flex flex-column">
-                        <span class="badge bg-info mb-2 align-self-start">
-                            {{ input.category.name }}
-                        </span>
-                        
-                        <h6 class="card-title">{{ input.name }}</h6>
-                        
-                        {% if input.brand %}
-                            <p class="text-muted small mb-2">Brand: {{ input.brand }}</p>
-                        {% endif %}
-                        
-                        <p class="text-success fw-bold mb-2">
-                            UGX {{ input.price|floatformat:0 }}/{{ input.unit }}
-                        </p>
-                        
-                        {% if input.group_discount_percentage > 0 %}
-                            <div class="alert alert-warning py-1 px-2 mb-2">
-                                <small>
-                                    <i class="bi bi-people"></i> 
-                                    {{ input.group_discount_percentage }}% off for {{ input.min_group_order }}+ units
-                                </small>
-                            </div>
-                        {% endif %}
-                        
-                        <small class="text-muted mb-3">
-                            <i class="bi bi-shop"></i> {{ input.supplier.username }}
-                        </small>
-                        
-                        <div class="mt-auto d-grid">
-                            <a href="{% url 'inputs:input_detail' input.pk %}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
+            <div class="is-card">
+
+                {# ── Image / Placeholder ── #}
+                <div class="is-card-img">
+                    {# Stock badge overlay #}
+                    {% if input.status == 'out_of_stock' %}
+                        <div class="is-stock-badge stock-out">
+                            <span class="stock-dot"></span> Out of Stock
                         </div>
+                    {% elif input.quantity_available <= 10 %}
+                        <div class="is-stock-badge stock-low">
+                            <span class="stock-dot"></span> Low Stock
+                        </div>
+                    {% else %}
+                        <div class="is-stock-badge stock-in">
+                            <span class="stock-dot"></span> In Stock
+                        </div>
+                    {% endif %}
+
+                    {# Group discount ribbon #}
+                    {% if input.group_discount_percentage > 0 %}
+                    <div class="is-discount-ribbon">
+                        <i class="bi bi-people-fill"></i>
+                        {{ input.group_discount_percentage }}% Group Discount
                     </div>
+                    {% endif %}
+
+                    {# Image or category-specific placeholder #}
+                    {% if input.image %}
+                        <img src="{{ input.image.url }}" alt="{{ input.name }}">
+                    {% else %}
+                        {# Derive placeholder style from category type #}
+                        {% with ct=input.category.category_type %}
+                        <div class="is-placeholder
+                            {% if ct == 'seeds' %}ph-seeds
+                            {% elif ct == 'fertilizers' %}ph-fert
+                            {% elif ct == 'pesticides' %}ph-pest
+                            {% elif ct == 'herbicides' %}ph-herb
+                            {% elif ct == 'tools' %}ph-tools
+                            {% elif ct == 'irrigation' %}ph-irrig
+                            {% else %}ph-default{% endif %}">
+                            <i class="bi
+                                {% if ct == 'seeds' %}bi-flower1
+                                {% elif ct == 'fertilizers' %}bi-droplet-fill
+                                {% elif ct == 'pesticides' %}bi-shield-exclamation
+                                {% elif ct == 'herbicides' %}bi-bug-fill
+                                {% elif ct == 'tools' %}bi-tools
+                                {% elif ct == 'irrigation' %}bi-water
+                                {% else %}bi-box-seam{% endif %}">
+                            </i>
+                            <span>{{ input.category.name }}</span>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+
+                {# ── Card Body ── #}
+                <div class="is-card-body">
+
+                    {# Category badge — color-coded #}
+                    {% with ct=input.category.category_type %}
+                    <span class="cat-badge
+                        {% if ct == 'seeds' %}cat-seeds
+                        {% elif ct == 'fertilizers' %}cat-fert
+                        {% elif ct == 'pesticides' %}cat-pest
+                        {% elif ct == 'herbicides' %}cat-herb
+                        {% elif ct == 'tools' %}cat-tools
+                        {% elif ct == 'irrigation' %}cat-irrig
+                        {% else %}cat-other{% endif %}">
+                        <i class="bi
+                            {% if ct == 'seeds' %}bi-flower1
+                            {% elif ct == 'fertilizers' %}bi-droplet-fill
+                            {% elif ct == 'pesticides' %}bi-shield-exclamation
+                            {% elif ct == 'herbicides' %}bi-bug-fill
+                            {% elif ct == 'tools' %}bi-tools
+                            {% elif ct == 'irrigation' %}bi-water
+                            {% else %}bi-tag{% endif %}">
+                        </i>
+                        {{ input.category.name }}
+                    </span>
+                    {% endwith %}
+
+                    {# Product name #}
+                    <h6 class="is-product-name">{{ input.name }}</h6>
+
+                    {# Brand #}
+                    {% if input.brand %}
+                        <p class="is-brand">{{ input.brand }}</p>
+                    {% elif input.manufacturer %}
+                        <p class="is-brand">{{ input.manufacturer }}</p>
+                    {% endif %}
+
+                    {# Price #}
+                    <div class="is-price">
+                        UGX {{ input.price|floatformat:0 }}<span>/{{ input.unit }}</span>
+                    </div>
+
+                    {# Group buy price hint #}
+                    {% if input.group_discount_percentage > 0 %}
+                    <div style="font-size:0.72rem;color:#d97706;font-weight:600;margin-bottom:0.4rem;">
+                        <i class="bi bi-people-fill me-1"></i>
+                        Group price: UGX {{ input.group_price|floatformat:0 }}/{{ input.unit }}
+                    </div>
+                    {% endif %}
+
+                    {# Supplier row with avatar + verified badge #}
+                    <div class="is-supplier-row">
+                        <div class="is-supplier-avatar">
+                            {{ input.supplier.username|first|upper }}
+                        </div>
+                        <span class="is-supplier-name">
+                            {% if input.supplier.get_full_name %}
+                                {{ input.supplier.get_full_name }}
+                            {% else %}
+                                {{ input.supplier.username|title }}
+                            {% endif %}
+                        </span>
+                        {% if input.supplier.is_verified %}
+                            <span class="is-verified-badge" title="Verified Supplier">
+                                <i class="bi bi-patch-check-fill"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# Qty available hint #}
+                    <div style="font-size:0.72rem;color:#9ca3af;margin-bottom:0.6rem;">
+                        <i class="bi bi-box-seam me-1"></i>
+                        {{ input.quantity_available }} {{ input.unit }} available
+                    </div>
+
+                    {# View Details button #}
+                    {% if input.status == 'out_of_stock' %}
+                        <a href="{% url 'inputs:input_detail' input.pk %}" class="is-view-btn out-of-stock">
+                            <i class="bi bi-x-circle"></i> Out of Stock
+                        </a>
+                    {% else %}
+                        <a href="{% url 'inputs:input_detail' input.pk %}" class="is-view-btn">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    {% endif %}
+
                 </div>
             </div>
             {% endfor %}
         </div>
+
+        {# ── Load More / pagination ── #}
+        {% if inputs|length >= 20 %}
+        <div class="text-center mt-4">
+            <a href="?{{ request.GET.urlencode }}&page={{ page_num|add:1 }}"
+               class="btn btn-outline-success fw-bold px-4" style="border-radius:50px;">
+                <i class="bi bi-arrow-down-circle me-1"></i> Load More Products
+            </a>
+        </div>
+        {% endif %}
+
         {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
-            <h4 class="mt-3">No Inputs Found</h4>
-            <p class="text-muted">Try adjusting your search or filters</p>
+        {# ── Empty state ── #}
+        <div class="is-empty">
+            <i class="bi bi-search"></i>
+            <h4>No Inputs Found</h4>
+            <p>Try adjusting your search or category filter to find what you're looking for.</p>
+            <a href="{% url 'inputs:input_store' %}" class="btn btn-success rounded-pill fw-bold px-4 mt-2">
+                <i class="bi bi-arrow-clockwise me-1"></i>Clear Filters
+            </a>
         </div>
         {% endif %}
     </div>
-</section>
+</div>
 
+</div>
 {% endblock %}

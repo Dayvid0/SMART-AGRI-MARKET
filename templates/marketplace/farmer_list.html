@@ -1,160 +1,583 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Our Farmers - Smart Agricultural Marketplace{% endblock %}
+{% block title %}Farmer Directory — AgriMarket Uganda{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ═══════════════════════════════════════════
+   FARMER DIRECTORY — REDESIGN
+═══════════════════════════════════════════ */
+
+.fd-page { background: #f4f6f9; min-height: 100vh; }
+
+/* ── Compact Hero ── */
+.fd-hero {
+    background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+    padding: 1.75rem 0 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.fd-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(0,208,132,.12), transparent 60%);
+    pointer-events: none;
+}
+.fd-hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00D084, #16a34a);
+}
+.fd-hero h1 {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+    font-weight: 800; color: #fff;
+    margin: 0 0 0.3rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    position: relative;
+}
+.fd-hero p { color: rgba(255,255,255,.6); font-size: .88rem; margin: 0; position: relative; }
+.fd-hero .hero-stats {
+    display: flex; gap: 1.25rem; flex-wrap: wrap;
+    position: relative;
+}
+.hero-stat {
+    text-align: center;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    padding: .6rem 1rem;
+    backdrop-filter: blur(8px);
+}
+.hero-stat .hs-num {
+    font-family: 'Archivo', sans-serif;
+    font-size: 1.4rem; font-weight: 900; color: #00D084;
+    line-height: 1;
+}
+.hero-stat .hs-label {
+    font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.55);
+    text-transform: uppercase; letter-spacing: .8px; margin-top: 2px;
+}
+
+/* ── Search & Filter Bar ── */
+.fd-filterbar {
+    background: #fff;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 1rem 0;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.fd-search-wrap {
+    display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;
+}
+.fd-search-input {
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    padding: .6rem 1rem; font-size: .9rem; color: #111827;
+    flex: 1; min-width: 180px;
+    transition: border-color .2s;
+    background: #fff;
+}
+.fd-search-input:focus { outline: none; border-color: #00D084; box-shadow: 0 0 0 3px rgba(0,208,132,.1); }
+.fd-filter-select {
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    padding: .6rem .9rem; font-size: .85rem; color: #374151;
+    background: #fff; cursor: pointer;
+    transition: border-color .2s;
+    min-width: 130px;
+}
+.fd-filter-select:focus { border-color: #00D084; outline: none; }
+.fd-search-btn {
+    background: #00D084; border: 2px solid #00D084; border-radius: 10px;
+    color: #fff; padding: .6rem 1.1rem; font-weight: 700; font-size: .88rem;
+    cursor: pointer; transition: background .2s; white-space: nowrap;
+    display: flex; align-items: center; gap: .35rem;
+}
+.fd-search-btn:hover { background: #00b872; }
+.fd-results-label {
+    font-size: .78rem; font-weight: 700; color: #6b7280;
+    text-transform: uppercase; letter-spacing: .8px; margin-top: .5rem;
+}
+
+/* ── Region section ── */
+.fd-region-section { margin-bottom: 2.5rem; }
+.fd-region-heading {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: .65rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+.fd-region-heading h3 {
+    font-family: 'Archivo', sans-serif;
+    font-size: 1.05rem; font-weight: 800; color: #064e3b;
+    margin: 0;
+}
+.fd-region-heading .region-count {
+    background: #d1fae5; color: #065f46;
+    font-size: .7rem; font-weight: 800;
+    padding: .2em .7em; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .6px;
+}
+.fd-region-heading .region-line {
+    flex: 1; height: 2px;
+    background: linear-gradient(90deg, rgba(0,208,132,.3), transparent);
+}
+
+/* ── Farmer Card Grid ── */
+.fd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* ── Farmer Card ── */
+.fd-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 18px;
+    overflow: visible;       /* allow avatar to overlap banner cleanly */
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+    display: flex; flex-direction: column;
+    position: relative;
+}
+.fd-card:hover {
+    border-color: #00D084;
+    box-shadow: 0 10px 28px rgba(0,208,132,.13);
+    transform: translateY(-4px);
+}
+
+/* Banner */
+.fd-banner {
+    height: 90px;
+    border-radius: 16px 16px 0 0;
+    position: relative; overflow: hidden;
+}
+.fd-banner-gradient-0 { background: linear-gradient(135deg, #064e3b, #00D084); }
+.fd-banner-gradient-1 { background: linear-gradient(135deg, #1e40af, #0ea5e9); }
+.fd-banner-gradient-2 { background: linear-gradient(135deg, #7c2d12, #ea580c); }
+.fd-banner-gradient-3 { background: linear-gradient(135deg, #581c87, #a855f7); }
+.fd-banner-gradient-4 { background: linear-gradient(135deg, #064e3b, #14b8a6); }
+.fd-banner-gradient-5 { background: linear-gradient(135deg, #0f172a, #3b82f6); }
+.fd-banner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Avatar — overlaps banner cleanly */
+.fd-avatar-wrap {
+    position: relative;
+    margin: -40px auto 0;
+    width: 80px; height: 80px;
+    z-index: 10;
+    flex-shrink: 0;
+}
+.fd-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    object-fit: cover;
+    background: #fff;
+    display: block;
+}
+.fd-avatar-initials {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    background: linear-gradient(135deg, #064e3b, #00C770);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 1.6rem; font-weight: 800;
+    font-family: 'Archivo', sans-serif;
+    line-height: 1;
+    letter-spacing: -.03em;
+}
+
+/* Verified badge on avatar */
+.fd-verified {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 22px; height: 22px;
+    background: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    z-index: 11;
+}
+.fd-verified i { color: #0ea5e9; font-size: .85rem; }
+
+/* Card body */
+.fd-card-body {
+    padding: .75rem 1.1rem 1.1rem;
+    text-align: center;
+    display: flex; flex-direction: column;
+    flex: 1;
+}
+.fd-card-body h5 {
+    font-weight: 800; font-size: .95rem; color: #111827;
+    margin: .5rem 0 .15rem; line-height: 1.25;
+}
+.fd-farm-name {
+    font-size: .78rem; font-weight: 700; color: #00b872;
+    margin-bottom: .65rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Stats row */
+.fd-stats {
+    display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    align-items: center;
+    background: #f9fafb;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: .55rem 0;
+    margin-bottom: .75rem;
+}
+.fd-stat { text-align: center; padding: 0 .35rem; }
+.fd-stat-num {
+    font-family: 'Archivo', sans-serif;
+    font-size: .92rem; font-weight: 800; color: #111827;
+    line-height: 1;
+}
+.fd-stat-label {
+    font-size: .62rem; font-weight: 700; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-top: 2px;
+}
+.fd-stat-divider {
+    width: 1px; height: 28px;
+    background: #e5e7eb; border-radius: 1px;
+}
+
+/* "New" rating — distinct pill, not a number */
+.fd-new-badge {
+    display: inline-block;
+    background: #eff6ff; color: #1d4ed8;
+    font-size: .62rem; font-weight: 800;
+    padding: .15em .55em; border-radius: 10px;
+    border: 1px solid #bfdbfe;
+    line-height: 1.4;
+}
+
+/* Badges row */
+.fd-badges {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .4rem; margin-bottom: .8rem;
+}
+.fd-badge-pill {
+    font-size: .72rem; font-weight: 600;
+    padding: .25em .7em; border-radius: 20px;
+    display: inline-flex; align-items: center; gap: .3rem;
+    border: 1px solid;
+}
+.fd-badge-loc  { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+.fd-badge-crop { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+
+/* Action buttons */
+.fd-actions { margin-top: auto; display: flex; flex-direction: column; gap: .45rem; }
+.fd-btn-primary {
+    display: block; width: 100%;
+    padding: .5rem; border-radius: 10px;
+    background: #064e3b; color: #fff;
+    font-size: .82rem; font-weight: 700;
+    text-align: center; text-decoration: none;
+    transition: background .2s, transform .15s;
+    display: flex; align-items: center; justify-content: center; gap: .35rem;
+}
+.fd-btn-primary:hover { background: #00D084; color: #fff; transform: translateY(-1px); }
+
+/* Reviews link — clearly interactive */
+.fd-btn-reviews {
+    font-size: .78rem; font-weight: 600;
+    color: #6b7280; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: .3rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px; padding: .4rem;
+    transition: color .2s, border-color .2s, background .2s;
+}
+.fd-btn-reviews:hover {
+    color: #00b872; border-color: #00D084;
+    background: #f0fdf4;
+}
+
+/* ── Empty state ── */
+.fd-empty {
+    text-align: center; padding: 4rem 2rem;
+    background: #fff; border: 1.5px solid #e5e7eb;
+    border-radius: 16px; grid-column: 1/-1;
+}
+.fd-empty i { font-size: 3rem; color: #d1d5db; display: block; margin-bottom: .75rem; }
+.fd-empty h4 { color: #374151; font-size: 1.05rem; font-weight: 700; }
+.fd-empty p  { color: #9ca3af; font-size: .88rem; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+    .fd-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+}
+@media (max-width: 640px) {
+    .fd-search-wrap { flex-direction: column; align-items: stretch; }
+    .fd-filter-select, .fd-search-input { min-width: 0; width: 100%; }
+    .fd-grid { grid-template-columns: repeat(2, 1fr); gap: .85rem; }
+    .fd-banner { height: 70px; }
+    .fd-avatar-wrap { width: 68px; height: 68px; margin-top: -34px; }
+    .fd-avatar, .fd-avatar-initials { width: 68px; height: 68px; font-size: 1.3rem; }
+}
+@media (max-width: 380px) {
+    .fd-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="text-center mb-5">
-        <h1 class="fw-bold mb-3 success-text-gradient">Meet Our Farmers</h1>
-        <p class="lead text-secondary mx-auto" style="max-width: 600px;">
-            Connect directly with the hardworking farmers who grow your food across Uganda.
-        </p>
-    </div>
+<div class="fd-page">
 
-    <!-- Regions -->
-    {% for region, farmers in farmers_by_region.items %}
-    <div class="region-section mb-5">
-        <div class="d-flex align-items-center mb-4">
-            <h3 class="fw-bold text-success mb-0 me-3">{{ region }} Region</h3>
-            <div class="flex-grow-1 border-bottom border-success opacity-25"></div>
-        </div>
-
-        <div class="row g-4">
-            {% for farmer in farmers %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm hover-lift farmer-card">
-                    <div class="card-body p-0">
-                        <!-- Cover / Banner Area -->
-                        <div class="farmer-cover" style="height: 100px; background: linear-gradient(135deg, #064e3b, #00D084); border-radius: 12px 12px 0 0; position: relative;">
-                            
-                        </div>
-                        
-                        <!-- Profile Content -->
-                        <div class="px-4 pb-4 text-center" style="margin-top: -50px;">
-                            <!-- Profile Image -->
-                            <div class="mb-3 position-relative d-inline-block">
-                                {% if farmer.profile_picture %}
-                                    <img src="{{ farmer.profile_picture.url }}" alt="{{ farmer.username }}" 
-                                         class="rounded-circle border border-4 border-white shadow-md profile-img">
-                                {% else %}
-                                    <div class="rounded-circle bg-white d-flex align-items-center justify-content-center mx-auto border border-4 border-white shadow-md profile-img"
-                                         style="color: var(--bright-green);">
-                                        <span class="fs-1 fw-bold">{{ farmer.username|make_list|first|upper }}</span>
-                                    </div>
-                                {% endif %}
-                                
-                                {% if farmer.is_verified %}
-                                    <span class="verified-badge" title="Verified Farmer">
-                                        <i class="bi bi-patch-check-fill text-primary bg-white rounded-circle"></i>
-                                    </span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Name & Farm -->
-                            <h5 class="fw-bold mb-1 text-dark">{{ farmer.username|title }}</h5>
-                            <p class="text-success small mb-2 fw-bold">
-                                {% if farmer.farmer_profile.farm_name %}
-                                    {{ farmer.farmer_profile.farm_name }}
-                                {% else %}
-                                    Independent Farmer
-                                {% endif %}
-                            </p>
-
-                            <!-- Stats Row -->
-                            <div class="d-flex justify-content-center gap-3 my-3 py-2 border-top border-bottom bg-light bg-opacity-50 rounded">
-                                <div class="text-center px-2">
-                                    <div class="fw-bold text-dark small">{{ farmer.farmer_profile.rating_average|default:"New" }}</div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">RATING</div>
-                                </div>
-                                <div class="vr opacity-25"></div>
-                                <div class="text-center px-2">
-                                    <div class="fw-bold text-dark small">{{ farmer.farmer_profile.total_sales|default:"0" }}</div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">SALES</div>
-                                </div>
-                                <div class="vr opacity-25"></div>
-                                <div class="text-center px-2">
-                                    <div class="fw-bold text-dark small">
-                                        {% if farmer.farmer_profile.farm_size %}
-                                            {{ farmer.farmer_profile.farm_size|floatformat:0 }}ac
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">SIZE</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Badges -->
-                            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-                                {% if farmer.district %}
-                                    <span class="badge bg-light text-secondary border">
-                                        <i class="bi bi-geo-alt me-1"></i> {{ farmer.district }}
-                                    </span>
-                                {% endif %}
-                                {% if farmer.specialization %}
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-                                        <i class="bi bi-award me-1"></i> {{ farmer.specialization }}
-                                    </span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Action -->
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'marketplace:product_list' %}?search={{ farmer.username }}" class="btn btn-outline-success rounded-pill btn-sm">
-                                    View Products
-                                </a>
-                                <a href="{% url 'marketplace:farmer_reviews' farmer.id %}" class="btn btn-sm btn-link text-decoration-none text-muted">
-                                    Read Reviews
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+{# ══ HERO ══ #}
+<div class="fd-hero">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1>
+                    <i class="bi bi-people-fill" style="color:#00D084;"></i>
+                    Farmer Directory
+                </h1>
+                <p>Connect directly with verified farmers who grow your food across Uganda.</p>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hs-num">{{ total_farmers|default:"0" }}</div>
+                    <div class="hs-label">Farmers</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hs-num">{{ farmers_by_region|length }}</div>
+                    <div class="hs-label">Regions</div>
                 </div>
             </div>
-            {% endfor %}
         </div>
     </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-        <div class="mb-3">
-            <i class="bi bi-people text-secondary" style="font-size: 4rem;"></i>
-        </div>
-        <h3>No farmers found yet</h3>
-        <p class="text-secondary">Be the first to join as a farmer!</p>
-        <a href="{% url 'accounts:register' %}" class="btn btn-success mt-2">Register Now</a>
-    </div>
-    {% endfor %}
 </div>
 
-<style>
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
-    }
-    
-    .profile-img {
-        width: 100px; 
-        height: 100px; 
-        object-fit: cover;
-    }
-    
-    .verified-badge {
-        position: absolute; 
-        bottom: 0; 
-        end: 0; 
-        font-size: 1.2rem;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    }
-    
-    .success-text-gradient {
-        background: linear-gradient(135deg, #064e3b, #00D084);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-</style>
+{# ══ SEARCH & FILTER BAR ══ #}
+<div class="fd-filterbar">
+    <div class="container">
+        <form method="get">
+            <div class="fd-search-wrap">
+
+                {# Search input #}
+                <input type="text"
+                       name="search"
+                       class="fd-search-input"
+                       placeholder="Search by name, district, or crop…"
+                       value="{{ search_query|default:'' }}"
+                       autocomplete="off">
+
+                {# Region filter #}
+                <select name="region" class="fd-filter-select">
+                    <option value="">All Regions</option>
+                    {% for region in region_list %}
+                    <option value="{{ region }}" {% if region_filter == region %}selected{% endif %}>
+                        {{ region }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                {# Crop filter #}
+                {% if crop_list %}
+                <select name="crop" class="fd-filter-select">
+                    <option value="">All Crops</option>
+                    {% for crop in crop_list %}
+                    <option value="{{ crop }}" {% if crop_filter == crop %}selected{% endif %}>
+                        {{ crop|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+                {# Rating filter #}
+                <select name="rating" class="fd-filter-select" style="min-width:120px;">
+                    <option value="">Any Rating</option>
+                    <option value="4.5" {% if rating_filter == "4.5" %}selected{% endif %}>⭐ 4.5+</option>
+                    <option value="4.0" {% if rating_filter == "4.0" %}selected{% endif %}>⭐ 4.0+</option>
+                    <option value="3.0" {% if rating_filter == "3.0" %}selected{% endif %}>⭐ 3.0+</option>
+                </select>
+
+                <button type="submit" class="fd-search-btn">
+                    <i class="bi bi-search"></i>
+                    <span class="d-none d-sm-inline">Search</span>
+                </button>
+
+                {% if search_query or region_filter or crop_filter or rating_filter %}
+                <a href="{% url 'marketplace:farmer_list' %}"
+                   class="btn btn-outline-secondary btn-sm"
+                   style="border-radius:10px;font-size:.82rem;padding:.6rem .9rem;white-space:nowrap;">
+                    <i class="bi bi-x-lg me-1"></i>Clear
+                </a>
+                {% endif %}
+            </div>
+
+            {% if total_farmers != None %}
+            <div class="fd-results-label mt-2">
+                {{ total_farmers }} farmer{{ total_farmers|pluralize }} found
+                {% if search_query %} for "<strong>{{ search_query }}</strong>"{% endif %}
+                {% if region_filter %} in {{ region_filter }} Region{% endif %}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{# ══ FARMER LISTINGS ══ #}
+<div class="py-4">
+    <div class="container">
+        {% for region, farmers in farmers_by_region.items %}
+
+        <div class="fd-region-section">
+            {# Region heading #}
+            <div class="fd-region-heading">
+                <i class="bi bi-map" style="color:#00D084;font-size:1rem;"></i>
+                <h3>{{ region }} Region</h3>
+                <span class="region-count">{{ farmers|length }} farmer{{ farmers|length|pluralize }}</span>
+                <div class="region-line"></div>
+            </div>
+
+            {# Cards grid — auto-fill so orphans reflow naturally #}
+            <div class="fd-grid">
+                {% for farmer in farmers %}
+
+                {# Pick a banner gradient deterministically from username length #}
+                {% with grad_idx=forloop.counter0|add:0 %}
+                <div class="fd-card">
+
+                    {# Banner #}
+                    <div class="fd-banner fd-banner-gradient-{{ forloop.counter0|divisibleby:6|yesno:'0,1' }}
+                        {% if forloop.counter0|divisibleby:5 %}fd-banner-gradient-5
+                        {% elif forloop.counter0|divisibleby:4 %}fd-banner-gradient-4
+                        {% elif forloop.counter0|divisibleby:3 %}fd-banner-gradient-3
+                        {% elif forloop.counter0|divisibleby:2 %}fd-banner-gradient-2
+                        {% elif forloop.counter0|divisibleby:1 %}fd-banner-gradient-1
+                        {% else %}fd-banner-gradient-0{% endif %}">
+                    </div>
+
+                    {# Avatar overlapping banner #}
+                    <div class="fd-avatar-wrap mx-auto">
+                        {% if farmer.profile_picture %}
+                            <img src="{{ farmer.profile_picture.url }}"
+                                 alt="{{ farmer.username }}"
+                                 class="fd-avatar">
+                        {% else %}
+                            <div class="fd-avatar-initials">
+                                {{ farmer.username|first|upper }}
+                            </div>
+                        {% endif %}
+
+                        {% if farmer.is_verified %}
+                        <div class="fd-verified" title="Verified Farmer">
+                            <i class="bi bi-patch-check-fill"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {# Card body #}
+                    <div class="fd-card-body">
+                        <h5>{{ farmer.username|title }}</h5>
+                        <div class="fd-farm-name">
+                            {% if farmer.farmer_profile.farm_name %}
+                                {{ farmer.farmer_profile.farm_name }}
+                            {% else %}
+                                Independent Farmer
+                            {% endif %}
+                        </div>
+
+                        {# Stats row — even grid, consistent sizing #}
+                        <div class="fd-stats">
+                            <div class="fd-stat">
+                                {% if farmer.farmer_profile.rating_average %}
+                                    <div class="fd-stat-num">
+                                        ⭐ {{ farmer.farmer_profile.rating_average|floatformat:1 }}
+                                    </div>
+                                {% else %}
+                                    <div class="fd-stat-num">
+                                        <span class="fd-new-badge">New</span>
+                                    </div>
+                                {% endif %}
+                                <div class="fd-stat-label">Rating</div>
+                            </div>
+                            <div class="fd-stat-divider"></div>
+                            <div class="fd-stat">
+                                <div class="fd-stat-num">
+                                    {{ farmer.farmer_profile.total_sales|default:"0" }}
+                                </div>
+                                <div class="fd-stat-label">Sales</div>
+                            </div>
+                            <div class="fd-stat-divider"></div>
+                            <div class="fd-stat">
+                                <div class="fd-stat-num">
+                                    {% if farmer.farmer_profile.farm_size %}
+                                        {{ farmer.farmer_profile.farm_size|floatformat:0 }}<span style="font-size:.65rem;font-weight:600;color:#9ca3af;">ac</span>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </div>
+                                <div class="fd-stat-label">Size</div>
+                            </div>
+                        </div>
+
+                        {# Location + Crop badges #}
+                        <div class="fd-badges">
+                            {% if farmer.district %}
+                            <span class="fd-badge-pill fd-badge-loc">
+                                <i class="bi bi-geo-alt"></i>{{ farmer.district }}
+                            </span>
+                            {% endif %}
+                            {% if farmer.farmer_profile.specialization %}
+                            <span class="fd-badge-pill fd-badge-crop">
+                                <i class="bi bi-flower1"></i>{{ farmer.farmer_profile.specialization|title }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {# Actions #}
+                        <div class="fd-actions">
+                            <a href="{% url 'marketplace:product_list' %}?search={{ farmer.username }}"
+                               class="fd-btn-primary">
+                                <i class="bi bi-basket3"></i> View Products
+                            </a>
+                            <a href="{% url 'marketplace:farmer_reviews' farmer.id %}"
+                               class="fd-btn-reviews">
+                                <i class="bi bi-chat-quote"></i>
+                                Read Reviews
+                                <i class="bi bi-chevron-right" style="font-size:.65rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+                {% endwith %}
+                {% empty %}
+                <div class="fd-empty">
+                    <i class="bi bi-people"></i>
+                    <h4>No farmers found</h4>
+                    <p>Try adjusting your search or filter to find farmers in this region.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% empty %}
+        {# Global empty state — no farmers at all #}
+        <div class="fd-empty" style="border-radius:16px;padding:5rem 2rem;">
+            <i class="bi bi-people" style="font-size:3.5rem;"></i>
+            <h4>No Farmers Found Yet</h4>
+            <p>Be the first to join as a farmer on AgriMarket!</p>
+            <a href="{% url 'accounts:register' %}" class="btn btn-success rounded-pill fw-bold px-4 mt-3">
+                <i class="bi bi-person-plus me-1"></i>Register as a Farmer
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+</div>
 {% endblock %}
