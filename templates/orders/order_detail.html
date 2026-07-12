@@ -44,24 +44,30 @@
                                     <div class="timeline-track"></div>
 
                                     <!-- Step 1: Pending -->
-                                    <div class="timeline-step {% if order.status in 'pending,confirmed,processing,completed' %}active{% endif %} {% if order.status == 'pending' %}current{% endif %}">
+                                    <div class="timeline-step {% if order.status in 'pending,confirmed,processing,delivered,completed' %}active{% endif %} {% if order.status == 'pending' %}current{% endif %}">
                                         <div class="step-circle"><i class="bi bi-clock"></i></div>
                                         <div class="step-label">Pending</div>
                                     </div>
 
                                     <!-- Step 2: Confirmed -->
-                                    <div class="timeline-step {% if order.status in 'confirmed,processing,completed' %}active{% endif %} {% if order.status == 'confirmed' %}current{% endif %}">
+                                    <div class="timeline-step {% if order.status in 'confirmed,processing,delivered,completed' %}active{% endif %} {% if order.status == 'confirmed' %}current{% endif %}">
                                         <div class="step-circle"><i class="bi bi-check2"></i></div>
                                         <div class="step-label">Confirmed</div>
                                     </div>
 
                                     <!-- Step 3: Processing -->
-                                    <div class="timeline-step {% if order.status in 'processing,completed' %}active{% endif %} {% if order.status == 'processing' %}current{% endif %}">
+                                    <div class="timeline-step {% if order.status in 'processing,delivered,completed' %}active{% endif %} {% if order.status == 'processing' %}current{% endif %}">
                                         <div class="step-circle"><i class="bi bi-box-seam"></i></div>
                                         <div class="step-label">Processing</div>
                                     </div>
 
-                                    <!-- Step 4: Completed -->
+                                    <!-- Step 4: Delivered -->
+                                    <div class="timeline-step {% if order.status in 'delivered,completed' %}active{% endif %} {% if order.status == 'delivered' %}current{% endif %}">
+                                        <div class="step-circle"><i class="bi bi-truck"></i></div>
+                                        <div class="step-label">Delivered</div>
+                                    </div>
+
+                                    <!-- Step 5: Completed -->
                                     <div class="timeline-step {% if order.status == 'completed' %}active current{% endif %}">
                                         <div class="step-circle"><i class="bi bi-house-check"></i></div>
                                         <div class="step-label">Completed</div>
@@ -178,6 +184,13 @@
                                         <button class="btn btn-light text-danger w-100 rounded-pill py-2 fw-bold" disabled>
                                             <i class="bi bi-x-circle me-1"></i> Order Cancelled
                                         </button>
+                                    {% elif order.status == 'delivered' %}
+                                        <form method="post" action="{% url 'orders:confirm_receipt' order.id %}" onsubmit="return confirm('Please confirm you have received the items in good condition.');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Confirm Receipt
+                                            </button>
+                                        </form>
                                     {% else %}
                                         <button class="btn btn-light text-secondary w-100 rounded-pill py-2 fw-bold" disabled>
                                             <i class="bi bi-lock me-1"></i> Cannot cancel (already processing)
@@ -221,6 +234,7 @@
                                         <option value="">Update Order Status...</option>
                                         <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
                                         <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                                        <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered (Waiting for Buyer)</option>
                                         <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
                                     </select>
                                 </div>

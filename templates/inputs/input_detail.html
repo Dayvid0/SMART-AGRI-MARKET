@@ -103,9 +103,9 @@
                         <a href="{% url 'inputs:group_buy_list' %}" class="btn btn-outline-warning">
                             <i class="bi bi-search"></i> Browse Existing Group Buys
                         </a>
-                        <button class="btn btn-success btn-lg">
-                            <i class="bi bi-cart-plus"></i> Order Now (Contact Supplier)
-                        </button>
+                        <a href="{% url 'orders:place_order_input' input_item.pk %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-cart-plus"></i> Order Now
+                        </a>
                     {% else %}
                         <a href="{% url 'accounts:login' %}" class="btn btn-success btn-lg">
                             <i class="bi bi-box-arrow-in-right"></i> Login to Order

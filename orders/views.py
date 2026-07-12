@@ -5,6 +5,7 @@ from django.utils import timezone
 from .models import Order, OrderItem, DeliveryRequest
 from accounts.models import TransporterProfile
 from marketplace.models import Product
+from inputs.models import AgriculturalInput
 from notifications.helpers import (
     notify_new_order,
     notify_order_status_changed,
@@ -155,9 +156,9 @@ def update_delivery_status(request, delivery_id):
             delivery.status = new_status
             if new_status == 'delivered':
                 delivery.delivered_at = timezone.now()
-                # Auto-complete the order
+                # Auto-update the order to delivered (not completed, buyer must confirm)
                 order = delivery.order
-                order.status = 'completed'
+                order.status = 'delivered'
                 order.save()
             delivery.save()
             messages.success(request, f'Delivery status updated to {delivery.get_status_display()}.')
@@ -168,53 +169,81 @@ def update_delivery_status(request, delivery_id):
 
 
 @login_required
-def place_order(request, product_id):
+def place_order(request, product_id=None, input_id=None):
     """
-    Place an order for a single product. Handles negotiated deals.
+    Place an order for a single product or input. Handles negotiated deals.
     """
-    product = get_object_or_404(Product, pk=product_id, status='available')
-    
-    # Prevent farmer from ordering their own products
-    if request.user == product.farmer:
+    product = None
+    input_item = None
+    seller = None
+    item_name = ""
+    unit = ""
+    available_qty = 0
+    price_per_unit = 0
+    cancel_url = "/"
+
+    if product_id:
+        product = get_object_or_404(Product, pk=product_id, status='available')
+        seller = product.farmer
+        item_name = product.name
+        unit = product.unit
+        available_qty = product.quantity
+        price_per_unit = product.price
+        from django.urls import reverse
+        cancel_url = reverse('marketplace:product_detail', args=[product.pk])
+    elif input_id:
+        input_item = get_object_or_404(AgriculturalInput, pk=input_id, status='available')
+        seller = input_item.supplier
+        item_name = input_item.name
+        unit = input_item.unit
+        available_qty = input_item.quantity_available
+        price_per_unit = input_item.price
+        from django.urls import reverse
+        cancel_url = reverse('inputs:input_detail', args=[input_item.pk])
+    else:
+        return redirect('home')
+
+    # Prevent ordering own products
+    if request.user == seller:
         messages.error(request, 'You cannot order your own products!')
-        return redirect('marketplace:product_detail', pk=product_id)
+        return redirect(cancel_url)
         
     deal_id = request.GET.get('deal_id') or request.POST.get('deal_id')
     deal = None
-    if deal_id:
+    if deal_id and product:
         deal = get_object_or_404(NegotiatedDeal, pk=deal_id, thread__buyer=request.user, thread__product=product)
         if deal.order:
             messages.error(request, 'This deal has already been used to place an order.')
-            return redirect('marketplace:product_detail', pk=product_id)
+            return redirect(cancel_url)
+        price_per_unit = deal.agreed_price
     
     if request.method == 'POST':
         if deal:
             quantity = deal.agreed_quantity
-            unit_price = deal.agreed_price
         else:
             quantity = int(request.POST.get('quantity', 1))
-            unit_price = product.price
             
         delivery_address = request.POST.get('delivery_address')
         delivery_phone = request.POST.get('delivery_phone')
+        delivery_method = request.POST.get('delivery_method', 'self_pickup')
         notes = request.POST.get('notes', '')
         
         # Validate quantity
         if quantity <= 0:
             messages.error(request, 'Quantity must be greater than 0!')
-            return redirect('marketplace:product_detail', pk=product_id)
+            return redirect(cancel_url)
         
-        if quantity > product.quantity:
-            messages.error(request, f'Only {product.quantity} {product.unit} available!')
-            return redirect('marketplace:product_detail', pk=product_id)
+        if quantity > available_qty:
+            messages.error(request, f'Only {available_qty} {unit} available!')
+            return redirect(cancel_url)
         
         # Calculate total
-        total_amount = quantity * unit_price
+        total_amount = quantity * price_per_unit
         
         # Create order
         order = Order.objects.create(
             buyer=request.user,
-            farmer=product.farmer,
+            farmer=seller,
             order_number=generate_order_number(),
             status='pending',
             total_amount=total_amount,
@@ -227,33 +256,82 @@ def place_order(request, product_id):
         OrderItem.objects.create(
             order=order,
             product=product,
+            input_product=input_item,
             quantity=quantity,
-            unit_price=unit_price
+            unit_price=price_per_unit
         )
         
         # Update product quantity
-        product.quantity -= quantity
-        if product.quantity == 0:
-            product.status = 'out_of_stock'
-        product.save()
+        if product:
+            product.quantity -= quantity
+            if product.quantity == 0:
+                product.status = 'out_of_stock'
+            product.save()
+            if deal:
+                deal.order = order
+                deal.save(update_fields=['order'])
+        elif input_item:
+            input_item.quantity_available -= quantity
+            if input_item.quantity_available == 0:
+                input_item.status = 'out_of_stock'
+            input_item.save()
         
-        if deal:
-            deal.order = order
-            deal.save(update_fields=['order'])
-        
-        # Notify the farmer about the new order
+        # Notify the seller about the new order
         try:
             notify_new_order(order)
         except Exception:
             pass
-        messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
+            
+        # Handle delivery auto-request
+        if delivery_method == 'platform':
+            # Auto-create DeliveryRequest
+            DeliveryRequest.objects.create(
+                order=order,
+                pickup_district=seller.district if hasattr(seller, 'district') else 'TBD',
+                delivery_district=request.user.district if hasattr(request.user, 'district') else 'TBD',
+                pickup_address=seller.address if hasattr(seller, 'address') else '',
+                offered_price=0,
+                status='open',
+                notes='Auto-requested by buyer during checkout'
+            )
+            messages.success(request, f'Order placed! A delivery request has been broadcasted to platform transporters.')
+        else:
+            messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
+            
         return redirect('orders:order_detail', order_id=order.id)
     
     context = {
         'product': product,
-        'deal': deal
+        'input_item': input_item,
+        'deal': deal,
+        'item_name': item_name,
+        'unit': unit,
+        'available_qty': available_qty,
+        'price_per_unit': price_per_unit,
+        'seller': seller,
+        'cancel_url': cancel_url,
     }
     return render(request, 'orders/place_order.html', context)
+
+@login_required
+def confirm_receipt(request, order_id):
+    """
+    Buyer confirms receipt of a delivered order.
+    Transitions order from 'delivered' to 'completed'.
+    """
+    order = get_object_or_404(Order, pk=order_id, buyer=request.user)
+    
+    if request.method == 'POST':
+        if order.status == 'delivered':
+            order.status = 'completed'
+            order.save()
+            messages.success(request, 'Order marked as completed. Thank you for confirming receipt!')
+            # Notify the seller that order is completed
+            notify_order_status_changed(order)
+        else:
+            messages.error(request, 'You can only confirm receipt for delivered orders.')
+            
+    return redirect('orders:order_detail', order_id=order.id)
 
 
 @login_required

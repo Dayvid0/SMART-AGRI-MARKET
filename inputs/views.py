@@ -5,6 +5,9 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from .models import AgriculturalInput, InputCategory, GroupBuyPool, GroupBuyParticipant
+from orders.models import Order, OrderItem
+import random
+import string
 
 
 def input_store(request):
@@ -214,7 +217,32 @@ def join_group_buy(request, pool_id):
             # Check if target reached
             if pool.current_quantity >= pool.target_quantity:
                 pool.status = 'closed'
-                messages.success(request, f'🎉 Target reached! The group buy is now closed and the order will be placed.')
+                messages.success(request, f'🎉 Target reached! The group buy is now closed and orders have been generated.')
+                
+                # Auto-generate orders for all participants
+                for participant in pool.participants.all():
+                    # Generate simple order number
+                    date_part = timezone.now().strftime('%Y%m%d')
+                    rand_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+                    order_num = f"GB-{date_part}-{rand_part}"
+                    
+                    order = Order.objects.create(
+                        buyer=participant.farmer,
+                        farmer=pool.input_item.supplier,
+                        order_number=order_num,
+                        status='pending',
+                        total_amount=participant.quantity * pool.input_item.price,
+                        delivery_address=participant.farmer.address if hasattr(participant.farmer, 'address') else 'Update Required',
+                        delivery_phone=participant.farmer.phone if hasattr(participant.farmer, 'phone') else '',
+                        notes=f'Auto-generated from Group Buy Pool #{pool.id}'
+                    )
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        input_product=pool.input_item,
+                        quantity=participant.quantity,
+                        unit_price=pool.input_item.price
+                    )
             else:
                 messages.success(request, f'Successfully joined group buy! Added {quantity} {pool.input_item.unit}.')
 

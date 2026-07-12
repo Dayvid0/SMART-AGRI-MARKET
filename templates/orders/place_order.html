@@ -1,50 +1,63 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Place Order - {{ product.name }}{% endblock %}
+{% block title %}Place Order | Smart Agri Place{% endblock %}
 
 {% block content %}
-
-<section class="py-5">
+<section class="py-5 bg-light">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-header bg-success text-white">
+                <div class="card shadow border-0 rounded-4">
+                    <div class="card-header bg-success text-white py-3 rounded-top-4">
                         <h4 class="mb-0">
-                            <i class="bi bi-cart-check"></i> Place Order
+                            <i class="bi bi-cart-check me-2"></i> Place Order
                         </h4>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 p-md-5">
                         <!-- Product Summary -->
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                {% if product.image %}
-                                    <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
+                        <div class="row mb-4 align-items-center">
+                            <div class="col-sm-4 text-center mb-3 mb-sm-0">
+                                {% if product and product.image %}
+                                    <img src="{{ product.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ item_name }}">
+                                {% elif input_item and input_item.image %}
+                                    <img src="{{ input_item.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ item_name }}">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                                        <i class="bi bi-image text-muted fs-1"></i>
+                                    </div>
                                 {% endif %}
                             </div>
-                            <div class="col-md-8">
-                                <h5>{{ product.name }}</h5>
-                                <p class="text-muted">{{ product.description|truncatewords:20 }}</p>
-                                <p class="mb-1">
-                                    <strong>Listed Price:</strong> 
-                                    <span class="text-muted text-decoration-line-through">UGX {{ product.price|floatformat:0 }}</span>
+                            <div class="col-sm-8">
+                                <h5 class="fw-bold">{{ item_name }}</h5>
+                                <p class="text-muted small mb-2">
+                                    {% if product %}
+                                        {{ product.description|truncatewords:15 }}
+                                    {% else %}
+                                        {{ input_item.description|truncatewords:15 }}
+                                    {% endif %}
                                 </p>
+                                
                                 {% if deal %}
-                                <div class="alert alert-success py-2 mt-2 border-success border-2 shadow-sm">
+                                <div class="alert alert-success py-2 mb-2 border-success border-2 shadow-sm">
                                     <h6 class="alert-heading mb-1 fw-bold"><i class="bi bi-tag-fill me-1"></i> Negotiated Deal Applied</h6>
-                                    You and the seller agreed to a special price of <strong>UGX {{ deal.agreed_price|floatformat:0 }}</strong> for <strong>{{ deal.agreed_quantity }} {{ product.unit }}(s)</strong>.
+                                    You and the seller agreed to a special price of <strong>UGX {{ deal.agreed_price|floatformat:0 }}</strong> for <strong>{{ deal.agreed_quantity }} {{ unit }}(s)</strong>.
+                                </div>
+                                {% else %}
+                                <div class="mb-2">
+                                    <span class="fs-5 fw-bold text-success">UGX {{ price_per_unit|floatformat:0 }}</span>
+                                    <span class="text-muted">/ {{ unit }}</span>
                                 </div>
                                 {% endif %}
-                                <p class="mb-1">
-                                    <strong>Available:</strong> {{ product.quantity }} {{ product.unit }}
-                                </p>
-                                <p class="mb-0">
-                                    <strong>Farmer:</strong> {{ product.farmer.username }}
-                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span><strong>Available:</strong> {{ available_qty }} {{ unit }}</span>
+                                    <span><strong>Seller:</strong> <a href="{% url 'marketplace:farmer_reviews' seller.id %}" class="text-decoration-none">{{ seller.username }}</a></span>
+                                </div>
                             </div>
                         </div>
                         
-                        <hr>
+                        <hr class="text-muted opacity-25 mb-4">
                         
                         <!-- Order Form -->
                         <form method="post" id="orderForm">
@@ -53,84 +66,134 @@
                             <input type="hidden" name="deal_id" value="{{ deal.pk }}">
                             {% endif %}
                             
-                            <div class="mb-3">
-                                <label class="form-label">Quantity *</label>
-                                <input 
-                                    type="number" 
-                                    class="form-control fw-bold {% if deal %}bg-light{% endif %}" 
-                                    name="quantity" 
-                                    id="quantity"
-                                    min="1" 
-                                    max="{{ product.quantity }}"
-                                    value="{% if deal %}{{ deal.agreed_quantity }}{% else %}1{% endif %}"
-                                    {% if deal %}readonly{% endif %}
-                                    required
-                                >
-                                {% if not deal %}
-                                <small class="text-muted">
-                                    Maximum: {{ product.quantity }} {{ product.unit }}
-                                </small>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Total Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">UGX</span>
-                                    <input 
-                                        type="text" 
-                                        class="form-control form-control-lg text-success fw-bold bg-light" 
-                                        id="totalAmount"
-                                        value=""
-                                        readonly
-                                    >
+                            <h5 class="fw-bold mb-3"><i class="bi bi-bag-plus text-success me-2"></i>Order Details</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Quantity *</label>
+                                    <div class="input-group">
+                                        <input 
+                                            type="number" 
+                                            class="form-control fw-bold text-center {% if deal %}bg-light{% endif %}" 
+                                            name="quantity" 
+                                            id="quantity"
+                                            min="1" 
+                                            max="{{ available_qty }}"
+                                            value="{% if deal %}{{ deal.agreed_quantity }}{% else %}1{% endif %}"
+                                            {% if deal %}readonly{% endif %}
+                                            required
+                                        >
+                                        <span class="input-group-text bg-white">{{ unit }}</span>
+                                    </div>
+                                    {% if not deal %}
+                                    <div class="form-text">
+                                        Max: {{ available_qty }} {{ unit }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Total Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-success text-white border-success">UGX</span>
+                                        <input 
+                                            type="text" 
+                                            class="form-control fw-bold bg-white text-end" 
+                                            id="totalAmount"
+                                            value=""
+                                            readonly
+                                        >
+                                    </div>
                                 </div>
                             </div>
                             
-                            <hr>
+                            <hr class="text-muted opacity-25 mb-4">
                             
-                            <h5 class="mb-3">Delivery Information</h5>
+                            <h5 class="fw-bold mb-3"><i class="bi bi-truck text-primary me-2"></i>Delivery Options</h5>
                             
-                            <div class="mb-3">
-                                <label class="form-label">Delivery Address *</label>
-                                <textarea 
-                                    class="form-control" 
-                                    name="delivery_address" 
-                                    rows="3"
-                                    placeholder="Enter your full delivery address"
-                                    required
-                                >{{ user.address }}</textarea>
+                            <div class="mb-4">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="delivery_method" id="delivery_self" value="self_pickup" checked autocomplete="off">
+                                        <label class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" for="delivery_self">
+                                            <i class="bi bi-person-walking fs-3 mb-2"></i>
+                                            <span class="fw-bold">Self Pickup</span>
+                                            <small class="text-muted text-center mt-1">I will collect it myself</small>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="delivery_method" id="delivery_platform" value="platform" autocomplete="off">
+                                        <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" for="delivery_platform">
+                                            <i class="bi bi-truck fs-3 mb-2"></i>
+                                            <span class="fw-bold">Platform Transport</span>
+                                            <small class="text-muted text-center mt-1">Hire a verified transporter</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <input type="radio" class="btn-check" name="delivery_method" id="delivery_farmer" value="farmer_delivery" autocomplete="off">
+                                        <label class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" for="delivery_farmer">
+                                            <i class="bi bi-bicycle fs-3 mb-2"></i>
+                                            <span class="fw-bold">Seller Delivery</span>
+                                            <small class="text-muted text-center mt-1">Seller will deliver it</small>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="form-label">Delivery Phone *</label>
-                                <input 
-                                    type="tel" 
-                                    class="form-control" 
-                                    name="delivery_phone"
-                                    value="{{ user.phone }}"
-                                    placeholder="+256..."
-                                    required
-                                >
+                            <div id="deliveryAddressSection">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold">Delivery Address *</label>
+                                        <textarea 
+                                            class="form-control" 
+                                            name="delivery_address" 
+                                            id="delivery_address"
+                                            rows="2"
+                                            placeholder="E.g. Kampala, Nakawa Market, Stall 42"
+                                            required
+                                        >{{ user.address }}</textarea>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold">Contact Phone for Delivery *</label>
+                                        <input 
+                                            type="tel" 
+                                            class="form-control" 
+                                            name="delivery_phone"
+                                            id="delivery_phone"
+                                            value="{{ user.phone }}"
+                                            placeholder="+256..."
+                                            required
+                                        >
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Additional Notes</label>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Additional Notes (Optional)</label>
                                 <textarea 
-                                    class="form-control" 
+                                    class="form-control bg-light" 
                                     name="notes" 
                                     rows="2"
-                                    placeholder="Any special instructions or requirements"
+                                    placeholder="Any special instructions for the seller or transporter"
                                 ></textarea>
                             </div>
                             
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="bi bi-check-circle"></i> Confirm Order
-                                </button>
-                                <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-x-circle"></i> Cancel
+                            <!-- Payment Notice -->
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10 mb-4 rounded-3 d-flex align-items-center">
+                                <i class="bi bi-shield-check fs-2 text-info me-3"></i>
+                                <div>
+                                    <strong>Payment on Delivery:</strong> For your security, you will pay the seller directly upon receiving and verifying the goods.
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{{ cancel_url }}" class="btn btn-light px-4 py-2 fw-bold text-secondary">
+                                    Cancel
                                 </a>
+                                <button type="submit" class="btn btn-success px-5 py-2 fw-bold shadow">
+                                    <i class="bi bi-check-circle me-1"></i> Place Order
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -144,27 +207,51 @@
 
 {% block extra_js %}
 <script>
-    // Calculate total amount when quantity changes
-    const quantityInput = document.getElementById('quantity');
-    const totalAmountInput = document.getElementById('totalAmount');
-    
-    {% if deal %}
-        const pricePerUnit = {{ deal.agreed_price|floatformat:0 }};
-    {% else %}
-        const pricePerUnit = {{ product.price|floatformat:0 }};
-    {% endif %}
-    
-    function calculateTotal() {
-        const quantity = parseInt(quantityInput.value) || 1;
-        const total = quantity * pricePerUnit;
-        totalAmountInput.value = total.toLocaleString('en-UG', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-    }
-    
-    {% if not deal %}
-    quantityInput.addEventListener('input', calculateTotal);
-    {% endif %}
-    
-    // Run once on load to set initial value
-    calculateTotal();
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInput = document.getElementById('quantity');
+        const totalAmountInput = document.getElementById('totalAmount');
+        const deliveryRadios = document.querySelectorAll('input[name="delivery_method"]');
+        const addressSection = document.getElementById('deliveryAddressSection');
+        const addressInput = document.getElementById('delivery_address');
+        const phoneInput = document.getElementById('delivery_phone');
+        
+        {% if deal %}
+            const pricePerUnit = parseFloat("{{ deal.agreed_price }}");
+        {% else %}
+            const pricePerUnit = parseFloat("{{ price_per_unit }}");
+        {% endif %}
+        
+        // Calculate Total
+        function calculateTotal() {
+            const quantity = parseInt(quantityInput.value) || 1;
+            const total = quantity * pricePerUnit;
+            totalAmountInput.value = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+        }
+        
+        if (quantityInput) {
+            quantityInput.addEventListener('input', calculateTotal);
+            calculateTotal(); // initial run
+        }
+
+        // Toggle address section requirement based on delivery method
+        function toggleAddressSection() {
+            const selectedMethod = document.querySelector('input[name="delivery_method"]:checked').value;
+            if (selectedMethod === 'self_pickup') {
+                addressSection.style.opacity = '0.5';
+                addressInput.removeAttribute('required');
+                // phone is still good to have
+            } else {
+                addressSection.style.opacity = '1';
+                addressInput.setAttribute('required', 'required');
+            }
+        }
+
+        deliveryRadios.forEach(radio => {
+            radio.addEventListener('change', toggleAddressSection);
+        });
+
+        // Initialize
+        toggleAddressSection();
+    });
 </script>
 {% endblock %}

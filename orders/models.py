@@ -11,6 +11,7 @@ class Order(models.Model):
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('processing', 'Processing'),
+        ('delivered', 'Delivered'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
@@ -28,8 +29,8 @@ class Order(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='orders_received',
-        limit_choices_to={'user_type': 'farmer'},
-        help_text="Farmer who will fulfill the order"
+        limit_choices_to={'user_type__in': ['farmer', 'input_supplier']},
+        help_text="Farmer or Supplier who will fulfill the order"
     )
     
     # Order details
@@ -94,7 +95,18 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         help_text="Product being ordered"
+    )
+
+    input_product = models.ForeignKey(
+        'inputs.AgriculturalInput',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='order_items',
+        help_text="Agricultural Input being ordered"
     )
     
     quantity = models.IntegerField(
