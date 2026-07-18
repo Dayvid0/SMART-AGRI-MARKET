@@ -1392,68 +1392,7 @@
 
 {% block content %}
 
-    {% if user.is_authenticated %}
-    <!-- WELCOME TOAST (floating, auto-dismisses after 10s) -->
-    <div id="welcome-toast">
-        <div class="toast-header">
-            <div class="toast-title">
-                <div class="ti-icon"><i class="bi bi-hand-wave"></i></div>
-                <span>Welcome back, {{ user.username|title }}!</span>
-            </div>
-            <button class="toast-close" id="toastClose" aria-label="Dismiss">&times;</button>
-        </div>
-        <p class="toast-sub">Here's what's happening on AgriMarket today.</p>
-        {% if user.district or user.user_type %}
-        <div class="toast-meta">
-            {% if user.district %}<span class="toast-badge"><i class="bi bi-geo-alt me-1"></i>{{ user.district }}</span>{% endif %}
-            {% if user.user_type %}<span class="toast-badge"><i class="bi bi-person-badge me-1"></i>{{ user.user_type|title }}</span>{% endif %}
-        </div>
-        {% endif %}
-        <div class="toast-actions">
-            <a href="{% url 'marketplace:product_list' %}" class="btn btn-success btn-sm fw-bold" style="border-radius:50px;font-size:0.78rem;" id="toastBuyBtn">
-                <i class="bi bi-bag me-1"></i>Browse Now
-            </a>
-        </div>
-        <div class="toast-progress">
-            <div class="toast-progress-bar" id="toastProgressBar"></div>
-        </div>
-    </div>
 
-    <script>
-    (function(){
-        var toast = document.getElementById('welcome-toast');
-        var bar   = document.getElementById('toastProgressBar');
-        var closeBtn = document.getElementById('toastClose');
-        var buyBtn   = document.getElementById('toastBuyBtn');
-        var duration = 10000; // ms
-
-        function dismissToast() {
-            toast.classList.add('toast-hidden');
-        }
-
-        // Kick off the progress bar shrink
-        // Use a tiny delay so the transition fires after paint
-        setTimeout(function(){
-            bar.style.transition = 'width ' + (duration / 1000) + 's linear';
-            bar.style.width = '0%';
-        }, 50);
-
-        // Auto-dismiss
-        var autoTimer = setTimeout(dismissToast, duration);
-
-        closeBtn.addEventListener('click', function(){
-            clearTimeout(autoTimer);
-            dismissToast();
-        });
-
-        // Also dismiss when navigating via the button (optional UX)
-        buyBtn.addEventListener('click', function(){
-            clearTimeout(autoTimer);
-            dismissToast();
-        });
-    })();
-    </script>
-    {% endif %}
 
 
 

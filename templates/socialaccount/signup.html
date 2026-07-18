@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Your Profile - Smart Agricultural Marketplace{% endblock %}
+
+{% block extra_css %}
+<style>
+  .main-content { padding: 0 !important; }
+
+  .reg-split {
+    display: flex;
+    min-height: calc(100vh - 76px);
+  }
+
+  /* LEFT brand panel */
+  .reg-left {
+    flex: 1;
+    background: linear-gradient(160deg, #064e3b 0%, #0f172a 100%);
+    padding: 4rem 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .reg-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300D084' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .reg-brand {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 3rem; position: relative; z-index: 1;
+  }
+  .reg-brand i { font-size: 2rem; color: #00D084; }
+  .reg-brand span {
+    font-family: 'Archivo', sans-serif; font-weight: 900;
+    font-size: 1.4rem; color: #fff; letter-spacing: -.03em;
+  }
+  .reg-headline {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(1.85rem, 3vw, 2.5rem);
+    font-weight: 900; color: #fff; line-height: 1.2;
+    margin-bottom: 1rem; letter-spacing: -.03em; position: relative; z-index: 1;
+  }
+  .reg-headline .accent { color: #00D084; }
+  .reg-sub {
+    font-size: .97rem; color: rgba(255,255,255,.62);
+    line-height: 1.72; margin-bottom: 2rem;
+    position: relative; z-index: 1; max-width: 420px;
+  }
+
+  /* RIGHT form panel */
+  .reg-right {
+    width: 560px; min-width: 560px;
+    background: #fff;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 3rem 2.75rem;
+    box-shadow: -8px 0 48px rgba(0,0,0,.08);
+    overflow-y: auto;
+  }
+  .reg-form-wrap { width: 100%; max-width: 460px; padding: .5rem 0 2rem; }
+
+  .reg-form-title {
+    font-family: 'Archivo', sans-serif; font-size: 1.75rem;
+    font-weight: 800; color: #111827; margin-bottom: .25rem; letter-spacing: -.04em;
+  }
+  .reg-form-sub { font-size: .9rem; color: #6b7280; margin-bottom: 1.75rem; }
+
+  /* User-type pill buttons */
+  .type-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: 1.5rem; }
+  .type-check { display: none; }
+  .type-label {
+    display: flex; flex-direction: column; align-items: center; gap: .3rem;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    padding: .65rem .5rem; cursor: pointer;
+    font-size: .82rem; font-weight: 600; color: #6b7280;
+    transition: border-color .2s, background .2s, color .2s;
+  }
+  .type-label i { font-size: 1.25rem; }
+  .type-check:checked + .type-label {
+    border-color: #00D084; background: #f0fdf9; color: #065f46;
+  }
+
+  /* Fields */
+  .reg-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+  .reg-field { flex: 1; margin-bottom: 1rem; position: relative; }
+  .reg-label {
+    display: block; font-size: .85rem; font-weight: 700;
+    color: #374151; margin-bottom: .4rem;
+  }
+  .reg-label .req { color: #ef4444; }
+  .reg-input, .reg-select {
+    width: 100%; padding: .75rem 1rem;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 10px; font-size: .95rem; color: #1e293b;
+    transition: all .2s; outline: none;
+  }
+  .reg-input:focus, .reg-select:focus {
+    background: #fff; border-color: #00D084;
+    box-shadow: 0 0 0 3px rgba(0,208,132,.15);
+  }
+  .reg-input.is-invalid, .reg-select.is-invalid {
+    border-color: #ef4444; background: #fef2f2;
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '\F282'; font-family: 'bootstrap-icons';
+    position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+    pointer-events: none; color: #94a3b8; font-size: .8rem;
+  }
+  .field-error {
+    font-size: .75rem; color: #ef4444; margin-top: .35rem;
+    display: flex; align-items: center; gap: .3rem;
+  }
+
+  .seller-section {
+    background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px;
+    padding: 1.25rem; margin-top: .5rem; margin-bottom: 1.5rem; display: none;
+  }
+  .seller-section.show { display: block; animation: fadeIn .3s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .seller-section-title {
+    font-size: .9rem; font-weight: 700; color: #1e293b;
+    margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .seller-section-title i { color: #00D084; font-size: 1.1rem; }
+
+  .reg-submit {
+    width: 100%; padding: .85rem; border: none; border-radius: 10px;
+    background: #111827; color: #fff; font-weight: 700; font-size: 1rem;
+    cursor: pointer; transition: background .2s, transform .1s;
+    display: flex; justify-content: center; align-items: center; gap: .5rem;
+  }
+  .reg-submit:hover { background: #1f2937; }
+  .reg-submit:active { transform: scale(.98); }
+
+  @media (max-width: 992px) {
+    .reg-split { flex-direction: column; }
+    .reg-left { padding: 3rem 2rem; }
+    .reg-right { width: 100%; min-width: auto; padding: 2.5rem 1.5rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reg-split">
+  
+  <div class="reg-left">
+    <div class="reg-brand">
+      <i class="bi bi-basket"></i>
+      <span>AgriMarket</span>
+    </div>
+    <h1 class="reg-headline">Almost <span class="accent">There.</span></h1>
+    <p class="reg-sub">Complete your profile to unlock access to the Smart Agricultural Marketplace. We just need a few more details to set up your account.</p>
+  </div>
+
+  <div class="reg-right">
+    <div class="reg-form-wrap">
+      <h2 class="reg-form-title">Complete Profile</h2>
+      <p class="reg-form-sub">Please provide the missing details below.</p>
+
+      {% if form.non_field_errors %}
+        <div style="background: #fef2f2; color: #ef4444; padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: .85rem;">
+          {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" id="signupForm" action="{% url 'socialaccount_signup' %}">
+        {% csrf_token %}
+
+        <!-- User Type Selection (Hidden Radio + Visual Pills) -->
+        <label class="reg-label" style="margin-bottom:.75rem;">I am a... <span class="req">*</span></label>
+        <div class="type-group">
+          <!-- Farmer -->
+          <input type="radio" name="user_type" id="type_farmer" value="farmer" class="type-check"
+            {% if form.user_type.value == 'farmer' %}checked{% endif %}>
+          <label class="type-label" for="type_farmer">
+            <i class="bi bi-flower1"></i><span>Farmer</span>
+          </label>
+          
+          <!-- Buyer -->
+          <input type="radio" name="user_type" id="type_buyer" value="consumer" class="type-check"
+            {% if form.user_type.value == 'consumer' or not form.user_type.value %}checked{% endif %}>
+          <label class="type-label" for="type_buyer">
+            <i class="bi bi-basket2"></i><span>Buyer</span>
+          </label>
+          
+          <!-- Business -->
+          <input type="radio" name="user_type" id="type_business" value="business" class="type-check"
+            {% if form.user_type.value == 'business' %}checked{% endif %}>
+          <label class="type-label" for="type_business">
+            <i class="bi bi-shop"></i><span>Business</span>
+          </label>
+        </div>
+        {% if form.user_type.errors %}
+          <div class="field-error" style="margin-top:-1rem;margin-bottom:1rem;"><i class="bi bi-exclamation-circle"></i>{% for e in form.user_type.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+
+        <!-- Phone & District -->
+        <div class="reg-row">
+          <div class="reg-field">
+            <label class="reg-label" for="id_phone">Phone Number <span class="req">*</span></label>
+            <input type="tel" id="id_phone" name="phone"
+              class="reg-input {% if form.phone.errors %}is-invalid{% endif %}"
+              value="{{ form.phone.value|default:'' }}"
+              placeholder="+256700000000" required>
+            {% if form.phone.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.phone.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_location">District <span class="req">*</span></label>
+            <div class="select-wrap">
+              {{ form.location }}
+            </div>
+            {% if form.location.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.location.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Seller Section (Farmer + Business) -->
+        <div id="sellerSection" class="seller-section">
+          <div class="seller-section-title">
+            <i class="bi bi-shop"></i>
+            <span id="sellerSectionTitle">Farm Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span></span>
+          </div>
+          <div class="reg-row">
+            <div class="reg-field">
+              <label class="reg-label" for="id_farm_name" id="farmNameLabel">Farm Name</label>
+              <input type="text" id="id_farm_name" name="farm_name"
+                class="reg-input {% if form.farm_name.errors %}is-invalid{% endif %}"
+                value="{{ form.farm_name.value|default:'' }}"
+                placeholder="e.g. Green Valley Farm">
+              {% if form.farm_name.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.farm_name.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="reg-field">
+              <label class="reg-label" for="id_farm_size">Farm Size (acres)</label>
+              <input type="number" step="0.1" id="id_farm_size" name="farm_size"
+                class="reg-input {% if form.farm_size.errors %}is-invalid{% endif %}"
+                value="{{ form.farm_size.value|default:'' }}"
+                placeholder="e.g. 5.5">
+              {% if form.farm_size.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.farm_size.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="reg-field">
+            <label class="reg-label" for="id_specialization">Specialization <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <div class="select-wrap">
+              {{ form.specialization }}
+            </div>
+            {% if form.specialization.errors %}
+              <div class="field-error"><i class="bi bi-exclamation-circle"></i>{% for e in form.specialization.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="reg-submit" id="regSubmitBtn">
+          <i class="bi bi-check-circle me-2"></i>Complete Setup
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+  const sellerSection = document.getElementById('sellerSection');
+  const sellerTitle = document.getElementById('sellerSectionTitle');
+  const farmNameLabel = document.getElementById('farmNameLabel');
+
+  function toggleSellerFields() {
+    const selected = document.querySelector('input[name="user_type"]:checked').value;
+    
+    if (selected === 'farmer') {
+      sellerSection.classList.add('show');
+      sellerTitle.innerHTML = 'Farm Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span>';
+      farmNameLabel.textContent = 'Farm Name';
+    } else if (selected === 'business') {
+      sellerSection.classList.add('show');
+      sellerTitle.innerHTML = 'Business Information <span style="font-weight:400;color:#6b7280;font-size:.8rem;">(optional)</span>';
+      farmNameLabel.textContent = 'Business Name';
+    } else {
+      sellerSection.classList.remove('show');
+    }
+  }
+
+  userTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleSellerFields);
+  });
+  
+  // Initial check
+  toggleSellerFields();
+});
+</script>
+{% endblock %}

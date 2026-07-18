@@ -86,9 +86,6 @@ def send_message(request, thread_id):
     if request.user not in [thread.buyer, thread.seller]:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    if thread.status != 'open':
-        return JsonResponse({'error': 'This negotiation is closed.'}, status=400)
-
     try:
         data = json.loads(request.body)
         content = data.get('content', '').strip()
@@ -245,9 +242,6 @@ def send_offer(request, thread_id):
     if request.user != thread.seller:
         return JsonResponse({'error': 'Only the seller can make offers.'}, status=403)
     
-    if thread.status != 'open':
-        return JsonResponse({'error': 'This negotiation is closed.'}, status=400)
-    
     try:
         data = json.loads(request.body)
         price = float(data.get('price', 0))
@@ -302,11 +296,8 @@ def respond_offer(request, message_id):
     message = get_object_or_404(ChatMessage, pk=message_id, msg_type='offer', offer_status='pending')
     thread = message.thread
     
-    if request.user != thread.buyer:
+    if request.user != message.thread.buyer:
         return JsonResponse({'error': 'Only the buyer can respond to offers.'}, status=403)
-    
-    if thread.status != 'open':
-        return JsonResponse({'error': 'This negotiation is closed.'}, status=400)
     
     try:
         data = json.loads(request.body)

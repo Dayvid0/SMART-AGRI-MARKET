@@ -47,7 +47,7 @@ class Order(models.Model):
     )
     
     total_amount = models.DecimalField(
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         help_text="Total order amount in UGX"
     )
@@ -64,6 +64,12 @@ class Order(models.Model):
     notes = models.TextField(
         blank=True,
         help_text="Additional notes or instructions"
+    )
+
+    cancellation_reason = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Reason for cancelling the order"
     )
     
     # Timestamps
@@ -114,13 +120,13 @@ class OrderItem(models.Model):
     )
     
     unit_price = models.DecimalField(
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
-        help_text="Price per unit at time of order"
+        help_text="Price per unit at the time of order"
     )
     
     subtotal = models.DecimalField(
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         help_text="Quantity × Unit Price"
     )

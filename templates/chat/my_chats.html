@@ -147,9 +147,6 @@
     padding: 3px 10px;
     border-radius: 50px;
   }
-  .status-open { background: #dcfce7; color: #166534; }
-  .status-closed { background: #fee2e2; color: #991b1b; }
-  .status-archived { background: #f1f5f9; color: #475569; }
 
   .product-thumb {
     width: 44px; height: 44px;
@@ -211,6 +208,11 @@
   <div class="container position-relative">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
       <div>
+        <div class="mb-3">
+          <a href="{% url 'marketplace:home' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 opacity-75 hover-opacity-100">
+            <i class="bi bi-arrow-left me-1"></i> Back to Marketplace
+          </a>
+        </div>
         <p class="hero-subtitle mb-2">
           <i class="bi bi-chat-dots-fill me-1"></i> Negotiation Centre
         </p>
@@ -237,15 +239,15 @@
       <!-- Filter Tabs -->
       <div class="filter-tabs" id="filterTabs">
         <button class="filter-tab active" data-filter="all">All Chats</button>
-        <button class="filter-tab" data-filter="open">Open</button>
-        <button class="filter-tab" data-filter="closed">Closed</button>
+        <button class="filter-tab" data-filter="unread">Unread</button>
+        <button class="filter-tab" data-filter="read">Read</button>
       </div>
 
       {% if threads_with_data %}
         {% for item in threads_with_data %}
         <a href="{% url 'chat:chat_room' item.thread.pk %}"
-           class="thread-card {% if item.unread_count > 0 %}has-unread{% endif %} {% if item.thread.status != 'open' %}closed-thread{% endif %}"
-           data-status="{{ item.thread.status }}">
+           class="thread-card {% if item.unread_count > 0 %}has-unread{% endif %}"
+           data-read-status="{% if item.unread_count > 0 %}unread{% else %}read{% endif %}">
           <div class="d-flex align-items-center gap-3">
 
             <!-- Product thumbnail -->
@@ -289,7 +291,6 @@
               {% if item.unread_count > 0 %}
                 <span class="unread-badge">{{ item.unread_count }}</span>
               {% endif %}
-              <span class="status-badge status-{{ item.thread.status }}">{{ item.thread.status }}</span>
             </div>
           </div>
         </a>
@@ -320,14 +321,14 @@
     tab.addEventListener('click', function () {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
       this.classList.add('active');
-      const filter = this.dataset.filter;
-      document.querySelectorAll('.thread-card').forEach(card => {
-        if (filter === 'all' || card.dataset.status === filter) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.thread-card').forEach(card => {
+          if (filter === 'all' || card.dataset.readStatus === filter) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
     });
   });
 </script>

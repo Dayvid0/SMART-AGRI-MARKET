@@ -46,13 +46,21 @@
     position: relative;
   }
   .chat-back-btn {
-    color: rgba(255,255,255,.8);
+    font-size: 1.4rem; 
+    font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
     text-decoration: none;
-    font-size: 1.3rem;
+    padding: 10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    transition: background 0.2s;
     line-height: 1;
-    transition: color .15s;
   }
-  .chat-back-btn:hover { color: #fff; }
+  .chat-back-btn:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
   .chat-avatar {
     width: 44px; height: 44px;
     border-radius: 50%;
@@ -436,15 +444,6 @@
       <a href="{% url 'marketplace:product_detail' product.pk %}" class="chat-header-btn">
         <i class="bi bi-box-arrow-up-right me-1"></i>View Listing
       </a>
-      {% if thread.status == 'open' %}
-        <button class="chat-header-btn danger" id="closeThreadBtn">
-          <i class="bi bi-x-circle me-1"></i>Close
-        </button>
-      {% else %}
-        <button class="chat-header-btn" id="reopenThreadBtn">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>Reopen
-        </button>
-      {% endif %}
     </div>
   </div>
 
@@ -466,17 +465,6 @@
     </a>
   </div>
 
-  <!-- ===== CLOSED BANNER ===== -->
-  {% if thread.status != 'open' %}
-  <div class="closed-banner" id="closedBanner">
-    <i class="bi bi-lock-fill me-2"></i>
-    This negotiation is <strong>{{ thread.status }}</strong>.
-    {% if thread.status == 'closed' %}
-      <button class="btn btn-sm btn-outline-danger ms-2 py-0" id="reopenBannerBtn">Reopen</button>
-    {% endif %}
-  </div>
-  {% endif %}
-
   <!-- ===== MESSAGES AREA ===== -->
   <div class="messages-area" id="messagesArea">
     {% if messages %}
@@ -497,7 +485,7 @@
               </div>
             </div>
             
-            {% if message.offer_status == 'pending' and request.user == thread.buyer and thread.status == 'open' %}
+            {% if message.offer_status == 'pending' and request.user == thread.buyer %}
               <div class="offer-actions" data-msg-id="{{ message.pk }}">
                 <button class="btn-reject" onclick="respondToOffer({{ message.pk }}, 'reject')">Reject</button>
                 <button class="btn-accept" onclick="respondToOffer({{ message.pk }}, 'accept')">Accept Deal</button>
@@ -549,8 +537,7 @@
   <div class="chat-input-bar">
     {% if request.user == thread.seller %}
     <button class="btn text-white rounded-circle flex-shrink-0" id="showOfferModalBtn" title="Make Price Offer" 
-            style="width: 44px; height: 44px; background: #064e3b; display: flex; align-items: center; justify-content: center; border:none;"
-            {% if thread.status != 'open' %}disabled{% endif %}>
+            style="width: 44px; height: 44px; background: #064e3b; display: flex; align-items: center; justify-content: center; border:none;">
       <i class="bi bi-tag-fill"></i>
     </button>
     {% endif %}
@@ -559,10 +546,8 @@
       class="chat-input"
       placeholder="Type your message…"
       rows="1"
-      {% if thread.status != 'open' %}disabled{% endif %}
     ></textarea>
     <button class="chat-send-btn" id="sendBtn"
-            {% if thread.status != 'open' %}disabled{% endif %}
             title="Send message">
       <i class="bi bi-send-fill"></i>
     </button>
@@ -609,8 +594,6 @@
   const CURRENT_USER_ID = {{ request.user.pk }};
   const SEND_URL = "{% url 'chat:send_message' thread.pk %}";
   const POLL_URL = "{% url 'chat:poll_messages' thread.pk %}";
-  const CLOSE_URL = "{% url 'chat:close_thread' thread.pk %}";
-  const REOPEN_URL = "{% url 'chat:reopen_thread' thread.pk %}";
   const CSRF_TOKEN = "{{ csrf_token }}";
 
   const messagesArea = document.getElementById('messagesArea');
@@ -621,7 +604,6 @@
 
   // Track last message ID for polling delta
   let lastMessageId = {% if messages %}{{ messages.last.pk|default:0 }}{% else %}0{% endif %};
-  let isThreadOpen = {% if thread.status == 'open' %}true{% else %}false{% endif %};
   let isSending = false;
 
   // ---- Auto-scroll to bottom ----
@@ -649,7 +631,7 @@
       const bubble = document.createElement('div');
       bubble.className = 'msg-bubble offer-card';
       let actionsHtml = '';
-      if (msg.offer_status === 'pending' && CURRENT_USER_ID !== msg.sender_id && isThreadOpen) {
+      if (msg.offer_status === 'pending' && CURRENT_USER_ID !== msg.sender_id) {
           actionsHtml = `
             <div class="offer-actions" data-msg-id="${msg.id}">
               <button class="btn-reject" onclick="respondToOffer(${msg.id}, 'reject')">Reject</button>
@@ -789,8 +771,6 @@
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Failed to respond to offer');
       
-      // Let the polling pick up the status change and new messages, or we can just reload
-      // But polling is better. We can also force a reload for safety.
       location.reload();
       
     } catch (e) {
@@ -800,7 +780,7 @@
 
   // ---- Send a message ----
   async function sendMessage() {
-    if (isSending || !isThreadOpen) return;
+    if (isSending) return;
     const content = chatInput.value.trim();
     if (!content) return;
 
@@ -888,60 +868,15 @@
         });
       }
 
-      // Handle thread status change
-      if (data.thread_status && data.thread_status !== 'open' && isThreadOpen) {
-        isThreadOpen = false;
-        chatInput.disabled = true;
-        sendBtn.disabled = true;
-        if (!document.getElementById('closedBanner')) {
-          const banner = document.createElement('div');
-          banner.className = 'closed-banner';
-          banner.id = 'closedBanner';
-          banner.innerHTML = '<i class="bi bi-lock-fill me-2"></i>This negotiation has been <strong>closed</strong>.';
-          // Insert after product context bar
-          messagesArea.parentNode.insertBefore(banner, messagesArea);
-        }
-      }
-
     } catch (e) {
       // Silently fail — will retry on next poll
     }
   }
 
-  // Start polling if thread is open
-  if (isThreadOpen) {
-    setInterval(pollMessages, 3000);
-  }
+  // Start polling
+  setInterval(pollMessages, 3000);
 
-  // ---- Close thread ----
-  const closeBtn = document.getElementById('closeThreadBtn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', async function () {
-      if (!confirm('Close this negotiation? The other party will not be able to send messages.')) return;
-      try {
-        const res = await fetch(CLOSE_URL, {
-          method: 'POST',
-          headers: { 'X-CSRFToken': CSRF_TOKEN }
-        });
-        if (res.ok) location.reload();
-      } catch(e) {}
-    });
-  }
 
-  // ---- Reopen thread ----
-  [document.getElementById('reopenThreadBtn'), document.getElementById('reopenBannerBtn')]
-    .filter(Boolean)
-    .forEach(btn => {
-      btn.addEventListener('click', async function () {
-        try {
-          const res = await fetch(REOPEN_URL, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': CSRF_TOKEN }
-          });
-          if (res.ok) location.reload();
-        } catch(e) {}
-      });
-    });
 </script>
 {% endblock %}
 {% endblock %}

@@ -31,9 +31,17 @@ class LoginRequiredMiddleware:
             '/accounts/login/',
             '/accounts/register/',
             '/accounts/password-reset/',
+            '/accounts/google/', # Exempt Google Auth flow
+            '/accounts/social/', # Exempt Allauth social signup
+            '/accounts/signup/', # Exempt Allauth signup
             '/sw.js',          # PWA service worker
             '/manifest.json',  # PWA manifest
             '/offline/',       # PWA offline page
+            # ── Allow guests to browse products ──
+            '/marketplace/products/',   # Product listing
+            '/marketplace/products/',   # Product detail (starts with same prefix)
+            '/marketplace/market-prices/', # Price intelligence
+            '/admin-portal/',           # Admin portal manages own auth
         ]
         
         path = request.path_info

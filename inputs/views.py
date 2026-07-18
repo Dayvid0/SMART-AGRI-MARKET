@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -150,7 +152,17 @@ def group_buy_detail(request, pool_id):
     participants = pool.participants.select_related('farmer').all()
 
     # Check if user already joined
-    user_participation = participants.filter(farmer=request.user).first()
+    user_participation = None
+    participant_order = None
+    if request.user.is_authenticated:
+        user_participation = participants.filter(farmer=request.user).first()
+        if pool.status in ['closed', 'completed']:
+            # Search for the auto-generated order for this pool
+            from orders.models import Order
+            participant_order = Order.objects.filter(
+                buyer=request.user, 
+                notes__contains=f'Pool #{pool.id}'
+            ).first()
 
     # Calculate progress
     progress_percentage = min(
@@ -161,17 +173,23 @@ def group_buy_detail(request, pool_id):
     # Calculate discounted group price
     discount = pool.input_item.group_discount_percentage
     regular_price = pool.input_item.price
-    group_price = regular_price * (1 - discount / 100) if discount > 0 else regular_price
+    group_price = regular_price * (Decimal('1') - Decimal(str(discount)) / Decimal('100')) if discount > 0 else regular_price
 
     # Check if deadline has passed but pool is still 'open'
     if pool.status == 'open' and pool.deadline < timezone.now():
         pool.status = 'cancelled'
         pool.save()
 
+    participant_cost = 0
+    if user_participation:
+        participant_cost = user_participation.quantity * group_price
+
     context = {
         'pool': pool,
         'participants': participants,
         'user_participation': user_participation,
+        'participant_order': participant_order,
+        'participant_cost': participant_cost,
         'progress_percentage': progress_percentage,
         'group_price': group_price,
         'remaining': max(pool.target_quantity - pool.current_quantity, 0),
@@ -198,59 +216,73 @@ def join_group_buy(request, pool_id):
         return redirect('inputs:group_buy_detail', pool_id=pool.id)
 
     if request.method == 'POST':
-        try:
-            quantity = int(request.POST.get('quantity', 0))
-            if quantity <= 0:
-                messages.error(request, 'Quantity must be greater than zero.')
+        with transaction.atomic():
+            # Lock the pool record for safe concurrent update
+            pool = get_object_or_404(GroupBuyPool.objects.select_for_update(), pk=pool_id)
+            
+            # Re-check status within transaction
+            if pool.status != 'open' or pool.deadline < timezone.now():
+                messages.error(request, 'This group buy pool is no longer accepting participants.')
+                return redirect('inputs:group_buy_detail', pool_id=pool.id)
+
+            try:
+                quantity = int(request.POST.get('quantity', 0))
+                if quantity <= 0:
+                    messages.error(request, 'Quantity must be greater than zero.')
+                    return render(request, 'inputs/join_group_buy.html', {'pool': pool})
+    
+                # Add participant
+                GroupBuyParticipant.objects.create(
+                    pool=pool,
+                    farmer=request.user,
+                    quantity=quantity
+                )
+    
+                # Update pool quantity
+                pool.current_quantity += quantity
+    
+                # Check if target reached
+                if pool.current_quantity >= pool.target_quantity:
+                    pool.status = 'closed'
+                    messages.success(request, f'🎉 Target reached! The group buy is now closed and orders have been generated.')
+                    
+                    discount = pool.input_item.group_discount_percentage
+                    regular_price = pool.input_item.price
+                    group_price = regular_price * (Decimal('1') - Decimal(str(discount)) / Decimal('100')) if discount > 0 else regular_price
+
+                    # Auto-generate orders for all participants
+                    for participant in pool.participants.all():
+                        # Generate simple order number
+                        date_part = timezone.now().strftime('%Y%m%d')
+                        rand_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+                        order_num = f"GB-{date_part}-{rand_part}"
+                        
+                        order = Order.objects.create(
+                            buyer=participant.farmer,
+                            farmer=pool.input_item.supplier,
+                            order_number=order_num,
+                            status='pending',
+                            total_amount=participant.quantity * group_price,
+                            delivery_address=participant.farmer.address if hasattr(participant.farmer, 'address') else 'Update Required',
+                            delivery_phone=participant.farmer.phone_number if hasattr(participant.farmer, 'phone_number') else 'Update Required',
+                            notes=f'Auto-generated from Group Buy Pool #{pool.id}'
+                        )
+                        
+                        OrderItem.objects.create(
+                            order=order,
+                            input_product=pool.input_item,
+                            quantity=participant.quantity,
+                            unit_price=pool.input_item.price
+                        )
+            except ValueError:
+                messages.error(request, 'Invalid quantity provided.')
                 return render(request, 'inputs/join_group_buy.html', {'pool': pool})
-
-            # Add participant
-            GroupBuyParticipant.objects.create(
-                pool=pool,
-                farmer=request.user,
-                quantity=quantity
-            )
-
-            # Update pool quantity
-            pool.current_quantity += quantity
-
-            # Check if target reached
-            if pool.current_quantity >= pool.target_quantity:
-                pool.status = 'closed'
-                messages.success(request, f'🎉 Target reached! The group buy is now closed and orders have been generated.')
                 
-                # Auto-generate orders for all participants
-                for participant in pool.participants.all():
-                    # Generate simple order number
-                    date_part = timezone.now().strftime('%Y%m%d')
-                    rand_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-                    order_num = f"GB-{date_part}-{rand_part}"
-                    
-                    order = Order.objects.create(
-                        buyer=participant.farmer,
-                        farmer=pool.input_item.supplier,
-                        order_number=order_num,
-                        status='pending',
-                        total_amount=participant.quantity * pool.input_item.price,
-                        delivery_address=participant.farmer.address if hasattr(participant.farmer, 'address') else 'Update Required',
-                        delivery_phone=participant.farmer.phone if hasattr(participant.farmer, 'phone') else '',
-                        notes=f'Auto-generated from Group Buy Pool #{pool.id}'
-                    )
-                    
-                    OrderItem.objects.create(
-                        order=order,
-                        input_product=pool.input_item,
-                        quantity=participant.quantity,
-                        unit_price=pool.input_item.price
-                    )
             else:
                 messages.success(request, f'Successfully joined group buy! Added {quantity} {pool.input_item.unit}.')
 
             pool.save()
             return redirect('inputs:group_buy_detail', pool_id=pool.id)
-
-        except (ValueError, TypeError):
-            messages.error(request, 'Invalid quantity. Please enter a valid number.')
 
     context = {
         'pool': pool

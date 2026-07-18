@@ -30,6 +30,7 @@ urlpatterns = [
     # ── App routes ──
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('accounts/', include('allauth.urls')), # Allauth URLs
     path('orders/', include('orders.urls')),  
     path('', include('marketplace.urls')),
 
@@ -39,6 +40,7 @@ urlpatterns = [
     path('home/', product_list, name='home'),
     path('notifications/', include('notifications.urls')),
     path('chat/', include('chat.urls')),
+    path('admin-portal/', include('adminportal.urls', namespace='adminportal')),
 ]
 
 if settings.DEBUG:

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -122,6 +123,15 @@ def accept_delivery(request, delivery_id):
         return redirect('orders:delivery_detail', delivery_id=delivery_id)
 
     if request.method == 'POST':
+        # Check active deliveries limit
+        active_deliveries = DeliveryRequest.objects.filter(
+            transporter=request.user,
+            status__in=['assigned', 'in_transit']
+        ).count()
+        if active_deliveries >= 3:
+            messages.error(request, 'You cannot have more than 3 active deliveries at a time.')
+            return redirect('orders:delivery_detail', delivery_id=delivery_id)
+
         delivery.transporter = request.user
         delivery.status = 'assigned'
         delivery.assigned_at = timezone.now()
@@ -218,87 +228,97 @@ def place_order(request, product_id=None, input_id=None):
         price_per_unit = deal.agreed_price
     
     if request.method == 'POST':
-        if deal:
-            quantity = deal.agreed_quantity
-        else:
-            quantity = int(request.POST.get('quantity', 1))
+        from django.db import transaction
+        with transaction.atomic():
+            # Lock the record for update
+            if product_id:
+                product = get_object_or_404(Product.objects.select_for_update(), pk=product_id, status='available')
+                available_qty = product.quantity
+            elif input_id:
+                input_item = get_object_or_404(AgriculturalInput.objects.select_for_update(), pk=input_id, status='available')
+                available_qty = input_item.quantity_available
+
+            if deal:
+                quantity = deal.agreed_quantity
+            else:
+                quantity = int(request.POST.get('quantity', 1))
+                
+            delivery_address = request.POST.get('delivery_address')
+            delivery_phone = request.POST.get('delivery_phone')
+            delivery_method = request.POST.get('delivery_method', 'self_pickup')
+            notes = request.POST.get('notes', '')
             
-        delivery_address = request.POST.get('delivery_address')
-        delivery_phone = request.POST.get('delivery_phone')
-        delivery_method = request.POST.get('delivery_method', 'self_pickup')
-        notes = request.POST.get('notes', '')
-        
-        # Validate quantity
-        if quantity <= 0:
-            messages.error(request, 'Quantity must be greater than 0!')
-            return redirect(cancel_url)
-        
-        if quantity > available_qty:
-            messages.error(request, f'Only {available_qty} {unit} available!')
-            return redirect(cancel_url)
-        
-        # Calculate total
-        total_amount = quantity * price_per_unit
-        
-        # Create order
-        order = Order.objects.create(
-            buyer=request.user,
-            farmer=seller,
-            order_number=generate_order_number(),
-            status='pending',
-            total_amount=total_amount,
-            delivery_address=delivery_address,
-            delivery_phone=delivery_phone,
-            notes=notes
-        )
-        
-        # Create order item
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            input_product=input_item,
-            quantity=quantity,
-            unit_price=price_per_unit
-        )
-        
-        # Update product quantity
-        if product:
-            product.quantity -= quantity
-            if product.quantity == 0:
-                product.status = 'out_of_stock'
-            product.save()
+            # Validate quantity
+            if quantity <= 0:
+                messages.error(request, 'Quantity must be greater than 0!')
+                return redirect(cancel_url)
+            
+            if quantity > available_qty:
+                messages.error(request, f'Only {available_qty} {unit} available!')
+                return redirect(cancel_url)
+            
+            # Calculate total
+            total_amount = quantity * price_per_unit
+            
+            # Create order
+            order = Order.objects.create(
+                buyer=request.user,
+                farmer=seller,
+                order_number=generate_order_number(),
+                status='pending',
+                total_amount=total_amount,
+                delivery_address=delivery_address,
+                delivery_phone=delivery_phone,
+                notes=notes
+            )
+            
+            # Create order item
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                input_product=input_item,
+                quantity=quantity,
+                unit_price=price_per_unit
+            )
+            
+            # Update product quantity
+            if product:
+                product.quantity -= quantity
+                if product.quantity == 0:
+                    product.status = 'out_of_stock'
+                product.save()
+            elif input_item:
+                input_item.quantity_available -= quantity
+                if input_item.quantity_available == 0:
+                    input_item.status = 'out_of_stock'
+                input_item.save()
+            
+            # Mark deal as used
             if deal:
                 deal.order = order
-                deal.save(update_fields=['order'])
-        elif input_item:
-            input_item.quantity_available -= quantity
-            if input_item.quantity_available == 0:
-                input_item.status = 'out_of_stock'
-            input_item.save()
-        
-        # Notify the seller about the new order
-        try:
-            notify_new_order(order)
-        except Exception:
-            pass
-            
-        # Handle delivery auto-request
-        if delivery_method == 'platform':
-            # Auto-create DeliveryRequest
-            DeliveryRequest.objects.create(
-                order=order,
-                pickup_district=seller.district if hasattr(seller, 'district') else 'TBD',
-                delivery_district=request.user.district if hasattr(request.user, 'district') else 'TBD',
-                pickup_address=seller.address if hasattr(seller, 'address') else '',
-                offered_price=0,
-                status='open',
-                notes='Auto-requested by buyer during checkout'
-            )
-            messages.success(request, f'Order placed! A delivery request has been broadcasted to platform transporters.')
-        else:
-            messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
-            
-        return redirect('orders:order_detail', order_id=order.id)
+                deal.save()
+                
+            # Notify the seller about the new order
+            try:
+                notify_new_order(order)
+            except Exception:
+                pass
+                
+            # If platform transport selected, create delivery request automatically
+            if delivery_method == 'platform':
+                dr = DeliveryRequest.objects.create(
+                    order=order,
+                    pickup_district=order.farmer.district or 'Kampala',
+                    delivery_district='TBD', # Should be determined by buyer profile or input
+                    status='open',
+                    notes='Auto-requested by buyer during checkout',
+                    offered_price=0
+                )
+                messages.success(request, f'Order placed! A delivery request has been broadcasted to platform transporters.')
+            else:
+                messages.success(request, f'Order placed successfully! Order number: {order.order_number}')
+                
+            return redirect('orders:order_detail', order_id=order.id)
     
     context = {
         'product': product,
@@ -418,14 +438,25 @@ def cancel_order(request, order_id):
     
     # Restore product quantity
     for item in order.items.all():
-        product = item.product
-        product.quantity += item.quantity
-        if product.status == 'out_of_stock':
-            product.status = 'available'
-        product.save()
+        if item.product:
+            product = item.product
+            product.quantity += item.quantity
+            if product.status == 'out_of_stock':
+                product.status = 'available'
+            product.save()
+        elif item.input_product:
+            product = item.input_product
+            product.quantity_available += item.quantity
+            product.save()
     
     # Update order status
     order.status = 'cancelled'
+    
+    # Save cancellation reason if provided
+    reason = request.POST.get('cancellation_reason', '').strip()
+    if reason:
+        order.cancellation_reason = reason
+        
     order.save()
     # Notify farmer that the buyer cancelled
     try:

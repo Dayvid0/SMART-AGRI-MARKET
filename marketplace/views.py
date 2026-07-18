@@ -635,6 +635,11 @@ def farmer_list(request):
     """
     from accounts.models import User
 
+    # Farmers should not see a directory of other farmers
+    if request.user.is_authenticated and request.user.user_type == 'farmer':
+        messages.info(request, 'The Farmer Directory is for buyers and businesses. You can manage your own listings from your dashboard.')
+        return redirect('marketplace:farmer_dashboard')
+
     # Use imported regions
     REGIONS = UGANDA_REGIONS
 

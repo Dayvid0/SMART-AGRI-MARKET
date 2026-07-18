@@ -27,10 +27,10 @@ class User(AbstractUser):
         choices=UGANDA_DISTRICT_CHOICES, 
         blank=True
     )
-    specialization = models.CharField(
-        max_length=100, 
-        choices=SPECIALIZATION_CHOICES, 
-        blank=True
+    specialization = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of farming specializations"
     )
     first_login = models.BooleanField(default=True)
 

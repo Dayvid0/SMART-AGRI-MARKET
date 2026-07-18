@@ -613,7 +613,7 @@ function renderAIPanel(d) {
       <div style="position:relative;padding-top:30px;margin-bottom:6px;">
         <div class="season-bar-wrap">
           <div class="season-bar-fill" style="width:${pct}%;">
-            <div class="season-bar-label">${isEarly ? 'Just started 🌱' : s.progress_pct + '%'}</div>
+            <div class="season-bar-label" ${isEarly ? 'style="left:0; right:auto;"' : ''}>${isEarly ? 'Just started 🌱' : s.progress_pct + '%'}</div>
           </div>
         </div>
       </div>

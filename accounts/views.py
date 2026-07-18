@@ -4,10 +4,61 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from django.utils import timezone
 from .models import User, FarmerProfile, InputSupplierProfile, TransporterProfile, VerificationRequest
 from .constants import UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES
 from .forms import RegisterForm
+import re
+
+
+def validate_field(request):
+    """
+    AJAX endpoint for real-time form field validation on the registration page.
+    Accepts POST with 'field' and 'value' and returns JSON {valid, error}.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'valid': False, 'error': 'Invalid request.'}, status=405)
+
+    field = request.POST.get('field', '').strip()
+    value = request.POST.get('value', '').strip()
+
+    if field == 'username':
+        if not value:
+            return JsonResponse({'valid': False, 'error': 'Username is required.'})
+        if len(value) < 3:
+            return JsonResponse({'valid': False, 'error': 'Username must be at least 3 characters.'})
+        if User.objects.filter(username__iexact=value).exists():
+            return JsonResponse({'valid': False, 'error': 'This username is already taken.'})
+        return JsonResponse({'valid': True})
+
+    elif field == 'email':
+        if not value:
+            return JsonResponse({'valid': False, 'error': 'Email is required.'})
+        if User.objects.filter(email__iexact=value).exists():
+            return JsonResponse({'valid': False, 'error': 'An account with this email already exists.'})
+        return JsonResponse({'valid': True})
+
+    elif field == 'phone':
+        cleaned = re.sub(r'[\s\-()]', '', value)
+        if not re.match(r'^(\+256|256|0)[3-9]\d{8}$', cleaned):
+            return JsonResponse({'valid': False, 'error': 'Enter a valid Uganda number (e.g. +256700123456 or 0700123456).'})
+        return JsonResponse({'valid': True})
+
+    elif field == 'password':
+        errors = []
+        if len(value) < 8:
+            errors.append('At least 8 characters')
+        if not re.search(r'\d', value):
+            errors.append('At least one number')
+        if not re.search(r'[A-Za-z]', value):
+            errors.append('At least one letter')
+        if errors:
+            return JsonResponse({'valid': False, 'error': 'Password needs: ' + ', '.join(errors)})
+        return JsonResponse({'valid': True})
+
+    return JsonResponse({'valid': True})
+
 
 def register(request):
     """User registration — validated through RegisterForm."""
@@ -22,14 +73,16 @@ def register(request):
                 user_type=cd['user_type'],
                 phone=cd.get('phone', ''),
                 location=cd.get('location', ''),
+                specialization=cd.get('specialization') or [],
             )
 
             if cd['user_type'] == 'farmer':
+                specs = cd.get('specialization') or []
                 FarmerProfile.objects.create(
                     user=user,
                     farm_name=cd.get('farm_name') or f"{user.username}'s Farm",
                     farm_size=cd.get('farm_size') or 0,
-                    specialization=cd.get('specialization') or 'Mixed Farming',
+                    specialization=specs[0] if specs else 'Mixed Farming',
                 )
             elif cd['user_type'] == 'transporter':
                 # Create a basic transporter profile; user can complete it later

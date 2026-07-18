@@ -2,8 +2,10 @@
 import re
 from django import forms
 from django.contrib.auth.password_validation import validate_password
+from allauth.socialaccount.forms import SignupForm
 from .models import User
 from .constants import UGANDA_DISTRICT_CHOICES, SPECIALIZATION_CHOICES
+
 
 
 class RegisterForm(forms.Form):
@@ -56,10 +58,11 @@ class RegisterForm(forms.Form):
         min_value=0, required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Size in acres'}),
     )
-    specialization = forms.ChoiceField(
-        choices=[('', '— Select Specialization (optional) —')] + SPECIALIZATION_CHOICES,
+    specialization = forms.MultipleChoiceField(
+        choices=SPECIALIZATION_CHOICES,
         required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'spec-checkbox'}),
+        help_text="Select all that apply"
     )
 
     def clean_username(self):
@@ -100,6 +103,15 @@ class RegisterForm(forms.Form):
 
 
 class UserEditForm(forms.ModelForm):
+    # Override specialization to use multi-select checkboxes (JSONField can't
+    # render as a plain Select; also matches the registration form's UX).
+    specialization = forms.MultipleChoiceField(
+        choices=SPECIALIZATION_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'spec-checkbox'}),
+        help_text="Select all that apply"
+    )
+
     class Meta:
         model = User
         fields = [
@@ -114,7 +126,6 @@ class UserEditForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'whatsapp_number': forms.TextInput(attrs={'class': 'form-control'}),
             'district': forms.Select(attrs={'class': 'form-control'}),
-            'specialization': forms.Select(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control-file'}),
         }

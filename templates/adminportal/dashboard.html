@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Admin Portal — AgriMarket{% endblock %}
+
+{% block content %}
+<style>
+:root { --ap-green: #16a34a; --ap-dark: #0f172a; --ap-card: #fff; }
+.ap-wrap { max-width: 1300px; margin: 0 auto; padding: 2rem 1rem; }
+.ap-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: #fff; padding: 2rem 2.5rem; border-radius: 16px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.ap-header h1 { font-size: 1.8rem; font-weight: 800; margin: 0; }
+.ap-header .subtitle { color: rgba(255,255,255,0.65); font-size: 0.9rem; margin: 0; }
+.ap-nav { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.ap-nav a { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 50px; font-weight: 600; font-size: 0.88rem; text-decoration: none; border: 2px solid transparent; transition: all 0.2s; }
+.ap-nav a.active, .ap-nav a:hover { background: var(--ap-green); color: #fff; border-color: var(--ap-green); }
+.ap-nav a:not(.active) { background: #f1f5f9; color: #374151; border-color: #e2e8f0; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+.stat-card { background: #fff; border-radius: 14px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.stat-card .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1rem; }
+.stat-card .stat-value { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+.stat-card .stat-label { font-size: 0.82rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.3rem; }
+.stat-card .stat-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.2rem; }
+.ap-card { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 2rem; }
+.ap-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+.ap-card-header h5 { font-weight: 700; margin: 0; font-size: 1rem; color: #0f172a; }
+.ap-table { width: 100%; border-collapse: collapse; }
+.ap-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+.ap-table td { padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: #374151; vertical-align: middle; }
+.ap-table tr:last-child td { border-bottom: none; }
+.ap-table tr:hover td { background: #f8fafc; }
+.badge-role { padding: 3px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+.role-farmer { background: #dcfce7; color: #166534; }
+.role-consumer { background: #dbeafe; color: #1d4ed8; }
+.role-transporter { background: #fef9c3; color: #854d0e; }
+.role-business { background: #fce7f3; color: #9d174d; }
+.role-input_supplier { background: #ede9fe; color: #5b21b6; }
+.status-pending { background: #fef3c7; color: #b45309; }
+.status-completed { background: #dcfce7; color: #166534; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.ap-alert { padding: 0.7rem 1rem; border-radius: 10px; font-size: 0.88rem; margin-bottom: 1.5rem; }
+.ap-alert.warning { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+</style>
+
+<div class="ap-wrap">
+    <div class="ap-header">
+        <div>
+            <h1>⚙️ Admin Portal</h1>
+            <p class="subtitle">System overview and management — AgriMarket Uganda</p>
+        </div>
+        <div class="text-end">
+            <small class="d-block text-white-50">Logged in as <strong>{{ request.user.username }}</strong></small>
+            <small class="text-white-50">{{ "now"|date:"D, d M Y H:i" }}</small>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="ap-alert {{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="ap-nav">
+        <a href="{% url 'adminportal:dashboard' %}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="{% url 'adminportal:analytics' %}"><i class="bi bi-bar-chart-fill"></i> Analytics</a>
+        <a href="{% url 'adminportal:user_management' %}"><i class="bi bi-people-fill"></i> Users</a>
+        <a href="{% url 'adminportal:verification_queue' %}">
+            <i class="bi bi-shield-check"></i> Verifications
+            {% if pending_verifications > 0 %}<span class="badge bg-danger ms-1">{{ pending_verifications }}</span>{% endif %}
+        </a>
+        <a href="{% url 'adminportal:order_overview' %}"><i class="bi bi-bag-check-fill"></i> Orders</a>
+        <a href="/admin/" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Django Admin</a>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#dcfce7;">👥</div>
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-sub">+{{ new_users_today }} today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe;">📦</div>
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-sub">{{ orders_today }} today · {{ pending_orders }} pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fef9c3;">💰</div>
+            <div class="stat-value" style="font-size:1.4rem;">UGX {{ revenue_30d|floatformat:0 }}</div>
+            <div class="stat-label">Revenue (30 days)</div>
+            <div class="stat-sub">Completed & delivered orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fee2e2;">🛡️</div>
+            <div class="stat-value">{{ pending_verifications }}</div>
+            <div class="stat-label">Pending Verifications</div>
+            <div class="stat-sub"><a href="{% url 'adminportal:verification_queue' %}" style="color:var(--ap-green);">Review now →</a></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#ede9fe;">❌</div>
+            <div class="stat-value">{{ cancelled_orders }}</div>
+            <div class="stat-label">Cancelled Orders</div>
+        </div>
+    </div>
+
+    <!-- Users by Role -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-5">
+            <div class="ap-card h-100">
+                <div class="ap-card-header"><h5>👥 Users by Role</h5></div>
+                <div class="p-3">
+                    {% for row in users_by_type %}
+                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                        <span class="badge-role role-{{ row.user_type }}">{{ row.user_type|title }}</span>
+                        <strong>{{ row.count }}</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="col-md-7">
+            <div class="ap-card h-100">
+                <div class="ap-card-header">
+                    <h5>📦 Recent Orders</h5>
+                    <a href="{% url 'adminportal:order_overview' %}" class="btn btn-sm btn-outline-success rounded-pill">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead><tr><th>Order #</th><th>Buyer</th><th>Farmer</th><th>Status</th><th>Amount</th></tr></thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><code>{{ order.order_number }}</code></td>
+                                <td>{{ order.buyer.username }}</td>
+                                <td>{{ order.farmer.username }}</td>
+                                <td><span class="badge-role status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                <td class="fw-bold text-success">UGX {{ order.total_amount|floatformat:0 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="ap-card">
+        <div class="ap-card-header">
+            <h5>🆕 Recent Registrations</h5>
+            <a href="{% url 'adminportal:user_management' %}" class="btn btn-sm btn-outline-success rounded-pill">Manage All</a>
+        </div>
+        <div class="table-responsive">
+            <table class="ap-table">
+                <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>District</th><th>Verified</th><th>Joined</th></tr></thead>
+                <tbody>
+                    {% for u in recent_users %}
+                    <tr>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>{{ u.email }}</td>
+                        <td><span class="badge-role role-{{ u.user_type }}">{{ u.user_type|title }}</span></td>
+                        <td>{{ u.district|default:"—" }}</td>
+                        <td>{% if u.is_verified %}<span class="text-success fw-bold">✅ Yes</span>{% else %}<span class="text-muted">No</span>{% endif %}</td>
+                        <td>{{ u.date_joined|date:"d M Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

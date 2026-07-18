@@ -1,15 +1,15 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Smart Agricultural Marketplace{% endblock %}</title>
+    <title>Sign In — AgriMarket Uganda</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon.png">
+    <link rel="apple-touch-icon" href="/static/images/favicon.png">
     <meta name="theme-color" content="#000000">
 
     <!-- PWA Manifest -->
@@ -951,12 +951,9 @@
 
             /* Notification dropdown: fit on screen */
             .notification-bell .dropdown-menu {
-                position: fixed !important;
-                top: 65px !important;
-                left: 0.5rem !important;
-                right: 0.5rem !important;
-                width: auto !important;
-                max-width: none !important;
+                width: calc(100vw - 1.5rem) !important;
+                max-width: 350px;
+                right: -0.5rem !important;
             }
 
             /* Cards: less padding */
@@ -1136,14 +1133,248 @@
         }
     </style>
     
-    {% block extra_css %}{% endblock %}
+    
+<style>
+    /* Remove main-content padding so split fills the full height */
+    .main-content { padding: 0 !important; }
+
+    .login-split {
+        display: flex;
+        min-height: calc(100vh - 76px);
+    }
+
+    /* LEFT: Brand panel */
+    .login-left {
+        flex: 1;
+        background: linear-gradient(160deg, #064e3b 0%, #0f172a 100%);
+        padding: 4rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-left::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300D084' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+    }
+
+    .login-left::after {
+        content: '';
+        position: absolute;
+        bottom: -120px;
+        right: -120px;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(0,208,132,0.18), transparent 65%);
+        pointer-events: none;
+    }
+
+    .login-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 3.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-brand i { font-size: 2rem; color: #00D084; }
+
+    .login-brand span {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 900;
+        font-size: 1.4rem;
+        color: #fff;
+        letter-spacing: -0.03em;
+    }
+
+    .login-headline {
+        font-family: 'Archivo', sans-serif;
+        font-size: clamp(2rem, 3.5vw, 2.75rem);
+        font-weight: 900;
+        color: #fff;
+        line-height: 1.18;
+        margin-bottom: 1rem;
+        letter-spacing: -0.03em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-headline .accent { color: #00D084; }
+
+    .login-sub {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.62);
+        line-height: 1.72;
+        margin-bottom: 2.5rem;
+        position: relative;
+        z-index: 1;
+        max-width: 420px;
+    }
+
+    .login-features {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+    }
+
+    .login-feature i { color: #00D084; font-size: 1.1rem; flex-shrink: 0; }
+
+    /* RIGHT: Form panel */
+    .login-right {
+        width: 480px;
+        min-width: 480px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2.75rem;
+        box-shadow: -8px 0 48px rgba(0,0,0,0.08);
+    }
+
+    .login-form-wrap { width: 100%; max-width: 380px; }
+
+    .login-form-title {
+        font-family: 'Archivo', sans-serif;
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 0.3rem;
+        letter-spacing: -0.04em;
+    }
+
+    .login-form-sub {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-form-sub a { color: #00D084; font-weight: 600; text-decoration: none; }
+    .login-form-sub a:hover { text-decoration: underline; }
+
+    /* Inline alert — appears right above the fields */
+    .login-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+        border: 1.5px solid;
+    }
+    .login-alert.alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+    .login-alert.alert-success {
+        background: #f0fdf9;
+        border-color: #bbf7d0;
+        color: #065f46;
+    }
+    .login-alert i { font-size: 1rem; margin-top: 0.1rem; flex-shrink: 0; }
+
+    .login-field { margin-bottom: 1.25rem; }
+
+    .login-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.4rem;
+    }
+
+    .login-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: #111827;
+        background: #fff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        outline: none;
+        display: block;
+    }
+
+    .login-input:focus {
+        border-color: #00D084;
+        box-shadow: 0 0 0 3px rgba(0,208,132,0.12);
+    }
+
+    .login-forgot {
+        text-align: right;
+        margin-top: 0.35rem;
+    }
+
+    .login-forgot a {
+        font-size: 0.82rem;
+        color: #6b7280;
+        text-decoration: none;
+    }
+
+    .login-forgot a:hover { color: #00D084; }
+
+    .login-submit {
+        width: 100%;
+        padding: 0.85rem;
+        background: #00D084;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        margin-top: 0.75rem;
+        letter-spacing: 0.3px;
+    }
+
+    .login-submit:hover {
+        background: #00b872;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,208,132,0.35);
+    }
+
+    .login-terms {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    @media (max-width: 900px) {
+        .login-split { flex-direction: column; }
+        .login-left { padding: 2.5rem 1.75rem; }
+        .login-right { width: 100%; min-width: unset; padding: 2rem 1.5rem; box-shadow: none; }
+        .login-headline { font-size: 1.85rem; }
+    }
+</style>
+
 </head>
 
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="{% url 'marketplace:home' %}">
+        <a class="navbar-brand" href="/">
             <i class="bi bi-basket"></i>
             <span>AgriMarket</span>
         </a>
@@ -1151,73 +1382,14 @@
         <!-- Right strip: auth + dark mode + mobile sidebar toggle -->
         <div class="ms-auto d-flex align-items-center gap-2">
 
-            {% if user.is_authenticated %}
-            <!-- Notification Bell -->
-            <div class="dropdown notification-bell">
-                <a class="nav-link position-relative px-2" href="#" role="button" data-bs-toggle="dropdown" aria-label="Notifications">
-                    <i class="bi bi-bell fs-5 text-white"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                          id="notification-badge" style="display:none;font-size:0.65rem;">0</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" style="max-width:350px;width:calc(100vw - 1.5rem);max-height:500px;overflow-y:auto;">
-                    <li class="dropdown-header">Notifications</li>
-                    <li><hr class="dropdown-divider"></li>
-                    <div id="notification-list">
-                        <li class="dropdown-item text-center text-muted"><small>Loading…</small></li>
-                    </div>
-                </ul>
-            </div>
-
-            <!-- 💬 Chat Inbox Button with Unread Badge -->
-            <a class="nav-link px-2" href="{% url 'chat:my_chats' %}"
-               id="chatNavBtn" title="My Negotiations" aria-label="Chat Inbox"
-               style="position:relative;display:inline-flex;align-items:center;">
-                <i class="bi bi-chat-dots-fill fs-5 text-white"></i>
-                <span id="chat-unread-badge"
-                      style="display:none;position:absolute;top:-4px;right:-6px;
-                             background:#16a34a;color:#fff;font-size:0.6rem;font-weight:700;
-                             min-width:16px;height:16px;border-radius:50px;
-                             padding:0 4px;line-height:16px;text-align:center;
-                             border:2px solid #1a1a2e;"></span>
-            </a>
-
-            <!-- User Dropdown -->
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle text-neon fw-bold d-flex align-items-center gap-1 px-2" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle fs-5"></i>
-                    <span class="d-none d-sm-inline">{{ user.username|title }}</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                      <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}"><i class="bi bi-speedometer2"></i> My Dashboard</a></li>
-                      {% if user.user_type == 'farmer' %}
-                      <li><a class="dropdown-item" href="{% url 'marketplace:add_product' %}"><i class="bi bi-plus-circle-fill text-success"></i> Add Product</a></li>
-                      {% endif %}
-                      <li><a class="dropdown-item" href="{% url 'orders:my_orders' %}"><i class="bi bi-bag-check-fill"></i> My Orders</a></li>
-                    <li><a class="dropdown-item" href="{% url 'inputs:my_pools' %}"><i class="bi bi-people-fill"></i> My Group Pools</a></li>
-                    <li><a class="dropdown-item" href="{% url 'chat:my_chats' %}">
-                        <i class="bi bi-chat-dots-fill"></i> My Negotiations
-                        <span id="chat-dropdown-badge" class="badge ms-1" style="background:#16a34a;display:none;font-size:.65rem;"></span>
-                    </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="{% url 'accounts:logout' %}" method="post" style="margin:0;">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger" style="cursor:pointer;border:none;background:none;width:100%;text-align:left;padding:0.6rem 1rem;">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-
-            {% else %}
-            <a class="nav-link text-white" href="{% url 'accounts:login' %}">
+            
+            <a class="nav-link text-white" href="/accounts/login/">
                 <i class="bi bi-box-arrow-in-right"></i> <span class="d-none d-md-inline">Login</span>
             </a>
-            <a class="btn btn-outline-success btn-sm" href="{% url 'accounts:register' %}">
+            <a class="btn btn-outline-success btn-sm" href="/accounts/register/">
                 <i class="bi bi-person-plus"></i> <span class="d-none d-md-inline">Join Us</span>
             </a>
-            {% endif %}
+            
 
             <!-- Dark Mode Toggle -->
             <button id="darkModeToggle" class="btn btn-sm btn-outline-light rounded-circle"
@@ -1288,16 +1460,7 @@
 })();
 </script>
 
-{% if messages %}
-<div class="container mt-3">
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <div class="page-wrapper">
     <!-- GLOBAL LEFT SIDEBAR -->
@@ -1308,81 +1471,152 @@
         <ul class="sidebar-nav">
             <li class="nav-section">Main</li>
             <li class="nav-item">
-                <a href="{% url 'marketplace:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <a href="/" class="">
                     <i class="bi bi-house-door"></i> Home
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'marketplace:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <a href="/products/" class="">
                     <i class="bi bi-grid-3x3-gap"></i> Produce Market
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'inputs:input_store' %}" class="{% if request.resolver_match.url_name == 'input_store' %}active{% endif %}">
+                <a href="/inputs/" class="">
                     <i class="bi bi-shop-window"></i> Input Store
                 </a>
             </li>
 
             <li class="nav-section">Tools</li>
             <li class="nav-item">
-                <a href="{% url 'news:news_list' %}" class="{% if request.resolver_match.url_name == 'news_list' %}active{% endif %}">
+                <a href="/news/" class="">
                     <i class="bi bi-newspaper"></i> Agri-Pulse News
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'weather:climate_suite' %}" class="{% if request.resolver_match.url_name == 'climate_suite' %}active{% endif %}">
+                <a href="/weather/" class="">
                     <i class="bi bi-cloud-sun"></i> Climate Suite
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'marketplace:market_prices' %}" class="{% if request.resolver_match.url_name == 'market_prices' %}active{% endif %}">
+                <a href="/market-prices/" class="">
                     <i class="bi bi-graph-up-arrow"></i> Price Tracker
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'inputs:group_buy_list' %}" class="{% if request.resolver_match.url_name == 'group_buy_list' %}active{% endif %}">
+                <a href="/inputs/group-buy/list/" class="">
                     <i class="bi bi-people-fill"></i> Group Buying
                 </a>
             </li>
             
-            {% if not user.is_authenticated or user.user_type != 'farmer' %}
-              <li class="nav-item">
-                  <a href="{% url 'marketplace:farmer_list' %}" class="{% if request.resolver_match.url_name == 'farmer_list' %}active{% endif %}">
-                      <i class="bi bi-person-lines-fill"></i> Farmer Directory
-                  </a>
-              </li>
-            {% endif %}
+            <li class="nav-item">
+                <a href="/farmers/" class="">
+                    <i class="bi bi-person-lines-fill"></i> Farmer Directory
+                </a>
+            </li>
 
-            {% if user.is_authenticated %}
-            <li class="nav-section">My Account</li>
-            <li class="nav-item">
-                <a href="{% url 'accounts:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-speedometer2"></i> My Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'orders:my_orders' %}" class="{% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
-                    <i class="bi bi-bag-check-fill"></i> My Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'chat:my_chats' %}" class="{% if 'chat' in request.path %}active{% endif %} d-flex align-items-center justify-content-between">
-                    <span><i class="bi bi-chat-dots-fill"></i> My Negotiations</span>
-                    <span id="sidebar-chat-badge" class="badge rounded-pill" style="background:#16a34a;font-size:.65rem;display:none;"></span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'accounts:edit_profile' %}" class="{% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
-                    <i class="bi bi-person-gear"></i> Edit Profile
-                </a>
-            </li>
-            {% endif %}
+            
         </ul>
     </aside>
 
     <main class="main-content">
         <div class="container-fluid px-0">
-            {% block content %}{% endblock %}
+            
+<div class="login-split">
+
+    <!-- LEFT: Brand panel -->
+    <div class="login-left">
+        <div class="login-brand">
+            <i class="bi bi-basket"></i>
+            <span>AgriMarket Uganda</span>
+        </div>
+
+        <h1 class="login-headline">
+            Grow Your Farm,<br>
+            <span class="accent">Grow Your Income</span>
+        </h1>
+
+        <p class="login-sub">
+            Uganda's agricultural marketplace connecting farmers directly with buyers, suppliers, and markets — no middlemen, better prices.
+        </p>
+
+        <div class="login-features">
+            <div class="login-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Sell directly to buyers across Uganda</span>
+            </div>
+            <div class="login-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Live market prices for all districts</span>
+            </div>
+            <div class="login-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Group buying to cut input costs by 30%+</span>
+            </div>
+            <div class="login-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Climate suite &amp; planting guidance</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Form panel -->
+    <div class="login-right">
+        <div class="login-form-wrap">
+            <h2 class="login-form-title">Welcome back</h2>
+            <p class="login-form-sub">
+                No account? <a href="/accounts/register/">Register for free</a>
+            </p>
+
+            <!-- Inline messages — positioned right above the form fields -->
+            
+
+            <form method="post" autocomplete="on">
+                <input type="hidden" name="csrfmiddlewaretoken" value="Zypk7LJlmdkluhWIvBTmUMx315Tzl2G3Iv39qz8HFIxnOSetu86X4qQXyIPituzX">
+
+                <div class="login-field">
+                    <label class="login-label" for="id_username">Email or Username</label>
+                    <input type="text" id="id_username" name="username" class="login-input"
+                           placeholder="Enter your email or username" required autocomplete="username">
+                </div>
+
+                <div class="login-field">
+                    <label class="login-label" for="id_password">Password</label>
+                    <input type="password" id="id_password" name="password" class="login-input"
+                           placeholder="Enter your password" required autocomplete="current-password">
+                    <div class="login-forgot">
+                        <a href="/accounts/password-reset/">Forgot password?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-submit">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+
+                <div style="margin-top: 1.5rem; text-align: center; position: relative;">
+                    <hr style="border-color: rgba(0,0,0,0.1); margin: 0;">
+                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ffffff; padding: 0 10px; color: #64748b; font-size: 0.9rem;">or</span>
+                </div>
+
+                <a href="/accounts/google/login/?next=%2Faccounts%2Fgoogle%2Flogin%2F" class="btn" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; margin-top: 1.5rem; padding: 0.875rem; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 500; color: #1e293b; background: #ffffff; transition: all 0.2s ease; text-decoration: none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Continue with Google
+                </a>
+
+            </form>
+
+            <p class="login-terms">
+                By signing in you agree to our terms of service.
+            </p>
+        </div>
+    </div>
+
+</div>
+
         </div>
     </main>
 </div>
@@ -1417,16 +1651,16 @@
             <div class="col-md-4 mb-3">
                 <h6 class="fw-bold">Quick Navigation</h6>
                 <div class="d-flex flex-column small">
-                    <a href="{% url 'marketplace:home' %}" class="mb-2">
+                    <a href="/" class="mb-2">
                         <i class="bi bi-chevron-right text-neon"></i> Home
                     </a>
-                    <a href="{% url 'marketplace:product_list' %}" class="mb-2">
+                    <a href="/products/" class="mb-2">
                         <i class="bi bi-chevron-right text-neon"></i> Browse Products
                     </a>
-                    <a href="{% url 'inputs:input_store' %}" class="mb-2">
+                    <a href="/inputs/" class="mb-2">
                         <i class="bi bi-chevron-right text-neon"></i> Farm Inputs
                     </a>
-                    <a href="{% url 'news:news_list' %}" class="mb-2">
+                    <a href="/news/" class="mb-2">
                         <i class="bi bi-chevron-right text-neon"></i> Agricultural News
                     </a>
                 </div>
@@ -1529,7 +1763,7 @@
 
 </script>
 
-{% block extra_js %}{% endblock %}
+
 
 <script>
 // Dark Mode Toggle
@@ -1565,112 +1799,7 @@
 </script>
 
 
-{% if user.is_authenticated %}
-<script>
-// Notification system
-let notificationInterval;
 
-function fetchNotifications() {
-    fetch('/notifications/api/')
-        .then(response => response.json())
-        .then(data => {
-            updateNotificationBadge(data.unread_count);
-            updateNotificationList(data.notifications);
-        })
-        .catch(error => console.error('Error fetching notifications:', error));
-}
-
-function updateNotificationBadge(count) {
-    const badge = document.getElementById('notification-badge');
-    if (count > 0) {
-        badge.textContent = count;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-function updateNotificationList(notifications) {
-    const listDiv = document.getElementById('notification-list');
-    
-    if (notifications.length === 0) {
-        listDiv.innerHTML = '<li class="dropdown-item text-center" style="color: var(--dust-light) !important;"><small>No notifications</small></li>';
-        return;
-    }
-    
-    listDiv.innerHTML = notifications.map(n => `
-        <li>
-            <a class="dropdown-item ${n.read ? '' : 'bg-light'}" 
-               href="${n.link || '#'}" 
-               onclick="markAsRead(${n.id}, '${n.link || ''}'); return false;">
-                <strong>${n.title}</strong>
-                <p class="mb-0 small">${n.message}</p>
-                <small>${new Date(n.created_at).toLocaleString()}</small>
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-    `).join('');
-}
-
-function markAsRead(notificationId, link) {
-    fetch(`/notifications/api/${notificationId}/read/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(() => {
-        if (link && link !== 'null' && link !== '#') {
-            window.location.href = link;
-        } else {
-            fetchNotifications();
-        }
-    })
-    .catch(error => console.error('Error marking as read:', error));
-}
-
-// Fetch notifications immediately and every 30 seconds
-fetchNotifications();
-notificationInterval = setInterval(fetchNotifications, 30000);
-</script>
-
-<!-- 💬 Chat Unread Badge Polling -->
-<script>
-(function() {
-  const chatBadge = document.getElementById('chat-unread-badge');
-  const chatDropdownBadge = document.getElementById('chat-dropdown-badge');
-  const sidebarBadge = document.getElementById('sidebar-chat-badge');
-
-  function updateChatBadge(count) {
-    if (!chatBadge) return;
-    if (count > 0) {
-      const label = count > 99 ? '99+' : count;
-      chatBadge.textContent = label;
-      chatBadge.style.display = 'inline-flex';
-      if (chatDropdownBadge) { chatDropdownBadge.textContent = label; chatDropdownBadge.style.display = 'inline-flex'; }
-      if (sidebarBadge) { sidebarBadge.textContent = label; sidebarBadge.style.display = 'inline-flex'; }
-    } else {
-      chatBadge.style.display = 'none';
-      if (chatDropdownBadge) chatDropdownBadge.style.display = 'none';
-      if (sidebarBadge) sidebarBadge.style.display = 'none';
-    }
-  }
-
-  function fetchChatUnread() {
-    fetch('/chat/unread-count/', {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => { if (data) updateChatBadge(data.unread_count); })
-    .catch(() => {});
-  }
-
-  // Start polling every 10 seconds
-  fetchChatUnread();
-  setInterval(fetchChatUnread, 10000);
-})();
-</script>
-{% endif %}
 
 <!-- ===== Global Password Show/Hide Toggle ===== -->
 <script>
@@ -1792,7 +1921,7 @@ notificationInterval = setInterval(fetchNotifications, 30000);
 <!-- PWA Install Banner (hidden by default, shown when browser offers install) -->
 <div id="pwa-install-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#000; color:#fff; padding:1rem 1.25rem; align-items:center; justify-content:space-between; gap:1rem; font-family:'DM Sans',sans-serif; box-shadow:0 -4px 24px rgba(0,0,0,0.3); border-top:2px solid #00D084;">
     <div style="display:flex; align-items:center; gap:0.75rem; flex:1;">
-        <img src="{% static 'images/icon-192x192.png' %}" alt="App Icon" style="width:40px; height:40px; border-radius:10px;">
+        <img src="/static/images/icon-192x192.png" alt="App Icon" style="width:40px; height:40px; border-radius:10px;">
         <div>
             <div style="font-weight:700; font-size:0.95rem;">Install Smart Agri Market</div>
             <div style="font-size:0.8rem; color:rgba(255,255,255,0.6);">Add to home screen for quick access</div>

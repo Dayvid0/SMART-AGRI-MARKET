@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %}Analytics Dashboard — Admin Portal{% endblock %}
+
+{% block content %}
+<style>
+:root { --g: #16a34a; --dark: #0f172a; }
+.ap-wrap { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
+.ap-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1a3a5c 60%, #0f766e 100%);
+    color: #fff; padding: 2rem 2.5rem; border-radius: 20px; margin-bottom: 2rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.ap-header h1 { font-size: 1.9rem; font-weight: 900; margin: 0; }
+.ap-header p { color: rgba(255,255,255,0.6); margin: 0; font-size: 0.9rem; }
+.ap-nav { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.ap-nav a { display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.1rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; text-decoration: none; background: #f1f5f9; color: #374151; border: 2px solid #e2e8f0; transition: all 0.2s; }
+.ap-nav a.active, .ap-nav a:hover { background: var(--g); color: #fff; border-color: var(--g); }
+
+/* KPI Cards */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.kpi-card { background: #fff; border-radius: 16px; padding: 1.4rem 1.5rem; border: 1px solid #e8edf3; box-shadow: 0 2px 12px rgba(0,0,0,0.04); position: relative; overflow: hidden; }
+.kpi-card::after { content: ''; position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.07; }
+.kpi-card.green::after { background: #16a34a; }
+.kpi-card.blue::after  { background: #2563eb; }
+.kpi-card.amber::after { background: #d97706; }
+.kpi-card.purple::after{ background: #7c3aed; }
+.kpi-card.teal::after  { background: #0891b2; }
+.kpi-card.red::after   { background: #dc2626; }
+.kpi-icon { font-size: 1.6rem; margin-bottom: 0.6rem; display: block; }
+.kpi-val { font-size: 1.9rem; font-weight: 900; color: var(--dark); line-height: 1; }
+.kpi-val.sm { font-size: 1.3rem; }
+.kpi-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.3rem; }
+
+/* Chart cards */
+.chart-grid { display: grid; gap: 1.5rem; margin-bottom: 2rem; }
+.chart-grid-2 { grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); }
+.chart-grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.chart-card { background: #fff; border-radius: 16px; padding: 1.5rem; border: 1px solid #e8edf3; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.chart-card h6 { font-weight: 800; font-size: 0.95rem; color: var(--dark); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.chart-card h6 .badge-sub { font-size: 0.7rem; font-weight: 600; background: #f0fdf4; color: #16a34a; padding: 2px 8px; border-radius: 50px; }
+
+canvas { max-height: 280px; }
+
+@media (max-width: 640px) {
+    .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .ap-header { padding: 1.25rem; }
+    .ap-header h1 { font-size: 1.4rem; }
+}
+</style>
+
+<div class="ap-wrap">
+    <!-- Header -->
+    <div class="ap-header">
+        <div>
+            <h1>📊 Analytics Dashboard</h1>
+            <p>Live platform insights — revenue, users, orders & products</p>
+        </div>
+        <div style="text-align:right;">
+            <small class="d-block" style="color:rgba(255,255,255,0.5);">Last 30 days · Auto-updates on page load</small>
+            <small style="color:rgba(255,255,255,0.5);">Logged in as <strong>{{ request.user.username }}</strong></small>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <div class="ap-nav">
+        <a href="{% url 'adminportal:dashboard' %}"><i class="bi bi-speedometer2"></i> Overview</a>
+        <a href="{% url 'adminportal:analytics' %}" class="active"><i class="bi bi-bar-chart-fill"></i> Analytics</a>
+        <a href="{% url 'adminportal:user_management' %}"><i class="bi bi-people-fill"></i> Users</a>
+        <a href="{% url 'adminportal:verification_queue' %}">
+            <i class="bi bi-shield-check"></i> Verifications
+            {% if pending_verifications > 0 %}<span class="badge bg-danger ms-1" style="font-size:0.6rem;">{{ pending_verifications }}</span>{% endif %}
+        </a>
+        <a href="{% url 'adminportal:order_overview' %}"><i class="bi bi-bag-check-fill"></i> Orders</a>
+        <a href="/admin/" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Django Admin</a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card green">
+            <span class="kpi-icon">💰</span>
+            <div class="kpi-val sm">UGX {{ total_revenue|floatformat:0 }}</div>
+            <div class="kpi-label">Total Revenue (Completed)</div>
+        </div>
+        <div class="kpi-card blue">
+            <span class="kpi-icon">📦</span>
+            <div class="kpi-val">{{ total_orders }}</div>
+            <div class="kpi-label">Total Orders</div>
+        </div>
+        <div class="kpi-card amber">
+            <span class="kpi-icon">💵</span>
+            <div class="kpi-val sm">UGX {{ avg_order_value|floatformat:0 }}</div>
+            <div class="kpi-label">Avg. Order Value</div>
+        </div>
+        <div class="kpi-card purple">
+            <span class="kpi-icon">👥</span>
+            <div class="kpi-val">{{ total_users }}</div>
+            <div class="kpi-label">Total Users</div>
+        </div>
+        <div class="kpi-card teal">
+            <span class="kpi-icon">🌾</span>
+            <div class="kpi-val">{{ total_products }}</div>
+            <div class="kpi-label">Active Listings</div>
+        </div>
+        <div class="kpi-card red">
+            <span class="kpi-icon">✅</span>
+            <div class="kpi-val">{{ verified_users }}</div>
+            <div class="kpi-label">Verified Users</div>
+        </div>
+    </div>
+
+    <!-- Row 1: Revenue + User Growth -->
+    <div class="chart-grid chart-grid-2">
+        <div class="chart-card">
+            <h6>📈 Revenue Trend <span class="badge-sub">Last 30 days</span></h6>
+            <canvas id="revenueChart"></canvas>
+            {% if not revenue_data or revenue_data == '[]' %}
+            <p class="text-center text-muted mt-3" style="font-size:0.85rem;">No completed/delivered orders in the last 30 days yet.</p>
+            {% endif %}
+        </div>
+        <div class="chart-card">
+            <h6>👥 New User Registrations <span class="badge-sub">Last 30 days</span></h6>
+            <canvas id="userGrowthChart"></canvas>
+            {% if not user_data or user_data == '[]' %}
+            <p class="text-center text-muted mt-3" style="font-size:0.85rem;">No new registrations in the last 30 days yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Row 2: Order Status + Users by Role -->
+    <div class="chart-grid chart-grid-2">
+        <div class="chart-card">
+            <h6>🔄 Order Status Breakdown <span class="badge-sub">All time</span></h6>
+            <div style="max-width:300px;margin:0 auto;">
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h6>🏷️ Users by Role <span class="badge-sub">All time</span></h6>
+            <canvas id="usersRoleChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Row 3: Top Products + District Map -->
+    <div class="chart-grid chart-grid-2">
+        <div class="chart-card">
+            <h6>🌾 Top Products by Volume <span class="badge-sub">All time</span></h6>
+            <canvas id="topProductsChart"></canvas>
+            {% if not top_product_labels or top_product_labels == '[]' %}
+            <p class="text-center text-muted mt-3" style="font-size:0.85rem;">No orders yet — product sales will appear here.</p>
+            {% endif %}
+        </div>
+        <div class="chart-card">
+            <h6>🗺️ Orders by Farmer District <span class="badge-sub">Top 10</span></h6>
+            <canvas id="districtChart"></canvas>
+            {% if not district_labels or district_labels == '[]' %}
+            <p class="text-center text-muted mt-3" style="font-size:0.85rem;">No district data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+const COLORS = ['#16a34a','#2563eb','#d97706','#7c3aed','#0891b2','#dc2626','#059669','#ea580c','#6d28d9','#0284c7'];
+const LIGHT   = ['rgba(22,163,74,.15)','rgba(37,99,235,.15)','rgba(217,119,6,.15)','rgba(124,58,237,.15)','rgba(8,145,178,.15)'];
+
+Chart.defaults.font.family = "'Inter','Outfit',sans-serif";
+Chart.defaults.color = '#64748b';
+
+// ── Revenue Line ──
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: {{ revenue_labels|safe }},
+        datasets: [{
+            label: 'Revenue (UGX)',
+            data: {{ revenue_data|safe }},
+            borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.1)',
+            borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#16a34a',
+            fill: true, tension: 0.4
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => 'UGX '+v.toLocaleString() } } } }
+});
+
+// ── User Growth Bar ──
+new Chart(document.getElementById('userGrowthChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ user_labels|safe }},
+        datasets: [{
+            label: 'New Users',
+            data: {{ user_data|safe }},
+            backgroundColor: 'rgba(37,99,235,0.75)', borderRadius: 6
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+// ── Order Status Donut ──
+new Chart(document.getElementById('orderStatusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{ data: {{ status_data|safe }}, backgroundColor: COLORS, borderWidth: 2 }]
+    },
+    options: { responsive: true, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } } } }
+});
+
+// ── Users by Role Bar ──
+new Chart(document.getElementById('usersRoleChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ role_labels|safe }},
+        datasets: [{
+            label: 'Users',
+            data: {{ role_data|safe }},
+            backgroundColor: COLORS.slice(0,5), borderRadius: 8
+        }]
+    },
+    options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+// ── Top Products Horizontal Bar ──
+new Chart(document.getElementById('topProductsChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ top_product_labels|safe }},
+        datasets: [{
+            label: 'Units Sold',
+            data: {{ top_product_units|safe }},
+            backgroundColor: 'rgba(22,163,74,0.75)', borderRadius: 6
+        }]
+    },
+    options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+});
+
+// ── District Orders Polar ──
+new Chart(document.getElementById('districtChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ district_labels|safe }},
+        datasets: [{
+            label: 'Orders',
+            data: {{ district_data|safe }},
+            backgroundColor: COLORS, borderRadius: 6
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+</script>
+{% endblock %}

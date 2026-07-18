@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Verification Queue — Admin Portal{% endblock %}
+{% block content %}
+<style>
+.ap-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+.ap-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: #fff; padding: 1.5rem 2rem; border-radius: 16px; margin-bottom: 2rem; }
+.ap-nav { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.ap-nav a { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 50px; font-weight: 600; font-size: 0.88rem; text-decoration: none; background: #f1f5f9; color: #374151; border: 2px solid #e2e8f0; transition: all 0.2s; }
+.ap-nav a.active, .ap-nav a:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+.vr-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+.vr-avatar { width: 52px; height: 52px; border-radius: 50%; background: #dcfce7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; color: #16a34a; flex-shrink: 0; }
+.vr-info { flex: 1; min-width: 200px; }
+.vr-info h5 { font-weight: 700; margin-bottom: 0.25rem; }
+.vr-info .meta { font-size: 0.82rem; color: #64748b; }
+.vr-docs img { height: 80px; width: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; }
+.vr-actions { display: flex; gap: 0.75rem; align-items: center; }
+.btn-approve { background: #16a34a; color: #fff; border: none; border-radius: 10px; padding: 0.5rem 1.25rem; font-weight: 700; cursor: pointer; }
+.btn-reject { background: #fee2e2; color: #991b1b; border: none; border-radius: 10px; padding: 0.5rem 1.25rem; font-weight: 700; cursor: pointer; }
+.status-badge { padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; }
+.badge-pending { background: #fef9c3; color: #854d0e; }
+.badge-approved { background: #dcfce7; color: #166534; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.tab-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.tab-filters a { padding: 0.5rem 1.25rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; text-decoration: none; border: 2px solid #e2e8f0; color: #374151; }
+.tab-filters a.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+</style>
+<div class="ap-wrap">
+    <div class="ap-header">
+        <h1 class="fw-800 mb-1" style="font-size:1.6rem;">🛡️ Identity Verification Queue</h1>
+        <p class="mb-0" style="opacity:0.65;font-size:0.9rem;">{{ pending_count }} pending request{{ pending_count|pluralize }} awaiting review</p>
+    </div>
+    <div class="ap-nav">
+        <a href="{% url 'adminportal:dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="{% url 'adminportal:user_management' %}"><i class="bi bi-people-fill"></i> Users</a>
+        <a href="{% url 'adminportal:verification_queue' %}" class="active"><i class="bi bi-shield-check"></i> Verifications</a>
+        <a href="{% url 'adminportal:order_overview' %}"><i class="bi bi-bag-check-fill"></i> Orders</a>
+    </div>
+
+    <div class="tab-filters">
+        <a href="?status=pending" {% if status_filter == 'pending' %}class="active"{% endif %}>⏳ Pending ({{ pending_count }})</a>
+        <a href="?status=approved" {% if status_filter == 'approved' %}class="active"{% endif %}>✅ Approved</a>
+        <a href="?status=rejected" {% if status_filter == 'rejected' %}class="active"{% endif %}>❌ Rejected</a>
+        <a href="?" {% if not status_filter %}class="active"{% endif %}>All</a>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+    {% endif %}
+
+    {% for vr in verifications %}
+    <div class="vr-card">
+        <div class="vr-avatar">{{ vr.user.username|first|upper }}</div>
+        <div class="vr-info">
+            <h5>{{ vr.user.get_full_name|default:vr.user.username }}
+                <span class="badge-role role-{{ vr.user.user_type }} ms-2" style="padding:3px 10px;border-radius:50px;font-size:0.7rem;font-weight:700;">{{ vr.user.user_type|title }}</span>
+            </h5>
+            <div class="meta">📧 {{ vr.user.email }} · 📞 {{ vr.user.phone|default:"No phone" }} · 📍 {{ vr.user.district|default:"No district" }}</div>
+            {% if vr.business_reg_number %}<div class="meta mt-1">🏢 Business Reg: <strong>{{ vr.business_reg_number }}</strong></div>{% endif %}
+            {% if vr.notes %}<div class="mt-1 text-muted" style="font-size:0.85rem;">📝 {{ vr.notes }}</div>{% endif %}
+            <div class="mt-1"><small class="text-muted">Submitted: {{ vr.submitted_at|date:"d M Y, H:i" }}</small></div>
+        </div>
+
+        <div>
+            <div class="mb-2"><span class="status-badge badge-{{ vr.status }}">{{ vr.get_status_display }}</span></div>
+            {% if vr.national_id_image %}
+            <a href="{{ vr.national_id_image.url }}" target="_blank">
+                <img src="{{ vr.national_id_image.url }}" alt="National ID" class="me-2">
+            </a>
+            {% endif %}
+            {% if vr.farm_or_business_photo %}
+            <a href="{{ vr.farm_or_business_photo.url }}" target="_blank">
+                <img src="{{ vr.farm_or_business_photo.url }}" alt="Farm/Business Photo">
+            </a>
+            {% endif %}
+        </div>
+
+        {% if vr.status == 'pending' %}
+        <div class="vr-actions">
+            <form method="post" action="{% url 'adminportal:approve_verification' vr.id %}">
+                {% csrf_token %}
+                <button class="btn-approve" type="submit">✅ Approve</button>
+            </form>
+            <form method="post" action="{% url 'adminportal:reject_verification' vr.id %}">
+                {% csrf_token %}
+                <button class="btn-reject" type="submit">❌ Reject</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="text-muted" style="font-size:0.82rem;">
+            Reviewed: {{ vr.reviewed_at|date:"d M Y"|default:"—" }}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem;">🛡️</div>
+        <p class="mt-2">No {{ status_filter }} verification requests found.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

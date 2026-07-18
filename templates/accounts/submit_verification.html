@@ -124,10 +124,28 @@
                   placeholder="Any extra information that helps us verify your identity...">{{ vr.notes|default:'' }}</textarea>
       </div>
 
-      <button type="submit" class="btn-verify">
-        🛡️ Submit Verification Request
-      </button>
+      <button type="submit" class="btn btn-success w-100 py-3 rounded-pill fw-bold" style="font-size:1.1rem;">Submit for Verification</button>
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = document.querySelectorAll('.upload-zone input[type="file"]');
+    
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : null;
+            if (fileName) {
+                // Find the text container within the label
+                const labelText = this.parentElement.querySelector('.fw-600');
+                if (labelText) {
+                    labelText.textContent = 'Selected: ' + fileName;
+                    labelText.classList.add('text-success');
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
